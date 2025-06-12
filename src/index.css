@@ -7,13 +7,13 @@
 @layer base {
   :root {
     --background: 255 255 255;
-    --foreground: 17 17 17;
+    --foreground: 31 41 55;
 
     --card: 255 255 255;
-    --card-foreground: 17 17 17;
+    --card-foreground: 31 41 55;
 
     --popover: 255 255 255;
-    --popover-foreground: 17 17 17;
+    --popover-foreground: 31 41 55;
 
     /* Brand color: Azul suave */
     --primary: 37 99 235;
@@ -25,11 +25,11 @@
 
     /* Muted foreground: Gris medio */
     --muted: 241 245 249;
-    --muted-foreground: 107 114 128;
+    --muted-foreground: 75 85 99;
 
     /* Accent color: Gris claro */
     --accent: 229 231 235;
-    --accent-foreground: 17 17 17;
+    --accent-foreground: 31 41 55;
 
     /* Success/CTA color: Verde claro */
     --destructive: 16 185 129;
@@ -43,11 +43,11 @@
     --radius: 0.5rem;
 
     --sidebar-background: 255 255 255;
-    --sidebar-foreground: 17 17 17;
+    --sidebar-foreground: 31 41 55;
     --sidebar-primary: 37 99 235;
     --sidebar-primary-foreground: 255 255 255;
     --sidebar-accent: 229 231 235;
-    --sidebar-accent-foreground: 17 17 17;
+    --sidebar-accent-foreground: 31 41 55;
     --sidebar-border: 229 231 235;
     --sidebar-ring: 37 99 235;
   }
