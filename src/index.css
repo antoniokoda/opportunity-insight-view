@@ -1,99 +1,51 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Sistema de diseño optimizado para máxima legibilidad y contraste */
-
 @layer base {
   :root {
-    /* Fondos principales - blancos puros para máximo contraste */
-    --background: 255 255 255;
-    --foreground: 17 17 17; /* #111111 - Negro casi puro para texto principal */
-
-    --card: 255 255 255;
-    --card-foreground: 17 17 17;
-
-    --popover: 255 255 255;
-    --popover-foreground: 17 17 17;
-
-    /* Color primario - Azul con excelente contraste */
-    --primary: 37 99 235; /* #2563EB - Azul que cumple WCAG AAA */
-    --primary-foreground: 255 255 255; /* Blanco puro sobre azul */
-
-    /* Color secundario - Gris oscuro legible */
-    --secondary: 31 41 55; /* #1F2937 - Gris muy oscuro para texto secundario */
-    --secondary-foreground: 255 255 255;
-
-    /* Colores de texto muted - Gris medio con contraste suficiente */
-    --muted: 248 250 252; /* #F8FAFC - Fondo muy claro */
-    --muted-foreground: 75 85 99; /* #4B5563 - Gris medio legible (contraste 7:1) */
-
-    /* Color de acento - Gris claro para hover states */
-    --accent: 241 245 249; /* #F1F5F9 - Gris muy claro para hover */
-    --accent-foreground: 17 17 17; /* Negro para texto sobre accent */
-
-    /* Color destructivo/éxito - Verde oscuro legible */
-    --destructive: 220 38 38; /* #DC2626 - Rojo con buen contraste */
-    --destructive-foreground: 255 255 255;
-
-    /* Bordes y elementos de interfaz */
-    --border: 226 232 240; /* #E2E8F0 - Gris claro para bordes */
-    --input: 226 232 240;
-    --ring: 37 99 235; /* Mismo azul primario para focus */
-
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
     --radius: 0.5rem;
-
-    /* Sidebar con colores consistentes */
-    --sidebar-background: 255 255 255;
-    --sidebar-foreground: 17 17 17;
-    --sidebar-primary: 37 99 235;
-    --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 241 245 249;
-    --sidebar-accent-foreground: 17 17 17;
-    --sidebar-border: 226 232 240;
-    --sidebar-ring: 37 99 235;
   }
 
   .dark {
-    /* Modo oscuro con contrastes invertidos pero igualmente legibles */
-    --background: 15 23 42; /* #0F172A - Azul muy oscuro */
-    --foreground: 248 250 252; /* #F8FAFC - Blanco casi puro */
-
-    --card: 30 41 59; /* #1E293B */
-    --card-foreground: 248 250 252;
-
-    --popover: 30 41 59;
-    --popover-foreground: 248 250 252;
-
-    /* Azul más claro para modo oscuro pero manteniendo contraste */
-    --primary: 59 130 246; /* #3B82F6 */
-    --primary-foreground: 15 23 42; /* Texto oscuro sobre azul claro */
-
-    --secondary: 51 65 85; /* #334155 */
-    --secondary-foreground: 248 250 252;
-
-    --muted: 30 41 59;
-    --muted-foreground: 148 163 184; /* #94A3B8 - Gris claro legible */
-
-    --accent: 51 65 85;
-    --accent-foreground: 248 250 252;
-
-    --destructive: 239 68 68; /* #EF4444 - Rojo más claro para modo oscuro */
-    --destructive-foreground: 15 23 42;
-
-    --border: 51 65 85;
-    --input: 51 65 85;
-    --ring: 59 130 246;
-    
-    --sidebar-background: 15 23 42;
-    --sidebar-foreground: 248 250 252;
-    --sidebar-primary: 59 130 246;
-    --sidebar-primary-foreground: 15 23 42;
-    --sidebar-accent: 51 65 85;
-    --sidebar-accent-foreground: 248 250 252;
-    --sidebar-border: 51 65 85;
-    --sidebar-ring: 59 130 246;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 0 0% 98%;
   }
 }
 
@@ -104,59 +56,5 @@
 
   body {
     @apply bg-background text-foreground;
-    /* Mejoramos la legibilidad del texto */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
-
-  /* Aseguramos que todos los enlaces tengan buen contraste */
-  a {
-    @apply text-primary hover:text-primary/80;
-  }
-
-  /* Estados de placeholder más legibles */
-  ::placeholder {
-    @apply text-muted-foreground opacity-70;
-  }
-
-  /* Estados de disabled más claros */
-  :disabled {
-    @apply opacity-50 cursor-not-allowed;
-  }
-}
-
-/* Scrollbar mejorado para mejor visibilidad */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-muted;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/30 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground/50;
-}
-
-/* Estados de focus más visibles */
-:focus-visible {
-  @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
-}
-
-/* Mejoras de contraste para elementos específicos */
-.text-subtle {
-  @apply text-muted-foreground;
-}
-
-.bg-subtle {
-  @apply bg-muted;
-}
-
-/* Estados hover mejorados */
-.hover-lift {
-  @apply transition-all duration-200 hover:shadow-lg hover:shadow-primary/5;
 }
