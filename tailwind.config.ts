@@ -63,28 +63,39 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// CRM specific colors
-				blue: {
-					50: '#eff6ff',
-					100: '#dbeafe',
-					200: '#bfdbfe',
-					300: '#93c5fd',
-					400: '#60a5fa',
-					500: '#3b82f6',
-					600: '#2563eb',
-					700: '#1d4ed8',
-					800: '#1e40af',
-					900: '#1e3a8a',
-				},
+				// Colores específicos del CRM con máximo contraste
+				'text-primary': '#111111', // Negro casi puro
+				'text-secondary': '#1F2937', // Gris muy oscuro
+				'text-muted': '#4B5563', // Gris medio con contraste 7:1
+				'text-subtle': '#6B7280', // Gris claro para elementos menos importantes
 				success: {
-					50: '#f0fdf4',
-					500: '#22c55e',
-					600: '#16a34a',
+					50: '#F0FDF4',
+					100: '#DCFCE7',
+					500: '#16A34A', // Verde con excelente contraste
+					600: '#15803D',
+					700: '#166534',
+					foreground: '#FFFFFF'
 				},
 				warning: {
-					50: '#fffbeb',
-					500: '#f59e0b',
-					600: '#d97706',
+					50: '#FFFBEB',
+					100: '#FEF3C7',
+					500: '#D97706', // Naranja con buen contraste
+					600: '#C2410C',
+					700: '#B45309',
+					foreground: '#FFFFFF'
+				},
+				error: {
+					50: '#FEF2F2',
+					100: '#FEE2E2',
+					500: '#DC2626', // Rojo con contraste WCAG AAA
+					600: '#B91C1C',
+					700: '#991B1B',
+					foreground: '#FFFFFF'
+				},
+				// Estados específicos para mejor UX
+				hover: {
+					primary: '#1D4ED8', // Azul más oscuro para hover
+					secondary: '#F9FAFB', // Gris muy claro para hover en fondos claros
 				}
 			},
 			borderRadius: {
@@ -113,6 +124,15 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			// Tipografía mejorada para legibilidad
+			fontSize: {
+				'xs': ['0.75rem', { lineHeight: '1.5', letterSpacing: '0.025em' }],
+				'sm': ['0.875rem', { lineHeight: '1.5', letterSpacing: '0.025em' }],
+				'base': ['1rem', { lineHeight: '1.6', letterSpacing: '0' }],
+				'lg': ['1.125rem', { lineHeight: '1.6', letterSpacing: '-0.025em' }],
+				'xl': ['1.25rem', { lineHeight: '1.5', letterSpacing: '-0.025em' }],
+				'2xl': ['1.5rem', { lineHeight: '1.4', letterSpacing: '-0.025em' }],
 			}
 		}
 	},
