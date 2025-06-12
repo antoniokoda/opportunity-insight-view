@@ -1,10 +1,9 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { FiDollarSign, FiTrendingUp, FiPhone, FiUsers } from 'react-icons/fi';
+import { DollarSign, TrendingUp, Phone, Users } from 'lucide-react';
 import { opportunities, salespeople } from '@/data/mockData';
 
 const months = [
@@ -163,28 +162,28 @@ export const Dashboard: React.FC = () => {
           value={`$${kpis.totalRevenue.toLocaleString()}`}
           change="+12.5%"
           changeType="positive"
-          icon={<FiDollarSign size={24} />}
+          icon={<DollarSign size={24} />}
         />
         <KpiCard
           title="Cash Collected"
           value={`$${kpis.totalCash.toLocaleString()}`}
           change="+8.2%"
           changeType="positive"
-          icon={<FiTrendingUp size={24} />}
+          icon={<TrendingUp size={24} />}
         />
         <KpiCard
           title="Total Llamadas"
           value={kpis.totalCalls}
           change="+15.3%"
           changeType="positive"
-          icon={<FiPhone size={24} />}
+          icon={<Phone size={24} />}
         />
         <KpiCard
           title="Oportunidades Activas"
           value={kpis.activeOpportunities}
           change="-2.1%"
           changeType="negative"
-          icon={<FiUsers size={24} />}
+          icon={<Users size={24} />}
         />
       </div>
 

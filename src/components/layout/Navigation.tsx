@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { FiHome, FiBriefcase, FiCalendar } from 'react-icons/fi';
+import { Home, Briefcase, Calendar } from 'lucide-react';
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: FiHome },
-  { to: '/opportunities', label: 'Oportunidades', icon: FiBriefcase },
-  { to: '/calendar', label: 'Calendario', icon: FiCalendar },
+  { to: '/', label: 'Dashboard', icon: Home },
+  { to: '/opportunities', label: 'Oportunidades', icon: Briefcase },
+  { to: '/calendar', label: 'Calendario', icon: Calendar },
 ];
 
 export const Navigation: React.FC = () => {

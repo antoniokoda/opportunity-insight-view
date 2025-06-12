@@ -1,9 +1,8 @@
-
 import React, { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FiPhone, FiCalendar, FiClock, FiPlus } from 'react-icons/fi';
+import { Phone, Calendar as CalendarIcon, Clock, Plus } from 'lucide-react';
 import { opportunities, upcomingCalls, salespeople } from '@/data/mockData';
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -57,7 +56,7 @@ export const Calendar: React.FC = () => {
           <p className="text-muted-foreground">Gestiona tus llamadas y reuniones</p>
         </div>
         <Button className="flex items-center gap-2">
-          <FiPlus size={16} />
+          <Plus size={16} />
           Nueva Llamada
         </Button>
       </div>
@@ -108,7 +107,7 @@ export const Calendar: React.FC = () => {
                           className="text-xs p-2 rounded bg-muted hover:bg-accent cursor-pointer transition-colors"
                         >
                           <div className="flex items-center gap-1 mb-1">
-                            <FiPhone size={12} />
+                            <Phone size={12} />
                             <span className="font-medium truncate">
                               {call.type} #{call.number}
                             </span>
@@ -130,7 +129,7 @@ export const Calendar: React.FC = () => {
         <div className="space-y-6">
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <FiCalendar size={20} />
+              <CalendarIcon size={20} />
               Próximas Llamadas
             </h3>
             
@@ -155,9 +154,9 @@ export const Calendar: React.FC = () => {
                     </p>
                     
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <FiCalendar size={12} />
+                      <CalendarIcon size={12} />
                       {format(new Date(call.date), 'dd MMM', { locale: es })}
-                      <FiClock size={12} />
+                      <Clock size={12} />
                       {format(new Date(call.date), 'HH:mm')}
                     </div>
                   </div>

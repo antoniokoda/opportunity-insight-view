@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { FiPlus, FiPhone, FiDollarSign, FiCalendar, FiEdit } from 'react-icons/fi';
+import { Plus, Phone, DollarSign, Calendar, Edit } from 'lucide-react';
 import { opportunities, salespeople, type Opportunity } from '@/data/mockData';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -67,7 +66,7 @@ export const Opportunities: React.FC = () => {
           <p className="text-muted-foreground">Gestiona tus deals y propuestas</p>
         </div>
         <Button onClick={() => setShowAddForm(!showAddForm)} className="flex items-center gap-2">
-          <FiPlus size={16} />
+          <Plus size={16} />
           Nueva Oportunidad
         </Button>
       </div>
@@ -142,20 +141,20 @@ export const Opportunities: React.FC = () => {
                   </p>
                 </div>
                 <Button variant="ghost" size="sm">
-                  <FiEdit size={16} />
+                  <Edit size={16} />
                 </Button>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="flex items-center gap-2">
-                  <FiDollarSign className="text-primary" size={16} />
+                  <DollarSign className="text-primary" size={16} />
                   <div>
                     <p className="text-sm text-muted-foreground">Revenue</p>
                     <p className="font-semibold">${opportunity.revenue.toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <FiDollarSign className="text-success-600" size={16} />
+                  <DollarSign className="text-success-600" size={16} />
                   <div>
                     <p className="text-sm text-muted-foreground">Cash Collected</p>
                     <p className="font-semibold text-success-600">${opportunity.cash_collected.toLocaleString()}</p>
@@ -194,11 +193,11 @@ export const Opportunities: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium flex items-center gap-2">
-                    <FiPhone size={16} />
+                    <Phone size={16} />
                     Llamadas ({opportunity.calls.length})
                   </h4>
                   <Button variant="outline" size="sm">
-                    <FiPlus size={14} />
+                    <Plus size={14} />
                   </Button>
                 </div>
                 {opportunity.calls.length > 0 ? (

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FiUser, FiBell, FiSettings } from 'react-icons/fi';
+import { User, Bell, Settings } from 'lucide-react';
 
 export const Header: React.FC = () => {
   return (
@@ -12,13 +12,13 @@ export const Header: React.FC = () => {
         </div>
         <div className="flex items-center space-x-4">
           <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full transition-colors">
-            <FiBell size={20} />
+            <Bell size={20} />
           </button>
           <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full transition-colors">
-            <FiSettings size={20} />
+            <Settings size={20} />
           </button>
           <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full transition-colors">
-            <FiUser size={20} />
+            <User size={20} />
           </button>
         </div>
       </div>
