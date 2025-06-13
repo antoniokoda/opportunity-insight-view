@@ -19,7 +19,7 @@ interface DashboardFiltersProps {
   salespeople: Salesperson[];
   customLeadSources: string[];
   newSalesperson: { name: string; email: string };
-  setNewSalesperson: (value: { name: string; email: string }) => void;
+  setNewSalesperson: (value: { name: string; email: string } | ((prev: { name: string; email: string }) => { name: string; email: string })) => void;
   newLeadSource: string;
   setNewLeadSource: (value: string) => void;
   showSalespersonDialog: boolean;
