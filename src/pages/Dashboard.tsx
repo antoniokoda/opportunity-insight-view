@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
@@ -154,15 +155,16 @@ export const Dashboard = () => {
     return (
       <div className="space-y-8">
         <div className="animate-pulse space-y-8">
-          <div className="h-8 bg-apple-gray-200 rounded-xl w-1/3"></div>
+          {/* Loading skeleton con mejor contraste */}
+          <div className="h-8 bg-zinc-200 rounded-xl w-1/3"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-32 bg-apple-gray-200 rounded-2xl"></div>
+              <div key={i} className="h-32 bg-zinc-200 rounded-2xl"></div>
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="h-96 bg-apple-gray-200 rounded-2xl"></div>
-            <div className="h-96 bg-apple-gray-200 rounded-2xl"></div>
+            <div className="h-96 bg-zinc-200 rounded-2xl"></div>
+            <div className="h-96 bg-zinc-200 rounded-2xl"></div>
           </div>
         </div>
       </div>
@@ -173,8 +175,10 @@ export const Dashboard = () => {
     <div className="space-y-10">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-4xl font-bold text-apple-gray-900 tracking-tight mb-2">Dashboard</h1>
-          <p className="text-lg text-apple-gray-600 font-medium">
+          {/* Título principal con color primario para máximo contraste - Tarea 1.2 */}
+          <h1 className="text-4xl font-bold text-zinc-900 tracking-tight mb-2">Dashboard</h1>
+          {/* Subtítulo con color secundario legible - Tarea 1.2 */}
+          <p className="text-lg text-zinc-600 font-medium">
             Vista general de tu rendimiento de ventas
           </p>
         </div>
@@ -209,18 +213,24 @@ export const Dashboard = () => {
 
       <DashboardKpis kpis={kpis} kpiChanges={kpiChanges} />
 
-      <DashboardCharts 
-        chartData={chartData} 
-        leadSourceData={leadSourceData}
-        visibleMetrics={visibleMetrics}
-        setVisibleMetrics={setVisibleMetrics}
-      />
+      {/* Separador sutil entre secciones principales - Tarea 2.2 */}
+      <div className="border-t border-zinc-200 pt-10">
+        <DashboardCharts 
+          chartData={chartData} 
+          leadSourceData={leadSourceData}
+          visibleMetrics={visibleMetrics}
+          setVisibleMetrics={setVisibleMetrics}
+        />
+      </div>
 
-      <CallDetails 
-        callCounts={detailedCallMetrics.callCounts}
-        averageDurations={detailedCallMetrics.averageDurations}
-        showUpRates={detailedCallMetrics.showUpRates}
-      />
+      {/* Otro separador sutil para la sección de llamadas - Tarea 2.2 */}
+      <div className="border-t border-zinc-200 pt-10">
+        <CallDetails 
+          callCounts={detailedCallMetrics.callCounts}
+          averageDurations={detailedCallMetrics.averageDurations}
+          showUpRates={detailedCallMetrics.showUpRates}
+        />
+      </div>
     </div>
   );
 };

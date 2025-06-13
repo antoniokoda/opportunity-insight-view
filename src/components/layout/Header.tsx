@@ -41,13 +41,16 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-b border-apple-gray-200/50">
+    /* Borde inferior sutil añadido para separar del contenido - Tarea 2.2 */
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-b border-zinc-200/50">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-12">
             <div>
-              <h1 className="text-2xl font-bold text-apple-gray-900 tracking-tight">SalesTracker</h1>
-              <p className="text-sm text-apple-gray-600 mt-0.5 font-medium">Gestiona tus oportunidades de venta</p>
+              {/* Título principal con color primario para máximo contraste - Tarea 1.1 */}
+              <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">SalesTracker</h1>
+              {/* Subtítulo con color secundario de alto contraste - Tarea 1.1 */}
+              <p className="text-sm text-zinc-600 mt-0.5 font-medium">Gestiona tus oportunidades de venta</p>
             </div>
             
             <nav className="flex items-center space-x-2">
@@ -58,8 +61,8 @@ export const Header: React.FC = () => {
                   className={({ isActive }) =>
                     `flex items-center space-x-2 px-4 py-2.5 rounded-xl font-medium transition-apple focus-ring ${
                       isActive
-                        ? 'bg-apple-blue text-white shadow-sm'
-                        : 'text-apple-gray-700 hover:text-apple-gray-900 hover:bg-apple-gray-100'
+                        ? 'bg-blue-500 text-white shadow-sm'
+                        : 'text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100'
                     }`
                   }
                 >
@@ -71,27 +74,30 @@ export const Header: React.FC = () => {
           </div>
           
           <div className="flex items-center space-x-3">
-            <button className="p-2.5 text-apple-gray-600 hover:text-apple-gray-900 hover:bg-apple-gray-100 rounded-xl transition-apple focus-ring">
+            {/* Botón de notificaciones con mejor contraste */}
+            <button className="p-2.5 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-apple focus-ring">
               <Bell size={20} />
               <span className="sr-only">Notificaciones</span>
             </button>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="p-2.5 hover:bg-apple-gray-100 rounded-xl">
+                <Button variant="ghost" className="p-2.5 hover:bg-zinc-100 rounded-xl">
                   <User size={20} />
                   <span className="sr-only">Perfil de usuario</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-white/90 backdrop-blur-md border-apple-gray-200/50">
+              {/* Dropdown con fondo sólido y z-index alto */}
+              <DropdownMenuContent align="end" className="w-56 bg-white/95 backdrop-blur-md border-zinc-200/50 z-50">
                 <DropdownMenuLabel>
                   <div>
-                    <p className="font-semibold text-apple-gray-900">Mi Cuenta</p>
-                    <p className="text-xs text-apple-gray-600 font-medium">{user?.email}</p>
+                    {/* Texto con colores de alto contraste */}
+                    <p className="font-semibold text-zinc-900">Mi Cuenta</p>
+                    <p className="text-xs text-zinc-600 font-medium">{user?.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="hover:bg-apple-gray-100">
+                <DropdownMenuItem onClick={handleSignOut} className="hover:bg-zinc-100">
                   <LogOut className="mr-2 h-4 w-4" />
                   Cerrar Sesión
                 </DropdownMenuItem>

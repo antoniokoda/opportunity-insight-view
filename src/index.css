@@ -56,7 +56,8 @@
   }
 
   body {
-    @apply bg-apple-gray-50 text-apple-gray-900 font-sf;
+    /* Fondo global gris claro para que las tarjetas blancas resalten - Tarea 2.1 */
+    @apply bg-zinc-50 text-zinc-900 font-sf;
     letter-spacing: -0.01em;
   }
   
@@ -67,7 +68,7 @@
   
   /* Enhanced focus styles */
   .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-apple-blue focus:ring-offset-2 focus:ring-offset-apple-gray-50;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-zinc-50;
   }
   
   /* Frosted glass effect */
@@ -85,20 +86,20 @@
 @layer components {
   /* Apple-style buttons */
   .btn-apple-primary {
-    @apply bg-apple-blue text-white font-medium py-2.5 px-6 rounded-xl transition-apple hover:bg-apple-blue/90 focus-ring;
+    @apply bg-blue-500 text-white font-medium py-2.5 px-6 rounded-xl transition-apple hover:bg-blue-600 focus-ring;
   }
   
   .btn-apple-secondary {
-    @apply bg-apple-gray-200 text-apple-gray-700 font-medium py-2.5 px-6 rounded-xl transition-apple hover:bg-apple-gray-300 focus-ring;
+    @apply bg-zinc-200 text-zinc-700 font-medium py-2.5 px-6 rounded-xl transition-apple hover:bg-zinc-300 focus-ring;
   }
   
-  /* Apple-style cards */
+  /* Apple-style cards - Tarea 2.3 */
   .card-apple {
-    @apply bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-apple-gray-200/50 transition-apple hover:shadow-md;
+    @apply bg-white backdrop-blur-md rounded-2xl shadow-sm border border-zinc-200/50 transition-apple hover:shadow-md;
   }
   
-  /* Apple-style inputs */
+  /* Apple-style inputs - Tarea 3.1 */
   .input-apple {
-    @apply bg-apple-gray-100 border-0 rounded-xl py-3 px-4 text-apple-gray-900 placeholder-apple-gray-500 focus:bg-apple-gray-200 focus-ring transition-apple;
+    @apply bg-zinc-100 border-none rounded-lg py-3 px-4 text-zinc-900 placeholder-zinc-500 focus:bg-zinc-100 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-apple;
   }
 }

@@ -63,7 +63,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Apple-inspired color palette
+				// Apple-inspired color palette actualizada
 				apple: {
 					blue: '#007AFF',
 					gray: {
@@ -78,6 +78,19 @@ export default {
 						800: '#1F2937',
 						900: '#111827'
 					}
+				},
+				// Paleta zinc para mejor contraste y legibilidad
+				zinc: {
+					50: '#fafafa',
+					100: '#f4f4f5',
+					200: '#e4e4e7',
+					300: '#d4d4d8',
+					400: '#a1a1aa',
+					500: '#71717a', 
+					600: '#52525b',
+					700: '#3f3f46',
+					800: '#27272a',
+					900: '#18181b'
 				}
 			},
 			fontFamily: {

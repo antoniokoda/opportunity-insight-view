@@ -92,13 +92,14 @@ export const Opportunities = () => {
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                {/* Loading skeleton mejorado */}
+                <div className="h-4 bg-zinc-200 rounded w-3/4"></div>
+                <div className="h-3 bg-zinc-200 rounded w-1/2"></div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="h-3 bg-gray-200 rounded"></div>
-                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                  <div className="h-3 bg-zinc-200 rounded"></div>
+                  <div className="h-3 bg-zinc-200 rounded w-2/3"></div>
                 </div>
               </CardContent>
             </Card>
@@ -113,8 +114,10 @@ export const Opportunities = () => {
       <div className="p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Oportunidades</h1>
-            <p className="text-muted-foreground">Gestiona tus oportunidades de venta</p>
+            {/* Título principal con color primario para máximo contraste - Tarea 1.2 */}
+            <h1 className="text-3xl font-bold text-zinc-900">Oportunidades</h1>
+            {/* Subtítulo con color secundario legible - Tarea 1.2 */}
+            <p className="text-zinc-600">Gestiona tus oportunidades de venta</p>
           </div>
           <Button onClick={() => setIsDialogOpen(true)} className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
@@ -126,7 +129,8 @@ export const Opportunities = () => {
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              {/* Icono de búsqueda con mejor contraste */}
+              <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-500" />
               <Input
                 placeholder="Buscar oportunidades..."
                 value={searchTerm}
@@ -166,11 +170,13 @@ export const Opportunities = () => {
             <div key={monthKey}>
               {/* Month Separator */}
               <div className="flex items-center gap-4 mb-6">
-                <h2 className="text-xl font-semibold text-foreground">
+                {/* Título del mes con color primario - Tarea 1.2 */}
+                <h2 className="text-xl font-semibold text-zinc-900">
                   {groupedOpportunities[monthKey].label}
                 </h2>
                 <Separator className="flex-1" />
-                <span className="text-sm text-muted-foreground">
+                {/* Contador con color secundario legible - Tarea 1.2 */}
+                <span className="text-sm text-zinc-600">
                   {groupedOpportunities[monthKey].opportunities.length} oportunidad{groupedOpportunities[monthKey].opportunities.length !== 1 ? 'es' : ''}
                 </span>
               </div>
@@ -182,10 +188,12 @@ export const Opportunities = () => {
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <CardTitle className="text-lg text-foreground line-clamp-2">
+                          {/* Nombre de oportunidad con color primario - Tarea 1.2 */}
+                          <CardTitle className="text-lg text-zinc-900 line-clamp-2">
                             {opportunity.name}
                           </CardTitle>
-                          <p className="text-sm text-muted-foreground mt-1">
+                          {/* Nombre del vendedor con color secundario legible - Tarea 1.2 */}
+                          <p className="text-sm text-zinc-600 mt-1">
                             {getSalespersonName(opportunity.salesperson_id)}
                           </p>
                         </div>
@@ -258,7 +266,8 @@ export const Opportunities = () => {
                       {/* Status and Financial Info */}
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Estado:</span>
+                          {/* Etiquetas con color secundario - Tarea 1.2 */}
+                          <span className="text-sm text-zinc-600">Estado:</span>
                           <Badge className={getStatusBadge(opportunity.opportunity_status)}>
                             {opportunity.opportunity_status === 'active' && 'Activo'}
                             {opportunity.opportunity_status === 'won' && 'Ganado'}
@@ -267,7 +276,7 @@ export const Opportunities = () => {
                         </div>
                         
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Propuesta:</span>
+                          <span className="text-sm text-zinc-600">Propuesta:</span>
                           <Badge className={getStatusBadge(opportunity.proposal_status)}>
                             {opportunity.proposal_status === 'created' && 'Creada'}
                             {opportunity.proposal_status === 'pitched' && 'Presentada'}
@@ -275,15 +284,16 @@ export const Opportunities = () => {
                         </div>
 
                         <div className="grid grid-cols-2 gap-2">
-                          <div className="text-center p-2 bg-muted rounded">
-                            <div className="text-xs text-muted-foreground">Revenue</div>
-                            <div className="font-semibold text-sm">
+                          <div className="text-center p-2 bg-zinc-50 rounded">
+                            <div className="text-xs text-zinc-600">Revenue</div>
+                            {/* Valores monetarios con color primario - Tarea 1.2 */}
+                            <div className="font-semibold text-sm text-zinc-900">
                               {formatCurrency(opportunity.revenue)}
                             </div>
                           </div>
-                          <div className="text-center p-2 bg-muted rounded">
-                            <div className="text-xs text-muted-foreground">Cobrado</div>
-                            <div className="font-semibold text-sm">
+                          <div className="text-center p-2 bg-zinc-50 rounded">
+                            <div className="text-xs text-zinc-600">Cobrado</div>
+                            <div className="font-semibold text-sm text-zinc-900">
                               {formatCurrency(opportunity.cash_collected)}
                             </div>
                           </div>
@@ -294,8 +304,10 @@ export const Opportunities = () => {
                       {opportunity.calls && opportunity.calls.length > 0 && (
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">Llamadas ({opportunity.calls.length})</span>
+                            {/* Icono con color secundario */}
+                            <Phone className="w-4 h-4 text-zinc-600" />
+                            {/* Título de sección con color primario */}
+                            <span className="text-sm font-medium text-zinc-900">Llamadas ({opportunity.calls.length})</span>
                           </div>
                           <div className="space-y-1 max-h-20 overflow-y-auto">
                             {opportunity.calls.slice(0, 3).map((call) => (
@@ -329,12 +341,13 @@ export const Opportunities = () => {
                       {/* Source and Date */}
                       <div className="pt-2 border-t space-y-1">
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">Fuente:</span>
-                          <span className="font-medium">{opportunity.lead_source}</span>
+                          {/* Etiquetas con color secundario, valores con color primario */}
+                          <span className="text-zinc-600">Fuente:</span>
+                          <span className="font-medium text-zinc-900">{opportunity.lead_source}</span>
                         </div>
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-muted-foreground">Creada:</span>
-                          <span>{format(new Date(opportunity.created_at), 'dd/MM/yyyy', { locale: es })}</span>
+                          <span className="text-zinc-600">Creada:</span>
+                          <span className="text-zinc-900">{format(new Date(opportunity.created_at), 'dd/MM/yyyy', { locale: es })}</span>
                         </div>
                       </div>
                     </CardContent>
@@ -347,7 +360,8 @@ export const Opportunities = () => {
 
         {filteredOpportunities.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-muted-foreground mb-4">
+            {/* Mensaje de estado vacío con color secundario legible */}
+            <div className="text-zinc-600 mb-4">
               {searchTerm || statusFilter !== 'all' || sourceFilter !== 'all' 
                 ? 'No se encontraron oportunidades con los filtros aplicados'
                 : 'No hay oportunidades aún'}
