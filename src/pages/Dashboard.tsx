@@ -62,8 +62,8 @@ export const Dashboard = () => {
   // Use metrics calls (excluding future) for KPI calculations
   const kpis = useDashboardKpis(filteredOpportunities, metricsCall);
   
-  // Pass filtered opportunities and calls to generate real chart data
-  const chartData = useDashboardChartData(filteredOpportunities, metricsCall);
+  // Pass filtered opportunities, calls, and selected month to generate dynamic chart data
+  const chartData = useDashboardChartData(filteredOpportunities, metricsCall, selectedMonth);
   const leadSourceData = useLeadSourceData(filteredOpportunities, customLeadSources);
   
   // Get detailed call metrics for the filtered calls
