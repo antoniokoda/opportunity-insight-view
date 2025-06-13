@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -42,7 +43,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
     type: 'Discovery 1' as CallType,
     date: new Date().toISOString().slice(0, 16),
     duration: '',
-    attended: false, // Changed from null to false - default is "not attended"
+    attended: null as boolean | null,
     link: '',
   });
 
@@ -74,7 +75,24 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
   };
 
   const handleAddCall = () => {
-    if (!opportunity || !newCall.duration) return;
+    if (!opportunity || !newCall.duration || isNaN(parseInt(newCall.duration)) || parseInt(newCall.duration) <= 0) {
+      console.log('Cannot add call: missing opportunity, duration, or invalid duration', {
+        opportunity: !!opportunity,
+        duration: newCall.duration,
+        parsedDuration: parseInt(newCall.duration),
+        isValid: !isNaN(parseInt(newCall.duration)) && parseInt(newCall.duration) > 0
+      });
+      return;
+    }
+
+    console.log('Adding call with data:', {
+      opportunity_id: opportunity.id,
+      type: newCall.type,
+      date: new Date(newCall.date).toISOString(),
+      duration: parseInt(newCall.duration),
+      attended: newCall.attended,
+      link: newCall.link || undefined,
+    });
 
     addCall({
       opportunity_id: opportunity.id,
@@ -89,7 +107,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
       type: 'Discovery 1',
       date: new Date().toISOString().slice(0, 16),
       duration: '',
-      attended: false, // Reset to false (not attended)
+      attended: null,
       link: '',
     });
     setShowAddCall(false);
@@ -286,6 +304,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                       <label className="block text-sm font-medium mb-2">Duración (min)</label>
                       <Input
                         type="number"
+                        min="1"
                         value={newCall.duration}
                         onChange={(e) => setNewCall(prev => ({ ...prev, duration: e.target.value }))}
                         placeholder="30"
@@ -312,19 +331,36 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                     />
                   </div>
 
-                  {/* Simplified attendance control - only one checkbox for "Attended" */}
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="attended"
-                      checked={newCall.attended}
-                      onCheckedChange={(checked) => setNewCall(prev => ({ ...prev, attended: !!checked }))}
-                    />
-                    <label htmlFor="attended" className="text-sm">Cliente asistió a la llamada</label>
+                  {/* Attendance control with three states */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium">Asistencia del cliente</label>
+                    <Select 
+                      value={newCall.attended === null ? 'pending' : newCall.attended ? 'attended' : 'not-attended'} 
+                      onValueChange={(value) => {
+                        let attendedValue: boolean | null = null;
+                        if (value === 'attended') attendedValue = true;
+                        else if (value === 'not-attended') attendedValue = false;
+                        setNewCall(prev => ({ ...prev, attended: attendedValue }));
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pendiente</SelectItem>
+                        <SelectItem value="attended">Asistió</SelectItem>
+                        <SelectItem value="not-attended">No asistió</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 
                 <div className="flex gap-2 mt-4">
-                  <Button onClick={handleAddCall} size="sm" disabled={isAdding}>
+                  <Button 
+                    onClick={handleAddCall} 
+                    size="sm" 
+                    disabled={isAdding || !newCall.duration || isNaN(parseInt(newCall.duration)) || parseInt(newCall.duration) <= 0}
+                  >
                     {isAdding && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     Añadir Llamada
                   </Button>
