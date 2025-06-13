@@ -42,7 +42,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
     type: 'Discovery 1' as CallType,
     date: new Date().toISOString().slice(0, 16),
     duration: '',
-    attended: null as boolean | null,
+    attended: false,
     link: '',
   });
 
@@ -101,7 +101,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
       type: 'Discovery 1',
       date: new Date().toISOString().slice(0, 16),
       duration: '',
-      attended: null,
+      attended: false,
       link: '',
     });
     setShowAddCall(false);
@@ -325,27 +325,16 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                     />
                   </div>
 
-                  {/* Attendance control with three states */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium">Asistencia del cliente</label>
-                    <Select 
-                      value={newCall.attended === null ? 'pending' : newCall.attended ? 'attended' : 'not-attended'} 
-                      onValueChange={(value) => {
-                        let attendedValue: boolean | null = null;
-                        if (value === 'attended') attendedValue = true;
-                        else if (value === 'not-attended') attendedValue = false;
-                        setNewCall(prev => ({ ...prev, attended: attendedValue }));
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pendiente</SelectItem>
-                        <SelectItem value="attended">Asistió</SelectItem>
-                        <SelectItem value="not-attended">No asistió</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  {/* Attendance checkbox */}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="attendance"
+                      checked={newCall.attended}
+                      onCheckedChange={(checked) => setNewCall(prev => ({ ...prev, attended: !!checked }))}
+                    />
+                    <label htmlFor="attendance" className="text-sm font-medium">
+                      Asistencia
+                    </label>
                   </div>
                 </div>
                 
