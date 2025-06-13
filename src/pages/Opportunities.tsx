@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Phone, Edit, Trash2, Search, Filter } from 'lucide-react';
+import { Plus, Phone, Edit, Trash2, Search, Filter, Folder, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,8 @@ import { useOpportunities } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { OpportunityDialog } from '@/components/opportunities/OpportunityDialog';
 import { OpportunityEditSheet } from '@/components/opportunities/OpportunityEditSheet';
+import { OpportunityFilesDialog } from '@/components/opportunities/OpportunityFilesDialog';
+import { OpportunityNotesDialog } from '@/components/opportunities/OpportunityNotesDialog';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { formatCurrency } from '@/config/currency';
@@ -24,6 +26,8 @@ export const Opportunities = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
+  const [filesDialogOpportunity, setFilesDialogOpportunity] = useState<Opportunity | null>(null);
+  const [notesDialogOpportunity, setNotesDialogOpportunity] = useState<Opportunity | null>(null);
 
   const filteredOpportunities = opportunities.filter(opportunity => {
     const matchesSearch = opportunity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -149,6 +153,30 @@ export const Opportunities = () => {
                     </p>
                   </div>
                   <div className="flex gap-1 ml-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setFilesDialogOpportunity(opportunity)}
+                        >
+                          <Folder className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Archivos</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setNotesDialogOpportunity(opportunity)}
+                        >
+                          <StickyNote className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Notas</TooltipContent>
+                    </Tooltip>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -291,6 +319,24 @@ export const Opportunities = () => {
           isOpen={!!editingOpportunity}
           onClose={() => setEditingOpportunity(null)}
         />
+
+        {filesDialogOpportunity && (
+          <OpportunityFilesDialog
+            opportunityId={filesDialogOpportunity.id}
+            opportunityName={filesDialogOpportunity.name}
+            isOpen={!!filesDialogOpportunity}
+            onClose={() => setFilesDialogOpportunity(null)}
+          />
+        )}
+
+        {notesDialogOpportunity && (
+          <OpportunityNotesDialog
+            opportunityId={notesDialogOpportunity.id}
+            opportunityName={notesDialogOpportunity.name}
+            isOpen={!!notesDialogOpportunity}
+            onClose={() => setNotesDialogOpportunity(null)}
+          />
+        )}
       </div>
     </TooltipProvider>
   );
