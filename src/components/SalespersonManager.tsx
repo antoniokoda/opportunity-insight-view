@@ -19,7 +19,10 @@ export const SalespersonManager: React.FC = () => {
     salespeople,
     isLoading,
     addSalesperson,
-    isAdding
+    updateSalesperson,
+    deleteSalesperson,
+    isAdding,
+    isDeleting
   } = useSalespeople();
 
   const handleAddSalesperson = () => {
@@ -30,6 +33,12 @@ export const SalespersonManager: React.FC = () => {
         email: ''
       });
       setShowAddForm(false);
+    }
+  };
+
+  const handleDeleteSalesperson = (salespersonId: number) => {
+    if (confirm('¿Estás seguro de que quieres eliminar este vendedor?')) {
+      deleteSalesperson(salespersonId);
     }
   };
 
@@ -123,8 +132,17 @@ export const SalespersonManager: React.FC = () => {
                 <Button variant="ghost" size="sm">
                   <Edit className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm">
-                  <Trash2 className="w-4 h-4" />
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handleDeleteSalesperson(person.id)}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
                 </Button>
               </div>
             </div>

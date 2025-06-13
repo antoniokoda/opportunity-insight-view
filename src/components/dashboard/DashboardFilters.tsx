@@ -83,7 +83,15 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   };
 
   const handleSalespersonDelete = (value: string) => {
-    handleDeleteSalesperson(value);
+    if (confirm('¿Estás seguro de que quieres eliminar este vendedor?')) {
+      handleDeleteSalesperson(value);
+    }
+  };
+
+  const handleLeadSourceDelete = (source: string) => {
+    if (confirm('¿Estás seguro de que quieres eliminar esta fuente de lead?')) {
+      handleDeleteLeadSource(source);
+    }
   };
 
   return (
@@ -161,7 +169,7 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
               placeholder="Seleccionar fuente"
               options={leadSourceOptions}
               onEdit={handleUpdateLeadSource}
-              onDelete={handleDeleteLeadSource}
+              onDelete={handleLeadSourceDelete}
               allowEdit={true}
               allowDelete={true}
               className="flex-1"
