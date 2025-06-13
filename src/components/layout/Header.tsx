@@ -41,62 +41,63 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-card border-b border-border px-6 py-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">SalesTracker</h1>
-            <p className="text-sm text-muted-foreground mt-1">Gestiona tus oportunidades de venta</p>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-b border-apple-gray-200/50">
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-12">
+            <div>
+              <h1 className="text-2xl font-bold text-apple-gray-900 tracking-tight">SalesTracker</h1>
+              <p className="text-sm text-apple-gray-600 mt-0.5 font-medium">Gestiona tus oportunidades de venta</p>
+            </div>
+            
+            <nav className="flex items-center space-x-2">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `flex items-center space-x-2 px-4 py-2.5 rounded-xl font-medium transition-apple focus-ring ${
+                      isActive
+                        ? 'bg-apple-blue text-white shadow-sm'
+                        : 'text-apple-gray-700 hover:text-apple-gray-900 hover:bg-apple-gray-100'
+                    }`
+                  }
+                >
+                  <item.icon size={18} className="flex-shrink-0" />
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
+            </nav>
           </div>
           
-          {/* Navigation moved to header */}
-          <nav className="flex items-center space-x-1">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-foreground hover:text-foreground hover:bg-accent'
-                  }`
-                }
-              >
-                <item.icon size={18} className="flex-shrink-0" />
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <button className="p-3 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-            <Bell size={20} />
-            <span className="sr-only">Notificaciones</span>
-          </button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="p-3">
-                <User size={20} />
-                <span className="sr-only">Perfil de usuario</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>
-                <div>
-                  <p className="font-medium">Mi Cuenta</p>
-                  <p className="text-xs text-muted-foreground">{user?.email}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Cerrar Sesión
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center space-x-3">
+            <button className="p-2.5 text-apple-gray-600 hover:text-apple-gray-900 hover:bg-apple-gray-100 rounded-xl transition-apple focus-ring">
+              <Bell size={20} />
+              <span className="sr-only">Notificaciones</span>
+            </button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="p-2.5 hover:bg-apple-gray-100 rounded-xl">
+                  <User size={20} />
+                  <span className="sr-only">Perfil de usuario</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-white/90 backdrop-blur-md border-apple-gray-200/50">
+                <DropdownMenuLabel>
+                  <div>
+                    <p className="font-semibold text-apple-gray-900">Mi Cuenta</p>
+                    <p className="text-xs text-apple-gray-600 font-medium">{user?.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="hover:bg-apple-gray-100">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Cerrar Sesión
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </header>

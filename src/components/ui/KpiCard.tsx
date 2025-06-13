@@ -22,33 +22,33 @@ export const KpiCard: React.FC<KpiCardProps> = ({
   const getChangeColor = () => {
     switch (changeType) {
       case 'positive':
-        return 'text-success-600';
+        return 'text-green-600';
       case 'negative':
-        return 'text-error-600';
+        return 'text-red-500';
       default:
-        return 'text-muted-foreground';
+        return 'text-apple-gray-500';
     }
   };
 
   return (
-    <Card className="p-6 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200 border bg-card">
-      <div className="flex items-center justify-between">
+    <div className="card-apple p-8 group hover:scale-[1.02] transition-all duration-300">
+      <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">{title}</p>
-          <p className="text-3xl font-bold text-foreground mb-1 tracking-tight">{value}</p>
+          <p className="text-sm font-semibold text-apple-gray-600 mb-3 uppercase tracking-wider">{title}</p>
+          <p className="text-4xl font-bold text-apple-gray-900 mb-2 tracking-tight leading-none">{value}</p>
           {subtitle && (
-            <p className="text-sm text-muted-foreground mb-2">{subtitle}</p>
+            <p className="text-sm text-apple-gray-600 mb-3 font-medium">{subtitle}</p>
           )}
           {change && (
-            <p className={`text-sm font-medium ${getChangeColor()} flex items-center`}>
+            <div className={`text-sm font-semibold ${getChangeColor()} flex items-center bg-apple-gray-50 px-3 py-1.5 rounded-lg inline-flex`}>
               {change}
-            </p>
+            </div>
           )}
         </div>
-        <div className="text-primary ml-6 opacity-80">
+        <div className="text-apple-blue ml-8 opacity-60 group-hover:opacity-80 transition-opacity">
           {icon}
         </div>
       </div>
-    </Card>
+    </div>
   );
 };

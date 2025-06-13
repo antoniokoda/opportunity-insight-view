@@ -42,73 +42,76 @@ export const DashboardKpis: React.FC<DashboardKpisProps> = ({ kpis, kpiChanges }
   };
 
   return (
-    <>
+    <div className="space-y-10">
       {/* Métricas Principales */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Métricas Principales</h2>
+        <h2 className="text-2xl font-bold text-apple-gray-900 mb-6 tracking-tight">Métricas Principales</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KpiCard
             title="Revenue Total"
             value={formatCurrency(kpis.totalRevenue)}
             change={formatChange(kpiChanges.revenueChange)}
             changeType={getChangeType(kpiChanges.revenueChange)}
-            icon={<DollarSign size={24} />}
+            icon={<DollarSign size={28} />}
           />
           <KpiCard
             title="Cash Collected"
             value={formatCurrency(kpis.totalCash)}
             change={formatChange(kpiChanges.cashChange)}
             changeType={getChangeType(kpiChanges.cashChange)}
-            icon={<TrendingUp size={24} />}
+            icon={<TrendingUp size={28} />}
           />
           <KpiCard
             title="Valor Promedio del Trato"
             value={formatCurrency(kpis.averageDealSize)}
             change={formatChange(kpiChanges.averageDealSizeChange)}
             changeType={getChangeType(kpiChanges.averageDealSizeChange)}
-            icon={<Target size={24} />}
+            icon={<Target size={28} />}
           />
           <KpiCard
             title="Tasa de Cierre"
             value={`${kpis.closingRate.toFixed(1)}%`}
             change={formatChange(kpiChanges.closingRateChange)}
             changeType={getChangeType(kpiChanges.closingRateChange)}
-            icon={<Percent size={24} />}
+            icon={<Percent size={28} />}
           />
         </div>
       </div>
 
       {/* Segunda fila de métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KpiCard
-          title="Total Llamadas"
-          value={kpis.totalCalls}
-          change={formatChange(kpiChanges.callsChange)}
-          changeType={getChangeType(kpiChanges.callsChange)}
-          icon={<Phone size={24} />}
-        />
-        <KpiCard
-          title="Tasa Asistencia General"
-          value={`${kpis.overallShowUpRate.toFixed(1)}%`}
-          change={formatChange(kpiChanges.showUpRateChange)}
-          changeType={getChangeType(kpiChanges.showUpRateChange)}
-          icon={<UserCheck size={24} />}
-        />
-        <KpiCard
-          title="Propuestas Pitcheadas"
-          value={kpis.proposalsPitched}
-          change={undefined}
-          changeType="neutral"
-          icon={<FileText size={24} />}
-        />
-        <KpiCard
-          title="Oportunidades Activas"
-          value={kpis.activeOpportunities}
-          change={undefined}
-          changeType="neutral"
-          icon={<Users size={24} />}
-        />
+      <div>
+        <h2 className="text-2xl font-bold text-apple-gray-900 mb-6 tracking-tight">Métricas de Actividad</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <KpiCard
+            title="Total Llamadas"
+            value={kpis.totalCalls}
+            change={formatChange(kpiChanges.callsChange)}
+            changeType={getChangeType(kpiChanges.callsChange)}
+            icon={<Phone size={28} />}
+          />
+          <KpiCard
+            title="Tasa Asistencia General"
+            value={`${kpis.overallShowUpRate.toFixed(1)}%`}
+            change={formatChange(kpiChanges.showUpRateChange)}
+            changeType={getChangeType(kpiChanges.showUpRateChange)}
+            icon={<UserCheck size={28} />}
+          />
+          <KpiCard
+            title="Propuestas Pitcheadas"
+            value={kpis.proposalsPitched}
+            change={undefined}
+            changeType="neutral"
+            icon={<FileText size={28} />}
+          />
+          <KpiCard
+            title="Oportunidades Activas"
+            value={kpis.activeOpportunities}
+            change={undefined}
+            changeType="neutral"
+            icon={<Users size={28} />}
+          />
+        </div>
       </div>
-    </>
+    </div>
   );
 };
