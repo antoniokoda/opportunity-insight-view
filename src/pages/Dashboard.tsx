@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
@@ -59,7 +58,7 @@ export const Dashboard = () => {
   const kpis = useDashboardKpis(filteredOpportunities, calls);
   const chartData = useDashboardChartData();
   const leadSourceData = useLeadSourceData(filteredOpportunities, customLeadSources);
-  const salesPerformance = useSalesPerformance(opportunities, salespeople);
+  const salesPerformance = useSalesPerformance(salespeople, opportunities);
 
   const handleAddSalesperson = () => {
     if (newSalesperson.name && newSalesperson.email) {
