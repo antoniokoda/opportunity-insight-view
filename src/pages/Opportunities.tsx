@@ -47,6 +47,15 @@ export const Opportunities: React.FC = () => {
     return variants[status as keyof typeof variants] || 'bg-gray-100 text-gray-800';
   };
 
+  const getCallTypeColor = (type: string) => {
+    if (type.startsWith('Discovery')) {
+      return 'bg-blue-100 text-blue-800';
+    } else if (type.startsWith('Closing')) {
+      return 'bg-success-50 text-success-600';
+    }
+    return 'bg-gray-100 text-gray-800';
+  };
+
   const handleAddOpportunity = () => {
     if (newOpportunity.name && newOpportunity.salesperson_id && newOpportunity.lead_source) {
       addOpportunity({
@@ -242,12 +251,17 @@ export const Opportunities: React.FC = () => {
                     {opportunityCalls.map(call => (
                       <div key={call.id} className="flex items-center justify-between p-2 bg-muted rounded">
                         <div className="flex items-center gap-2">
-                          <Badge className={getStatusBadge(call.type.toLowerCase())}>
+                          <Badge className={getCallTypeColor(call.type)}>
                             {call.type} #{call.number}
                           </Badge>
                           <span className="text-sm">
                             {format(new Date(call.date), 'dd/MM/yyyy HH:mm', { locale: es })}
                           </span>
+                          {call.attended !== null && (
+                            <Badge variant={call.attended ? "default" : "destructive"}>
+                              {call.attended ? "Asistió" : "No asistió"}
+                            </Badge>
+                          )}
                         </div>
                         <span className="text-sm text-muted-foreground">{call.duration}min</span>
                       </div>

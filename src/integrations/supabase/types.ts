@@ -11,33 +11,36 @@ export type Database = {
     Tables: {
       calls: {
         Row: {
+          attended: boolean | null
           created_at: string | null
           date: string
           duration: number
           id: number
           number: number
           opportunity_id: number
-          type: string
+          type: Database["public"]["Enums"]["call_type"]
           user_id: string
         }
         Insert: {
+          attended?: boolean | null
           created_at?: string | null
           date: string
           duration: number
           id?: number
           number: number
           opportunity_id: number
-          type: string
+          type: Database["public"]["Enums"]["call_type"]
           user_id: string
         }
         Update: {
+          attended?: boolean | null
           created_at?: string | null
           date?: string
           duration?: number
           id?: number
           number?: number
           opportunity_id?: number
-          type?: string
+          type?: Database["public"]["Enums"]["call_type"]
           user_id?: string
         }
         Relationships: [
@@ -129,7 +132,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      call_type:
+        | "Discovery 1"
+        | "Discovery 2"
+        | "Discovery 3"
+        | "Closing 1"
+        | "Closing 2"
+        | "Closing 3"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -244,6 +253,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      call_type: [
+        "Discovery 1",
+        "Discovery 2",
+        "Discovery 3",
+        "Closing 1",
+        "Closing 2",
+        "Closing 3",
+      ],
+    },
   },
 } as const

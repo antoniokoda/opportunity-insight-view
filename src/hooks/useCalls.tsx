@@ -4,13 +4,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
 
+export type CallType = 'Discovery 1' | 'Discovery 2' | 'Discovery 3' | 'Closing 1' | 'Closing 2' | 'Closing 3';
+
 export interface Call {
   id: number;
   opportunity_id: number;
-  type: 'Discovery' | 'Closing';
+  type: CallType;
   number: number;
   date: string;
   duration: number;
+  attended: boolean | null;
   user_id: string;
   created_at: string;
 }
@@ -51,9 +54,10 @@ export const useCalls = (opportunityId?: number) => {
   const addCall = useMutation({
     mutationFn: async (newCall: {
       opportunity_id: number;
-      type: 'Discovery' | 'Closing';
+      type: CallType;
       date: string;
       duration: number;
+      attended?: boolean | null;
     }) => {
       if (!user) throw new Error('User not authenticated');
 
@@ -76,6 +80,7 @@ export const useCalls = (opportunityId?: number) => {
           ...newCall,
           number: nextNumber,
           user_id: user.id,
+          attended: newCall.attended || null,
         }])
         .select()
         .single();

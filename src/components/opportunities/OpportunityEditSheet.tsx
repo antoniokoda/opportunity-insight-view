@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Phone, Plus, Loader2, X } from 'lucide-react';
 import { Opportunity } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useOpportunities } from '@/hooks/useOpportunities';
-import { useCalls } from '@/hooks/useCalls';
+import { useCalls, CallType } from '@/hooks/useCalls';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { formatCurrency } from '@/config/currency';
@@ -27,7 +28,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
 }) => {
   const { salespeople } = useSalespeople();
   const { updateOpportunity } = useOpportunities();
-  const { addCall } = useCalls();
+  const { addCall, isAdding } = useCalls();
   
   const [editData, setEditData] = useState({
     name: opportunity?.name || '',
@@ -39,9 +40,10 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
 
   const [showAddCall, setShowAddCall] = useState(false);
   const [newCall, setNewCall] = useState({
-    type: 'Discovery' as 'Discovery' | 'Closing',
+    type: 'Discovery 1' as CallType,
     date: new Date().toISOString().slice(0, 16),
     duration: '',
+    attended: null as boolean | null,
   });
 
   React.useEffect(() => {
@@ -79,12 +81,14 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
       type: newCall.type,
       date: new Date(newCall.date).toISOString(),
       duration: parseInt(newCall.duration),
+      attended: newCall.attended,
     });
 
     setNewCall({
-      type: 'Discovery',
+      type: 'Discovery 1',
       date: new Date().toISOString().slice(0, 16),
       duration: '',
+      attended: null,
     });
     setShowAddCall(false);
   };
@@ -100,6 +104,15 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
     return variants[status as keyof typeof variants] || 'bg-gray-100 text-gray-800';
   };
 
+  const getCallTypeColor = (type: string) => {
+    if (type.startsWith('Discovery')) {
+      return 'bg-blue-100 text-blue-800';
+    } else if (type.startsWith('Closing')) {
+      return 'bg-success-50 text-success-600';
+    }
+    return 'bg-gray-100 text-gray-800';
+  };
+
   const updateOpportunityStatus = (field: 'opportunity_status' | 'proposal_status', value: string) => {
     if (!opportunity) return;
     updateOpportunity({
@@ -111,7 +124,6 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
   if (!opportunity) return null;
 
   const opportunityCalls = opportunity.calls || [];
-  const salesperson = salespeople.find(p => p.id === opportunity.salesperson_id);
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -249,20 +261,36 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                   </Button>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Tipo</label>
-                    <Select value={newCall.type} onValueChange={(value: 'Discovery' | 'Closing') => setNewCall(prev => ({ ...prev, type: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Discovery">Discovery</SelectItem>
-                        <SelectItem value="Closing">Closing</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Tipo</label>
+                      <Select value={newCall.type} onValueChange={(value: CallType) => setNewCall(prev => ({ ...prev, type: value }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Discovery 1">Discovery 1</SelectItem>
+                          <SelectItem value="Discovery 2">Discovery 2</SelectItem>
+                          <SelectItem value="Discovery 3">Discovery 3</SelectItem>
+                          <SelectItem value="Closing 1">Closing 1</SelectItem>
+                          <SelectItem value="Closing 2">Closing 2</SelectItem>
+                          <SelectItem value="Closing 3">Closing 3</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Duración (min)</label>
+                      <Input
+                        type="number"
+                        value={newCall.duration}
+                        onChange={(e) => setNewCall(prev => ({ ...prev, duration: e.target.value }))}
+                        placeholder="30"
+                      />
+                    </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium mb-2">Fecha y Hora</label>
                     <Input
@@ -271,20 +299,27 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                       onChange={(e) => setNewCall(prev => ({ ...prev, date: e.target.value }))}
                     />
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Duración (min)</label>
-                    <Input
-                      type="number"
-                      value={newCall.duration}
-                      onChange={(e) => setNewCall(prev => ({ ...prev, duration: e.target.value }))}
-                      placeholder="30"
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="attended-yes"
+                      checked={newCall.attended === true}
+                      onCheckedChange={(checked) => setNewCall(prev => ({ ...prev, attended: checked ? true : null }))}
                     />
+                    <label htmlFor="attended-yes" className="text-sm">Cliente asistió</label>
+                    
+                    <Checkbox
+                      id="attended-no"
+                      checked={newCall.attended === false}
+                      onCheckedChange={(checked) => setNewCall(prev => ({ ...prev, attended: checked ? false : null }))}
+                    />
+                    <label htmlFor="attended-no" className="text-sm">Cliente no asistió</label>
                   </div>
                 </div>
                 
                 <div className="flex gap-2 mt-4">
-                  <Button onClick={handleAddCall} size="sm">
+                  <Button onClick={handleAddCall} size="sm" disabled={isAdding}>
+                    {isAdding && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     Añadir Llamada
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => setShowAddCall(false)}>
@@ -300,12 +335,17 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                 {opportunityCalls.map(call => (
                   <div key={call.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Badge className={getStatusBadge(call.type.toLowerCase())}>
+                      <Badge className={getCallTypeColor(call.type)}>
                         {call.type} #{call.number}
                       </Badge>
                       <span className="text-sm">
                         {format(new Date(call.date), 'dd/MM/yyyy HH:mm', { locale: es })}
                       </span>
+                      {call.attended !== null && (
+                        <Badge variant={call.attended ? "default" : "destructive"}>
+                          {call.attended ? "Asistió" : "No asistió"}
+                        </Badge>
+                      )}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {call.duration} min

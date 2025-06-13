@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
-import { Phone, Calendar as CalendarIcon, Clock, Plus, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Phone, Calendar as CalendarIcon, Clock, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useCalls } from '@/hooks/useCalls';
@@ -68,7 +68,12 @@ export const Calendar: React.FC = () => {
   };
 
   const getCallTypeColor = (type: string) => {
-    return type === 'Discovery' ? 'bg-blue-100 text-blue-800' : 'bg-success-50 text-success-600';
+    if (type.startsWith('Discovery')) {
+      return 'bg-blue-100 text-blue-800';
+    } else if (type.startsWith('Closing')) {
+      return 'bg-success-50 text-success-600';
+    }
+    return 'bg-gray-100 text-gray-800';
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -117,28 +122,22 @@ export const Calendar: React.FC = () => {
           <h1 className="text-2xl font-bold">Calendario</h1>
           <p className="text-muted-foreground">Gestiona tus llamadas y reuniones</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex rounded-lg border">
-            <Button
-              variant={view === 'month' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setView('month')}
-              className="rounded-r-none"
-            >
-              Mes
-            </Button>
-            <Button
-              variant={view === 'week' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setView('week')}
-              className="rounded-l-none"
-            >
-              Semana
-            </Button>
-          </div>
-          <Button className="flex items-center gap-2">
-            <Plus size={16} />
-            Nueva Llamada
+        <div className="flex rounded-lg border">
+          <Button
+            variant={view === 'month' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setView('month')}
+            className="rounded-r-none"
+          >
+            Mes
+          </Button>
+          <Button
+            variant={view === 'week' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setView('week')}
+            className="rounded-l-none"
+          >
+            Semana
           </Button>
         </div>
       </div>
@@ -323,9 +322,14 @@ export const Calendar: React.FC = () => {
                       <Badge className={getCallTypeColor(call.type)}>
                         {call.type} #{call.number}
                       </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {call.duration}min
-                      </span>
+                      <div className="text-sm text-muted-foreground flex items-center gap-2">
+                        <span>{call.duration}min</span>
+                        {call.attended !== null && (
+                          <Badge variant={call.attended ? "default" : "destructive"}>
+                            {call.attended ? "Asistió" : "No asistió"}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     
                     <h4 className="font-medium mb-1">
