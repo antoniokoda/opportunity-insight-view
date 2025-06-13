@@ -38,6 +38,13 @@ export const Dashboard = () => {
   const [showSalespersonDialog, setShowSalespersonDialog] = useState(false);
   const [showLeadSourceDialog, setShowLeadSourceDialog] = useState(false);
 
+  // Chart visibility state
+  const [visibleMetrics, setVisibleMetrics] = useState({
+    revenue: true,
+    cash: true,
+    calls: true,
+  });
+
   const {
     selectedSalesperson,
     setSelectedSalesperson,
@@ -50,9 +57,9 @@ export const Dashboard = () => {
   } = useDashboardFilters(opportunities, calls);
 
   const kpis = useDashboardKpis(filteredOpportunities, calls);
-  const chartData = useDashboardChartData(filteredOpportunities, selectedMonth);
+  const chartData = useDashboardChartData();
   const leadSourceData = useLeadSourceData(filteredOpportunities, customLeadSources);
-  const performanceData = useSalesPerformance(filteredOpportunities, salespeople);
+  const salesPerformance = useSalesPerformance(opportunities, salespeople);
 
   const handleAddSalesperson = () => {
     if (newSalesperson.name && newSalesperson.email) {
@@ -168,10 +175,11 @@ export const Dashboard = () => {
         <DashboardCharts 
           chartData={chartData} 
           leadSourceData={leadSourceData}
+          visibleMetrics={visibleMetrics}
+          setVisibleMetrics={setVisibleMetrics}
         />
         <DashboardPerformance 
-          performanceData={performanceData}
-          salespeople={salespeople}
+          salesPerformance={salesPerformance}
         />
       </div>
     </div>
