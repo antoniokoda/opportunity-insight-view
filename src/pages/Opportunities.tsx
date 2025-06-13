@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { OpportunityDialog } from '@/components/opportunities/OpportunityDialog';
@@ -39,6 +40,25 @@ export const Opportunities = () => {
     
     return matchesSearch && matchesStatus && matchesSource;
   });
+
+  // Group opportunities by month
+  const groupedOpportunities = filteredOpportunities.reduce((groups, opportunity) => {
+    const monthKey = format(new Date(opportunity.created_at), 'yyyy-MM', { locale: es });
+    const monthLabel = format(new Date(opportunity.created_at), 'MMMM yyyy', { locale: es });
+    
+    if (!groups[monthKey]) {
+      groups[monthKey] = {
+        label: monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1),
+        opportunities: []
+      };
+    }
+    
+    groups[monthKey].opportunities.push(opportunity);
+    return groups;
+  }, {} as Record<string, { label: string; opportunities: Opportunity[] }>);
+
+  // Sort months in descending order (newest first)
+  const sortedMonthKeys = Object.keys(groupedOpportunities).sort((a, b) => b.localeCompare(a));
 
   const getSalespersonName = (id: number) => {
     const salesperson = salespeople.find(s => s.id === id);
@@ -140,170 +160,188 @@ export const Opportunities = () => {
           </Select>
         </div>
 
-        {/* Opportunities Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredOpportunities.map((opportunity) => (
-            <Card key={opportunity.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg text-foreground line-clamp-2">
-                      {opportunity.name}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {getSalespersonName(opportunity.salesperson_id)}
-                    </p>
-                  </div>
-                  <div className="flex gap-1 ml-2">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setContactsDialogOpportunity(opportunity)}
-                        >
-                          <Users className="w-4 h-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Contactos</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setFilesDialogOpportunity(opportunity)}
-                        >
-                          <Folder className="w-4 h-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Archivos</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setNotesDialogOpportunity(opportunity)}
-                        >
-                          <StickyNote className="w-4 h-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Notas</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditingOpportunity(opportunity)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Editar</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteOpportunity(opportunity.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Eliminar</TooltipContent>
-                    </Tooltip>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                {/* Status and Financial Info */}
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Estado:</span>
-                    <Badge className={getStatusBadge(opportunity.opportunity_status)}>
-                      {opportunity.opportunity_status === 'active' && 'Activo'}
-                      {opportunity.opportunity_status === 'won' && 'Ganado'}
-                      {opportunity.opportunity_status === 'lost' && 'Perdido'}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Propuesta:</span>
-                    <Badge className={getStatusBadge(opportunity.proposal_status)}>
-                      {opportunity.proposal_status === 'created' && 'Creada'}
-                      {opportunity.proposal_status === 'pitched' && 'Presentada'}
-                    </Badge>
-                  </div>
+        {/* Grouped Opportunities */}
+        <div className="space-y-8">
+          {sortedMonthKeys.map((monthKey, monthIndex) => (
+            <div key={monthKey}>
+              {/* Month Separator */}
+              <div className="flex items-center gap-4 mb-6">
+                <h2 className="text-xl font-semibold text-foreground">
+                  {groupedOpportunities[monthKey].label}
+                </h2>
+                <Separator className="flex-1" />
+                <span className="text-sm text-muted-foreground">
+                  {groupedOpportunities[monthKey].opportunities.length} oportunidad{groupedOpportunities[monthKey].opportunities.length !== 1 ? 'es' : ''}
+                </span>
+              </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="text-center p-2 bg-muted rounded">
-                      <div className="text-xs text-muted-foreground">Revenue</div>
-                      <div className="font-semibold text-sm">
-                        {formatCurrency(opportunity.revenue)}
-                      </div>
-                    </div>
-                    <div className="text-center p-2 bg-muted rounded">
-                      <div className="text-xs text-muted-foreground">Cobrado</div>
-                      <div className="font-semibold text-sm">
-                        {formatCurrency(opportunity.cash_collected)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Calls Section */}
-                {opportunity.calls && opportunity.calls.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Llamadas ({opportunity.calls.length})</span>
-                    </div>
-                    <div className="space-y-1 max-h-20 overflow-y-auto">
-                      {opportunity.calls.slice(0, 3).map((call) => (
-                        <div key={call.id} className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2">
-                            <Badge className={getCallTypeColor(call.type)}>
-                              {call.type} #{call.number}
-                            </Badge>
-                            {call.attended !== null && (
-                              <Badge 
-                                variant={call.attended ? "default" : "destructive"}
+              {/* Opportunities Grid for this month */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {groupedOpportunities[monthKey].opportunities.map((opportunity) => (
+                  <Card key={opportunity.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg text-foreground line-clamp-2">
+                            {opportunity.name}
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {getSalespersonName(opportunity.salesperson_id)}
+                          </p>
+                        </div>
+                        <div className="flex gap-1 ml-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setContactsDialogOpportunity(opportunity)}
                               >
-                                {call.attended ? "✓" : "✗"}
-                              </Badge>
+                                <Users className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Contactos</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setFilesDialogOpportunity(opportunity)}
+                              >
+                                <Folder className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Archivos</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setNotesDialogOpportunity(opportunity)}
+                              >
+                                <StickyNote className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Notas</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingOpportunity(opportunity)}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Editar</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteOpportunity(opportunity.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Eliminar</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="space-y-4">
+                      {/* Status and Financial Info */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Estado:</span>
+                          <Badge className={getStatusBadge(opportunity.opportunity_status)}>
+                            {opportunity.opportunity_status === 'active' && 'Activo'}
+                            {opportunity.opportunity_status === 'won' && 'Ganado'}
+                            {opportunity.opportunity_status === 'lost' && 'Perdido'}
+                          </Badge>
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Propuesta:</span>
+                          <Badge className={getStatusBadge(opportunity.proposal_status)}>
+                            {opportunity.proposal_status === 'created' && 'Creada'}
+                            {opportunity.proposal_status === 'pitched' && 'Presentada'}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="text-center p-2 bg-muted rounded">
+                            <div className="text-xs text-muted-foreground">Revenue</div>
+                            <div className="font-semibold text-sm">
+                              {formatCurrency(opportunity.revenue)}
+                            </div>
+                          </div>
+                          <div className="text-center p-2 bg-muted rounded">
+                            <div className="text-xs text-muted-foreground">Cobrado</div>
+                            <div className="font-semibold text-sm">
+                              {formatCurrency(opportunity.cash_collected)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Calls Section */}
+                      {opportunity.calls && opportunity.calls.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm font-medium">Llamadas ({opportunity.calls.length})</span>
+                          </div>
+                          <div className="space-y-1 max-h-20 overflow-y-auto">
+                            {opportunity.calls.slice(0, 3).map((call) => (
+                              <div key={call.id} className="flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-2">
+                                  <Badge className={getCallTypeColor(call.type)}>
+                                    {call.type} #{call.number}
+                                  </Badge>
+                                  {call.attended !== null && (
+                                    <Badge 
+                                      variant={call.attended ? "default" : "destructive"}
+                                    >
+                                      {call.attended ? "✓" : "✗"}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <span className="text-muted-foreground">
+                                  {format(new Date(call.date), 'dd/MM', { locale: es })}
+                                </span>
+                              </div>
+                            ))}
+                            {opportunity.calls.length > 3 && (
+                              <div className="text-xs text-muted-foreground text-center">
+                                +{opportunity.calls.length - 3} más
+                              </div>
                             )}
                           </div>
-                          <span className="text-muted-foreground">
-                            {format(new Date(call.date), 'dd/MM', { locale: es })}
-                          </span>
-                        </div>
-                      ))}
-                      {opportunity.calls.length > 3 && (
-                        <div className="text-xs text-muted-foreground text-center">
-                          +{opportunity.calls.length - 3} más
                         </div>
                       )}
-                    </div>
-                  </div>
-                )}
 
-                {/* Source and Date */}
-                <div className="pt-2 border-t space-y-1">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-muted-foreground">Fuente:</span>
-                    <span className="font-medium">{opportunity.lead_source}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-muted-foreground">Creada:</span>
-                    <span>{format(new Date(opportunity.created_at), 'dd/MM/yyyy', { locale: es })}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                      {/* Source and Date */}
+                      <div className="pt-2 border-t space-y-1">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Fuente:</span>
+                          <span className="font-medium">{opportunity.lead_source}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-muted-foreground">Creada:</span>
+                          <span>{format(new Date(opportunity.created_at), 'dd/MM/yyyy', { locale: es })}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
 
