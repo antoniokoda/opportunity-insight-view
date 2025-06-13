@@ -1,16 +1,18 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Phone, DollarSign, Calendar, Edit } from 'lucide-react';
-import { opportunities, salespeople, type Opportunity } from '@/data/mockData';
+import { Plus, Phone, DollarSign, Edit, Loader2 } from 'lucide-react';
+import { useSalespeople } from '@/hooks/useSalespeople';
+import { useOpportunities } from '@/hooks/useOpportunities';
+import { useCalls } from '@/hooks/useCalls';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export const Opportunities: React.FC = () => {
-  const [opportunityList, setOpportunityList] = useState<Opportunity[]>(opportunities);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newOpportunity, setNewOpportunity] = useState({
     name: '',
@@ -18,6 +20,17 @@ export const Opportunities: React.FC = () => {
     lead_source: '',
     revenue: '',
   });
+
+  const { salespeople, isLoading: salesLoading } = useSalespeople();
+  const { 
+    opportunities, 
+    isLoading: oppsLoading, 
+    addOpportunity, 
+    updateOpportunity, 
+    isAdding 
+  } = useOpportunities();
+
+  const isLoading = salesLoading || oppsLoading;
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -32,31 +45,35 @@ export const Opportunities: React.FC = () => {
 
   const handleAddOpportunity = () => {
     if (newOpportunity.name && newOpportunity.salesperson_id && newOpportunity.lead_source) {
-      const opportunity: Opportunity = {
-        id: opportunityList.length + 1,
+      addOpportunity({
         name: newOpportunity.name,
         salesperson_id: parseInt(newOpportunity.salesperson_id),
         lead_source: newOpportunity.lead_source,
-        opportunity_status: 'active',
-        proposal_status: 'created',
         revenue: parseInt(newOpportunity.revenue) || 0,
-        cash_collected: 0,
-        calls: [],
-      };
+      });
       
-      setOpportunityList([...opportunityList, opportunity]);
       setNewOpportunity({ name: '', salesperson_id: '', lead_source: '', revenue: '' });
       setShowAddForm(false);
     }
   };
 
   const updateOpportunityStatus = (id: number, field: 'opportunity_status' | 'proposal_status', value: string) => {
-    setOpportunityList(prev =>
-      prev.map(opp =>
-        opp.id === id ? { ...opp, [field]: value } : opp
-      )
-    );
+    updateOpportunity({
+      id,
+      updates: { [field]: value }
+    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Cargando oportunidades...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -122,15 +139,20 @@ export const Opportunities: React.FC = () => {
             </div>
           </div>
           <div className="flex gap-2 mt-4">
-            <Button onClick={handleAddOpportunity}>Crear Oportunidad</Button>
+            <Button onClick={handleAddOpportunity} disabled={isAdding}>
+              {isAdding && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Crear Oportunidad
+            </Button>
             <Button variant="outline" onClick={() => setShowAddForm(false)}>Cancelar</Button>
           </div>
         </Card>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {opportunityList.map(opportunity => {
+        {opportunities.map(opportunity => {
           const salesperson = salespeople.find(p => p.id === opportunity.salesperson_id);
+          const opportunityCalls = opportunity.calls || [];
+          
           return (
             <Card key={opportunity.id} className="p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between mb-4">
@@ -194,15 +216,15 @@ export const Opportunities: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium flex items-center gap-2">
                     <Phone size={16} />
-                    Llamadas ({opportunity.calls.length})
+                    Llamadas ({opportunityCalls.length})
                   </h4>
                   <Button variant="outline" size="sm">
                     <Plus size={14} />
                   </Button>
                 </div>
-                {opportunity.calls.length > 0 ? (
+                {opportunityCalls.length > 0 ? (
                   <div className="space-y-2">
-                    {opportunity.calls.map(call => (
+                    {opportunityCalls.map(call => (
                       <div key={call.id} className="flex items-center justify-between p-2 bg-muted rounded">
                         <div className="flex items-center gap-2">
                           <Badge className={getStatusBadge(call.type.toLowerCase())}>
@@ -224,6 +246,19 @@ export const Opportunities: React.FC = () => {
           );
         })}
       </div>
+
+      {opportunities.length === 0 && !isLoading && (
+        <Card className="p-12 text-center">
+          <h3 className="text-lg font-semibold mb-2">No hay oportunidades</h3>
+          <p className="text-muted-foreground mb-4">
+            Crea tu primera oportunidad para comenzar a gestionar tus deals.
+          </p>
+          <Button onClick={() => setShowAddForm(true)}>
+            <Plus size={16} className="mr-2" />
+            Crear Primera Oportunidad
+          </Button>
+        </Card>
+      )}
     </div>
   );
 };

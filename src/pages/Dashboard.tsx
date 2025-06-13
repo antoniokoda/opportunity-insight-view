@@ -1,10 +1,14 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { KpiCard } from '@/components/ui/KpiCard';
+import { SalespersonManager } from '@/components/SalespersonManager';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { DollarSign, TrendingUp, Phone, Users } from 'lucide-react';
-import { opportunities, salespeople } from '@/data/mockData';
+import { DollarSign, TrendingUp, Phone, Users, Loader2 } from 'lucide-react';
+import { useSalespeople } from '@/hooks/useSalespeople';
+import { useOpportunities } from '@/hooks/useOpportunities';
+import { useCalls } from '@/hooks/useCalls';
 
 const months = [
   { value: 'all', label: 'Todos los meses' },
@@ -30,6 +34,12 @@ export const Dashboard: React.FC = () => {
     calls: true,
   });
 
+  const { salespeople, isLoading: salesLoading } = useSalespeople();
+  const { opportunities, isLoading: oppsLoading } = useOpportunities();
+  const { calls, isLoading: callsLoading } = useCalls();
+
+  const isLoading = salesLoading || oppsLoading || callsLoading;
+
   const filteredOpportunities = useMemo(() => {
     return opportunities.filter(opp => {
       if (selectedSalesperson !== 'all' && opp.salesperson_id !== parseInt(selectedSalesperson)) {
@@ -40,12 +50,12 @@ export const Dashboard: React.FC = () => {
       }
       return true;
     });
-  }, [selectedSalesperson, selectedLeadSource]);
+  }, [opportunities, selectedSalesperson, selectedLeadSource]);
 
   const kpis = useMemo(() => {
     const totalRevenue = filteredOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
     const totalCash = filteredOpportunities.reduce((sum, opp) => sum + opp.cash_collected, 0);
-    const totalCalls = filteredOpportunities.reduce((sum, opp) => sum + opp.calls.length, 0);
+    const totalCalls = calls.length;
     const activeOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'active').length;
 
     return {
@@ -54,14 +64,13 @@ export const Dashboard: React.FC = () => {
       totalCalls,
       activeOpportunities,
     };
-  }, [filteredOpportunities]);
+  }, [filteredOpportunities, calls]);
 
   const chartData = useMemo(() => {
     const data = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date();
       date.setDate(date.getDate() - (6 - i));
-      const dateStr = date.toISOString().split('T')[0];
       
       data.push({
         date: date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }),
@@ -85,7 +94,7 @@ export const Dashboard: React.FC = () => {
         deals: salesPersonOpps.length,
       };
     });
-  }, []);
+  }, [salespeople, opportunities]);
 
   const leadSourceData = useMemo(() => {
     const sources = ['Website', 'Referral', 'Cold Outreach'];
@@ -97,7 +106,18 @@ export const Dashboard: React.FC = () => {
         revenue: sourceOpps.reduce((sum, opp) => sum + opp.revenue, 0),
       };
     });
-  }, []);
+  }, [opportunities]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Cargando datos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -187,95 +207,110 @@ export const Dashboard: React.FC = () => {
         />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Tendencias</h3>
-            <div className="flex gap-2">
-              <label className="flex items-center text-sm">
-                <input
-                  type="checkbox"
-                  checked={visibleMetrics.revenue}
-                  onChange={(e) => setVisibleMetrics(prev => ({ ...prev, revenue: e.target.checked }))}
-                  className="mr-1"
-                />
-                Revenue
-              </label>
-              <label className="flex items-center text-sm">
-                <input
-                  type="checkbox"
-                  checked={visibleMetrics.cash}
-                  onChange={(e) => setVisibleMetrics(prev => ({ ...prev, cash: e.target.checked }))}
-                  className="mr-1"
-                />
-                Cash
-              </label>
-              <label className="flex items-center text-sm">
-                <input
-                  type="checkbox"
-                  checked={visibleMetrics.calls}
-                  onChange={(e) => setVisibleMetrics(prev => ({ ...prev, calls: e.target.checked }))}
-                  className="mr-1"
-                />
-                Calls
-              </label>
+      {/* Charts and Salespeople Manager */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Tendencias</h3>
+              <div className="flex gap-2">
+                <label className="flex items-center text-sm">
+                  <input
+                    type="checkbox"
+                    checked={visibleMetrics.revenue}
+                    onChange={(e) => setVisibleMetrics(prev => ({ ...prev, revenue: e.target.checked }))}
+                    className="mr-1"
+                  />
+                  Revenue
+                </label>
+                <label className="flex items-center text-sm">
+                  <input
+                    type="checkbox"
+                    checked={visibleMetrics.cash}
+                    onChange={(e) => setVisibleMetrics(prev => ({ ...prev, cash: e.target.checked }))}
+                    className="mr-1"
+                  />
+                  Cash
+                </label>
+                <label className="flex items-center text-sm">
+                  <input
+                    type="checkbox"
+                    checked={visibleMetrics.calls}
+                    onChange={(e) => setVisibleMetrics(prev => ({ ...prev, calls: e.target.checked }))}
+                    className="mr-1"
+                  />
+                  Calls
+                </label>
+              </div>
             </div>
-          </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              {visibleMetrics.revenue && (
-                <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} />
-              )}
-              {visibleMetrics.cash && (
-                <Line type="monotone" dataKey="cash" stroke="#22c55e" strokeWidth={2} />
-              )}
-              {visibleMetrics.calls && (
-                <Line type="monotone" dataKey="calls" stroke="#f59e0b" strokeWidth={2} />
-              )}
-            </LineChart>
-          </ResponsiveContainer>
-        </Card>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                {visibleMetrics.revenue && (
+                  <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} />
+                )}
+                {visibleMetrics.cash && (
+                  <Line type="monotone" dataKey="cash" stroke="#22c55e" strokeWidth={2} />
+                )}
+                {visibleMetrics.calls && (
+                  <Line type="monotone" dataKey="calls" stroke="#f59e0b" strokeWidth={2} />
+                )}
+              </LineChart>
+            </ResponsiveContainer>
+          </Card>
+        </div>
 
+        {/* Salespeople Manager */}
+        <div>
+          <SalespersonManager />
+        </div>
+      </div>
+
+      {/* Performance and Lead Sources */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Rendimiento por Vendedor</h3>
           <div className="space-y-4">
-            {salesPerformance.map(person => (
-              <div key={person.name} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                <div>
-                  <p className="font-medium">{person.name}</p>
-                  <p className="text-sm text-muted-foreground">{person.deals} deals</p>
+            {salesPerformance.length > 0 ? (
+              salesPerformance.map(person => (
+                <div key={person.name} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div>
+                    <p className="font-medium">{person.name}</p>
+                    <p className="text-sm text-muted-foreground">{person.deals} deals</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold">${person.revenue.toLocaleString()}</p>
+                    <p className="text-sm text-success-600">${person.cash.toLocaleString()}</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold">${person.revenue.toLocaleString()}</p>
-                  <p className="text-sm text-success-600">${person.cash.toLocaleString()}</p>
-                </div>
+              ))
+            ) : (
+              <p className="text-center text-muted-foreground py-8">
+                Agrega vendedores para ver su rendimiento
+              </p>
+            )}
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Fuentes de Leads</h3>
+          <div className="grid grid-cols-1 gap-4">
+            {leadSourceData.map(source => (
+              <div key={source.source} className="text-center p-4 bg-muted rounded-lg">
+                <h4 className="font-medium mb-2">{source.source}</h4>
+                <p className="text-2xl font-bold text-primary">{source.count}</p>
+                <p className="text-sm text-muted-foreground">
+                  ${source.revenue.toLocaleString()} revenue
+                </p>
               </div>
             ))}
           </div>
         </Card>
       </div>
-
-      {/* Lead Sources */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Fuentes de Leads</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {leadSourceData.map(source => (
-            <div key={source.source} className="text-center p-4 bg-muted rounded-lg">
-              <h4 className="font-medium mb-2">{source.source}</h4>
-              <p className="text-2xl font-bold text-primary">{source.count}</p>
-              <p className="text-sm text-muted-foreground">
-                ${source.revenue.toLocaleString()} revenue
-              </p>
-            </div>
-          ))}
-        </div>
-      </Card>
     </div>
   );
 };

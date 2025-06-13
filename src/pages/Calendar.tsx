@@ -1,35 +1,35 @@
+
 import React, { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Phone, Calendar as CalendarIcon, Clock, Plus } from 'lucide-react';
-import { opportunities, upcomingCalls, salespeople } from '@/data/mockData';
+import { Phone, Calendar as CalendarIcon, Clock, Plus, Loader2 } from 'lucide-react';
+import { useSalespeople } from '@/hooks/useSalespeople';
+import { useOpportunities } from '@/hooks/useOpportunities';
+import { useCalls } from '@/hooks/useCalls';
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export const Calendar: React.FC = () => {
+  const { salespeople, isLoading: salesLoading } = useSalespeople();
+  const { opportunities, isLoading: oppsLoading } = useOpportunities();
+  const { calls, isLoading: callsLoading } = useCalls();
+
+  const isLoading = salesLoading || oppsLoading || callsLoading;
+
   const allCalls = useMemo(() => {
-    const existingCalls = opportunities.flatMap(opp => 
-      opp.calls.map(call => ({
-        ...call,
-        opportunity_name: opp.name,
-        salesperson_name: salespeople.find(s => s.id === opp.salesperson_id)?.name || 'Unknown'
-      }))
-    );
-    
-    const upcoming = upcomingCalls.map(call => {
-      const opp = opportunities.find(o => o.id === call.deal_id);
+    return calls.map(call => {
+      const opp = opportunities.find(o => o.id === call.opportunity_id);
+      const salesperson = salespeople.find(s => s.id === opp?.salesperson_id);
       return {
         ...call,
-        opportunity_name: opp?.name || 'Unknown',
-        salesperson_name: salespeople.find(s => s.id === opp?.salesperson_id)?.name || 'Unknown'
+        opportunity_name: opp?.name || 'Unknown Opportunity',
+        salesperson_name: salesperson?.name || 'Unknown Salesperson'
       };
-    });
-    
-    return [...existingCalls, ...upcoming].sort((a, b) => 
+    }).sort((a, b) => 
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
-  }, []);
+  }, [calls, opportunities, salespeople]);
 
   const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -47,6 +47,17 @@ export const Calendar: React.FC = () => {
   const upcomingCallsList = allCalls
     .filter(call => new Date(call.date) > today)
     .slice(0, 5);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Cargando calendario...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
