@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -75,13 +74,8 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
   };
 
   const handleAddCall = () => {
-    if (!opportunity || !newCall.duration || isNaN(parseInt(newCall.duration)) || parseInt(newCall.duration) <= 0) {
-      console.log('Cannot add call: missing opportunity, duration, or invalid duration', {
-        opportunity: !!opportunity,
-        duration: newCall.duration,
-        parsedDuration: parseInt(newCall.duration),
-        isValid: !isNaN(parseInt(newCall.duration)) && parseInt(newCall.duration) > 0
-      });
+    if (!opportunity) {
+      console.log('Cannot add call: missing opportunity');
       return;
     }
 
@@ -89,7 +83,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
       opportunity_id: opportunity.id,
       type: newCall.type,
       date: new Date(newCall.date).toISOString(),
-      duration: parseInt(newCall.duration),
+      duration: parseInt(newCall.duration) || 0,
       attended: newCall.attended,
       link: newCall.link || undefined,
     });
@@ -98,7 +92,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
       opportunity_id: opportunity.id,
       type: newCall.type,
       date: new Date(newCall.date).toISOString(),
-      duration: parseInt(newCall.duration),
+      duration: parseInt(newCall.duration) || 0,
       attended: newCall.attended,
       link: newCall.link || undefined,
     });
@@ -301,10 +295,10 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium mb-2">Duración (min)</label>
+                      <label className="block text-sm font-medium mb-2">Duración (min) - Opcional</label>
                       <Input
                         type="number"
-                        min="1"
+                        min="0"
                         value={newCall.duration}
                         onChange={(e) => setNewCall(prev => ({ ...prev, duration: e.target.value }))}
                         placeholder="30"
@@ -359,7 +353,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                   <Button 
                     onClick={handleAddCall} 
                     size="sm" 
-                    disabled={isAdding || !newCall.duration || isNaN(parseInt(newCall.duration)) || parseInt(newCall.duration) <= 0}
+                    disabled={isAdding}
                   >
                     {isAdding && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     Añadir Llamada
