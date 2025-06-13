@@ -16,6 +16,7 @@ export type Database = {
           date: string
           duration: number
           id: number
+          link: string | null
           number: number
           opportunity_id: number
           type: Database["public"]["Enums"]["call_type"]
@@ -27,6 +28,7 @@ export type Database = {
           date: string
           duration: number
           id?: number
+          link?: string | null
           number: number
           opportunity_id: number
           type: Database["public"]["Enums"]["call_type"]
@@ -38,6 +40,7 @@ export type Database = {
           date?: string
           duration?: number
           id?: number
+          link?: string | null
           number?: number
           opportunity_id?: number
           type?: Database["public"]["Enums"]["call_type"]

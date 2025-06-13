@@ -14,6 +14,7 @@ export interface Call {
   date: string;
   duration: number;
   attended: boolean | null;
+  link: string | null;
   user_id: string;
   created_at: string;
 }
@@ -58,6 +59,7 @@ export const useCalls = (opportunityId?: number) => {
       date: string;
       duration: number;
       attended?: boolean | null;
+      link?: string;
     }) => {
       if (!user) throw new Error('User not authenticated');
 
@@ -81,6 +83,7 @@ export const useCalls = (opportunityId?: number) => {
           number: nextNumber,
           user_id: user.id,
           attended: newCall.attended || null,
+          link: newCall.link || null,
         }])
         .select()
         .single();

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Phone, Plus, Loader2, X } from 'lucide-react';
+import { Phone, Plus, Loader2, X, ExternalLink } from 'lucide-react';
 import { Opportunity } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useOpportunities } from '@/hooks/useOpportunities';
@@ -44,6 +43,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
     date: new Date().toISOString().slice(0, 16),
     duration: '',
     attended: null as boolean | null,
+    link: '',
   });
 
   React.useEffect(() => {
@@ -82,6 +82,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
       date: new Date(newCall.date).toISOString(),
       duration: parseInt(newCall.duration),
       attended: newCall.attended,
+      link: newCall.link || undefined,
     });
 
     setNewCall({
@@ -89,6 +90,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
       date: new Date().toISOString().slice(0, 16),
       duration: '',
       attended: null,
+      link: '',
     });
     setShowAddCall(false);
   };
@@ -300,6 +302,16 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                     />
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Enlace (opcional)</label>
+                    <Input
+                      type="url"
+                      value={newCall.link}
+                      onChange={(e) => setNewCall(prev => ({ ...prev, link: e.target.value }))}
+                      placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                    />
+                  </div>
+
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="attended-yes"
@@ -345,6 +357,16 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                         <Badge variant={call.attended ? "default" : "destructive"}>
                           {call.attended ? "Asistió" : "No asistió"}
                         </Badge>
+                      )}
+                      {call.link && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.open(call.link, '_blank')}
+                          className="h-6 w-6 p-0"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </Button>
                       )}
                     </div>
                     <div className="text-sm text-muted-foreground">
