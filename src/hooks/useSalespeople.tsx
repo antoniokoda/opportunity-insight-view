@@ -150,7 +150,7 @@ export const useSalespeople = () => {
         console.log(`Updated ${opportunities.length} opportunities to remove salesperson assignment`);
       }
 
-      // Delete the salesperson - RLS will ensure only the user's own salesperson can be deleted
+      // Delete the salesperson
       const { error } = await supabase
         .from('salespeople')
         .delete()
@@ -194,7 +194,7 @@ export const useSalespeople = () => {
     error,
     addSalesperson: addSalesperson.mutate,
     updateSalesperson: updateSalesperson.mutate,
-    deleteSalesperson: deleteSalesperson.mutateAsync,
+    deleteSalesperson: deleteSalesperson.mutate,
     isAdding: addSalesperson.isPending,
     isUpdating: updateSalesperson.isPending,
     isDeleting: deleteSalesperson.isPending,

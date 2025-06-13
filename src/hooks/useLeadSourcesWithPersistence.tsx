@@ -165,7 +165,7 @@ export const useLeadSourcesWithPersistence = () => {
         console.log(`Updated ${opportunities.length} opportunities to use generic lead source`);
       }
 
-      // Delete the lead source - RLS will ensure only the user's own lead source can be deleted
+      // Delete the lead source
       const { error } = await supabase
         .from('lead_sources')
         .delete()
@@ -209,7 +209,7 @@ export const useLeadSourcesWithPersistence = () => {
     error,
     addLeadSource: addLeadSource.mutate,
     updateLeadSource: updateLeadSource.mutate,
-    deleteLeadSource: deleteLeadSource.mutateAsync,
+    deleteLeadSource: deleteLeadSource.mutate,
     isAdding: addLeadSource.isPending,
     isUpdating: updateLeadSource.isPending,
     isDeleting: deleteLeadSource.isPending,
