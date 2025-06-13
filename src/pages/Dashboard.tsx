@@ -12,6 +12,7 @@ import { useDashboardKpis } from '@/hooks/useDashboardKpis';
 import { useDashboardChartData } from '@/hooks/useDashboardChartData';
 import { useLeadSourceData } from '@/hooks/useLeadSourceData';
 import { useDetailedCallMetrics } from '@/hooks/useDetailedCallMetrics';
+import { useDashboardKpiChanges } from '@/hooks/useDashboardKpiChanges';
 
 export const Dashboard = () => {
   const { opportunities, isLoading: opportunitiesLoading } = useOpportunities();
@@ -88,6 +89,15 @@ export const Dashboard = () => {
   });
   
   const detailedCallMetrics = useDetailedCallMetrics(filteredCalls);
+
+  // Add the new KPI changes hook
+  const kpiChanges = useDashboardKpiChanges(
+    opportunities, 
+    allCalls, 
+    filteredOpportunities, 
+    filteredCalls, 
+    selectedMonth
+  );
 
   const handleAddSalesperson = () => {
     if (newSalesperson.name && newSalesperson.email) {
@@ -197,7 +207,7 @@ export const Dashboard = () => {
         isAdding={isAdding}
       />
 
-      <DashboardKpis kpis={kpis} />
+      <DashboardKpis kpis={kpis} kpiChanges={kpiChanges} />
 
       <DashboardCharts 
         chartData={chartData} 

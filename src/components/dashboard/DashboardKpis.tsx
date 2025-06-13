@@ -16,9 +16,31 @@ interface DashboardKpisProps {
     overallShowUpRate: number;
     firstDiscoveryShowUpRate: number;
   };
+  kpiChanges: {
+    revenueChange: number | null;
+    cashChange: number | null;
+    callsChange: number | null;
+    averageDealSizeChange: number | null;
+    closingRateChange: number | null;
+    showUpRateChange: number | null;
+    firstDiscoveryShowUpRateChange: number | null;
+  };
 }
 
-export const DashboardKpis: React.FC<DashboardKpisProps> = ({ kpis }) => {
+export const DashboardKpis: React.FC<DashboardKpisProps> = ({ kpis, kpiChanges }) => {
+  const formatChange = (change: number | null) => {
+    if (change === null) return undefined;
+    const sign = change >= 0 ? '+' : '';
+    return `${sign}${change.toFixed(1)}%`;
+  };
+
+  const getChangeType = (change: number | null): 'positive' | 'negative' | 'neutral' => {
+    if (change === null) return 'neutral';
+    if (change > 0) return 'positive';
+    if (change < 0) return 'negative';
+    return 'neutral';
+  };
+
   return (
     <>
       {/* Métricas Principales */}
@@ -28,29 +50,29 @@ export const DashboardKpis: React.FC<DashboardKpisProps> = ({ kpis }) => {
           <KpiCard
             title="Revenue Total"
             value={formatCurrency(kpis.totalRevenue)}
-            change="+12.5%"
-            changeType="positive"
+            change={formatChange(kpiChanges.revenueChange)}
+            changeType={getChangeType(kpiChanges.revenueChange)}
             icon={<DollarSign size={24} />}
           />
           <KpiCard
             title="Cash Collected"
             value={formatCurrency(kpis.totalCash)}
-            change="+8.2%"
-            changeType="positive"
+            change={formatChange(kpiChanges.cashChange)}
+            changeType={getChangeType(kpiChanges.cashChange)}
             icon={<TrendingUp size={24} />}
           />
           <KpiCard
             title="Valor Promedio del Trato"
             value={formatCurrency(kpis.averageDealSize)}
-            change="+5.3%"
-            changeType="positive"
+            change={formatChange(kpiChanges.averageDealSizeChange)}
+            changeType={getChangeType(kpiChanges.averageDealSizeChange)}
             icon={<Target size={24} />}
           />
           <KpiCard
             title="Tasa de Cierre"
             value={`${kpis.closingRate.toFixed(1)}%`}
-            change="+2.1%"
-            changeType="positive"
+            change={formatChange(kpiChanges.closingRateChange)}
+            changeType={getChangeType(kpiChanges.closingRateChange)}
             icon={<Percent size={24} />}
           />
         </div>
@@ -61,29 +83,29 @@ export const DashboardKpis: React.FC<DashboardKpisProps> = ({ kpis }) => {
         <KpiCard
           title="Total Llamadas"
           value={kpis.totalCalls}
-          change="+15.3%"
-          changeType="positive"
+          change={formatChange(kpiChanges.callsChange)}
+          changeType={getChangeType(kpiChanges.callsChange)}
           icon={<Phone size={24} />}
         />
         <KpiCard
           title="Tasa Asistencia General"
           value={`${kpis.overallShowUpRate.toFixed(1)}%`}
-          change="+4.2%"
-          changeType="positive"
+          change={formatChange(kpiChanges.showUpRateChange)}
+          changeType={getChangeType(kpiChanges.showUpRateChange)}
           icon={<UserCheck size={24} />}
         />
         <KpiCard
           title="Asistencia Discovery 1"
           value={`${kpis.firstDiscoveryShowUpRate.toFixed(1)}%`}
-          change="+6.1%"
-          changeType="positive"
+          change={formatChange(kpiChanges.firstDiscoveryShowUpRateChange)}
+          changeType={getChangeType(kpiChanges.firstDiscoveryShowUpRateChange)}
           icon={<UserCheck size={24} />}
         />
         <KpiCard
           title="Oportunidades Activas"
           value={kpis.activeOpportunities}
-          change="-2.1%"
-          changeType="negative"
+          change={undefined}
+          changeType="neutral"
           icon={<Users size={24} />}
         />
       </div>
