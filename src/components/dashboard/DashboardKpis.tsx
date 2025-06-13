@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { DollarSign, TrendingUp, Phone, Users, Target, Clock, Percent, UserCheck } from 'lucide-react';
+import { DollarSign, TrendingUp, Phone, Users, Target, Clock, Percent, UserCheck, FileText } from 'lucide-react';
 import { formatCurrency } from '@/config/currency';
 
 interface DashboardKpisProps {
@@ -95,11 +95,11 @@ export const DashboardKpis: React.FC<DashboardKpisProps> = ({ kpis, kpiChanges }
           icon={<UserCheck size={24} />}
         />
         <KpiCard
-          title="Asistencia Discovery 1"
-          value={`${kpis.firstDiscoveryShowUpRate.toFixed(1)}%`}
-          change={formatChange(kpiChanges.firstDiscoveryShowUpRateChange)}
-          changeType={getChangeType(kpiChanges.firstDiscoveryShowUpRateChange)}
-          icon={<UserCheck size={24} />}
+          title="Propuestas Pitcheadas"
+          value={kpis.proposalsPitched}
+          change={undefined}
+          changeType="neutral"
+          icon={<FileText size={24} />}
         />
         <KpiCard
           title="Oportunidades Activas"
