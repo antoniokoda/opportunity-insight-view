@@ -56,14 +56,16 @@ export const MonthView: React.FC<MonthViewProps> = ({
                 {calls.slice(0, 2).map(call => (
                   <div
                     key={call.id}
-                    className="text-[10px] p-0.5 rounded bg-primary/10 text-primary truncate"
+                    className="text-[10px] p-0.5 rounded bg-primary/10 text-primary truncate overflow-hidden"
                     title={`${call.type} #${call.number} - ${call.opportunity_name}`}
                   >
-                    {format(new Date(call.date), 'HH:mm')} {call.type}
+                    <span className="block truncate">
+                      {format(new Date(call.date), 'HH:mm')} {call.type}
+                    </span>
                   </div>
                 ))}
                 {calls.length > 2 && (
-                  <div className="text-[10px] text-muted-foreground">
+                  <div className="text-[10px] text-muted-foreground truncate">
                     +{calls.length - 2} más
                   </div>
                 )}

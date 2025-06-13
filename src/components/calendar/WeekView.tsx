@@ -70,7 +70,7 @@ export const WeekView: React.FC<WeekViewProps> = ({
                       return (
                         <div
                           key={call.id}
-                          className={`absolute left-1 right-1 rounded text-xs p-1 cursor-pointer shadow-sm ${getCallTypeColor(call.type)}`}
+                          className={`absolute left-1 right-1 rounded text-xs p-1 cursor-pointer shadow-sm overflow-hidden ${getCallTypeColor(call.type)}`}
                           style={{
                             top: `${topOffset}px`,
                             height: `${height}px`,
@@ -78,13 +78,13 @@ export const WeekView: React.FC<WeekViewProps> = ({
                           }}
                           title={`${call.opportunity_name} - ${call.salesperson_name} (${call.duration}min)`}
                         >
-                          <div className="font-medium text-xs leading-3">
+                          <div className="font-medium text-xs leading-3 truncate">
                             {call.type} #{call.number}
                           </div>
-                          <div className="text-xs opacity-90 truncate leading-3">
+                          <div className="text-xs opacity-90 leading-3 truncate">
                             {call.opportunity_name}
                           </div>
-                          <div className="text-xs opacity-75 leading-3">
+                          <div className="text-xs opacity-75 leading-3 truncate">
                             {format(callDate, 'HH:mm')} ({call.duration}min)
                           </div>
                         </div>

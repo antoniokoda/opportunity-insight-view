@@ -41,7 +41,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
   const [newCall, setNewCall] = useState({
     type: 'Discovery 1' as CallType,
     date: new Date().toISOString().slice(0, 16),
-    duration: '',
+    duration: '30',
     attended: false,
     link: '',
   });
@@ -83,7 +83,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
       opportunity_id: opportunity.id,
       type: newCall.type,
       date: new Date(newCall.date).toISOString(),
-      duration: parseInt(newCall.duration) || 0,
+      duration: parseInt(newCall.duration) || 30,
       attended: newCall.attended,
       link: newCall.link || undefined,
     });
@@ -92,7 +92,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
       opportunity_id: opportunity.id,
       type: newCall.type,
       date: new Date(newCall.date).toISOString(),
-      duration: parseInt(newCall.duration) || 0,
+      duration: parseInt(newCall.duration) || 30,
       attended: newCall.attended,
       link: newCall.link || undefined,
     });
@@ -100,7 +100,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
     setNewCall({
       type: 'Discovery 1',
       date: new Date().toISOString().slice(0, 16),
-      duration: '',
+      duration: '30',
       attended: false,
       link: '',
     });
@@ -295,7 +295,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium mb-2">Duración (min) - Opcional</label>
+                      <label className="block text-sm font-medium mb-2">Duración (min)</label>
                       <Input
                         type="number"
                         min="0"
