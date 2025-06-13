@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
+import { useLeadSourcesWithPersistence } from '@/hooks/useLeadSourcesWithPersistence';
 
 interface OpportunityDialogProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export const OpportunityDialog: React.FC<OpportunityDialogProps> = ({
 }) => {
   const { addOpportunity, isAdding } = useOpportunities();
   const { salespeople } = useSalespeople();
+  const { leadSources } = useLeadSourcesWithPersistence();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -113,9 +115,19 @@ export const OpportunityDialog: React.FC<OpportunityDialogProps> = ({
                 <SelectValue placeholder="Seleccionar fuente" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Website">Website</SelectItem>
-                <SelectItem value="Referral">Referencia</SelectItem>
-                <SelectItem value="Cold Outreach">Prospección</SelectItem>
+                {leadSources.map(source => (
+                  <SelectItem key={source.id} value={source.name}>
+                    {source.name}
+                  </SelectItem>
+                ))}
+                {/* Fallback options if no custom lead sources exist */}
+                {leadSources.length === 0 && (
+                  <>
+                    <SelectItem value="Website">Website</SelectItem>
+                    <SelectItem value="Referral">Referencia</SelectItem>
+                    <SelectItem value="Cold Outreach">Prospección</SelectItem>
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>
