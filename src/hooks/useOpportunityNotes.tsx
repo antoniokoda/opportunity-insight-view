@@ -32,8 +32,14 @@ export const useOpportunityNotes = (opportunityId: number) => {
       const { data, error } = await supabase
         .from('opportunity_notes')
         .select(`
-          *,
-          profiles (
+          id,
+          opportunity_id,
+          title,
+          content,
+          user_id,
+          created_at,
+          updated_at,
+          profiles!inner (
             name,
             email
           )
@@ -47,8 +53,7 @@ export const useOpportunityNotes = (opportunityId: number) => {
       }
 
       console.log('Fetched opportunity notes:', data);
-      // Type assertion to handle the joined data correctly
-      return (data || []) as OpportunityNote[];
+      return data as OpportunityNote[];
     },
     enabled: !!user && !!opportunityId,
   });
