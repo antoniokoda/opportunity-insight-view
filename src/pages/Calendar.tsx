@@ -1,16 +1,40 @@
 
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Phone, Calendar as CalendarIcon, Clock, Plus, Loader2 } from 'lucide-react';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Phone, Calendar as CalendarIcon, Clock, Plus, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useCalls } from '@/hooks/useCalls';
-import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
+import { 
+  format, 
+  addMonths, 
+  subMonths, 
+  startOfMonth, 
+  endOfMonth, 
+  startOfWeek, 
+  endOfWeek, 
+  eachDayOfInterval, 
+  eachHourOfInterval,
+  isSameDay, 
+  isSameMonth,
+  addDays,
+  startOfDay,
+  setHours,
+  isToday,
+  getDay
+} from 'date-fns';
 import { es } from 'date-fns/locale';
 
+type ViewType = 'month' | 'week';
+
 export const Calendar: React.FC = () => {
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 1)); // January 2025
+  const [view, setView] = useState<ViewType>('month');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+
   const { salespeople, isLoading: salesLoading } = useSalespeople();
   const { opportunities, isLoading: oppsLoading } = useOpportunities();
   const { calls, isLoading: callsLoading } = useCalls();
@@ -31,22 +55,48 @@ export const Calendar: React.FC = () => {
     );
   }, [calls, opportunities, salespeople]);
 
-  const today = new Date();
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
-  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
-
   const getCallsForDay = (date: Date) => {
     return allCalls.filter(call => isSameDay(new Date(call.date), date));
+  };
+
+  const getCallsForHour = (date: Date, hour: number) => {
+    return allCalls.filter(call => {
+      const callDate = new Date(call.date);
+      return isSameDay(callDate, date) && callDate.getHours() === hour;
+    });
   };
 
   const getCallTypeColor = (type: string) => {
     return type === 'Discovery' ? 'bg-blue-100 text-blue-800' : 'bg-success-50 text-success-600';
   };
 
-  const upcomingCallsList = allCalls
-    .filter(call => new Date(call.date) > today)
-    .slice(0, 5);
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    if (direction === 'prev') {
+      setCurrentDate(subMonths(currentDate, 1));
+    } else {
+      setCurrentDate(addMonths(currentDate, 1));
+    }
+  };
+
+  const navigateWeek = (direction: 'prev' | 'next') => {
+    if (direction === 'prev') {
+      setCurrentDate(addDays(currentDate, -7));
+    } else {
+      setCurrentDate(addDays(currentDate, 7));
+    }
+  };
+
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  const monthDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+
+  const hours = Array.from({ length: 24 }, (_, i) => i);
 
   if (isLoading) {
     return (
@@ -66,149 +116,228 @@ export const Calendar: React.FC = () => {
           <h1 className="text-2xl font-bold">Calendario</h1>
           <p className="text-muted-foreground">Gestiona tus llamadas y reuniones</p>
         </div>
-        <Button className="flex items-center gap-2">
-          <Plus size={16} />
-          Nueva Llamada
-        </Button>
+        <div className="flex items-center gap-4">
+          <div className="flex rounded-lg border">
+            <Button
+              variant={view === 'month' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setView('month')}
+              className="rounded-r-none"
+            >
+              Mes
+            </Button>
+            <Button
+              variant={view === 'week' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setView('week')}
+              className="rounded-l-none"
+            >
+              Semana
+            </Button>
+          </div>
+          <Button className="flex items-center gap-2">
+            <Plus size={16} />
+            Nueva Llamada
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Weekly Calendar */}
-        <div className="lg:col-span-2">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">
-                Semana del {format(weekStart, 'dd', { locale: es })} al {format(weekEnd, 'dd MMM yyyy', { locale: es })}
-              </h2>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">Anterior</Button>
-                <Button variant="outline" size="sm">Siguiente</Button>
-              </div>
+      <Card className="p-6">
+        {/* Calendar Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold">
+              {view === 'month' 
+                ? format(currentDate, 'MMMM yyyy', { locale: es })
+                : `Semana del ${format(weekStart, 'dd', { locale: es })} al ${format(weekEnd, 'dd MMM yyyy', { locale: es })}`
+              }
+            </h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentDate(new Date())}
+            >
+              Hoy
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => view === 'month' ? navigateMonth('prev') : navigateWeek('prev')}
+            >
+              <ChevronLeft size={16} />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => view === 'month' ? navigateMonth('next') : navigateWeek('next')}
+            >
+              <ChevronRight size={16} />
+            </Button>
+          </div>
+        </div>
+
+        {view === 'month' ? (
+          /* Month View */
+          <>
+            {/* Days of week header */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => (
+                <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
+                  {day}
+                </div>
+              ))}
             </div>
             
-            <div className="grid grid-cols-7 gap-2">
-              {weekDays.map(day => {
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-7 gap-1">
+              {monthDays.map(day => {
                 const calls = getCallsForDay(day);
-                const isToday = isSameDay(day, today);
+                const isCurrentMonth = isSameMonth(day, currentDate);
+                const isDayToday = isToday(day);
                 
                 return (
                   <div
                     key={day.toString()}
-                    className={`p-3 min-h-[120px] rounded-lg border ${
-                      isToday ? 'bg-primary/5 border-primary' : 'bg-card border-border'
-                    }`}
+                    className={`min-h-[100px] p-2 border rounded-lg ${
+                      isDayToday ? 'bg-primary/10 border-primary' : 
+                      isCurrentMonth ? 'bg-card border-border hover:bg-accent' : 
+                      'bg-muted/30 border-border'
+                    } cursor-pointer transition-colors`}
+                    onClick={() => setSelectedDate(day)}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`text-sm font-medium ${
-                        isToday ? 'text-primary' : 'text-foreground'
-                      }`}>
-                        {format(day, 'EEE', { locale: es })}
-                      </span>
-                      <span className={`text-lg font-bold ${
-                        isToday ? 'text-primary' : 'text-foreground'
-                      }`}>
-                        {format(day, 'dd')}
-                      </span>
+                    <div className={`text-sm font-medium mb-1 ${
+                      isDayToday ? 'text-primary' : 
+                      isCurrentMonth ? 'text-foreground' : 
+                      'text-muted-foreground'
+                    }`}>
+                      {format(day, 'd')}
                     </div>
                     
                     <div className="space-y-1">
-                      {calls.map(call => (
+                      {calls.slice(0, 3).map(call => (
                         <div
                           key={call.id}
-                          className="text-xs p-2 rounded bg-muted hover:bg-accent cursor-pointer transition-colors"
+                          className="text-xs p-1 rounded bg-primary/10 text-primary truncate"
+                          title={`${call.type} #${call.number} - ${call.opportunity_name}`}
                         >
-                          <div className="flex items-center gap-1 mb-1">
-                            <Phone size={12} />
-                            <span className="font-medium truncate">
-                              {call.type} #{call.number}
-                            </span>
-                          </div>
-                          <div className="text-muted-foreground">
-                            {format(new Date(call.date), 'HH:mm')}
-                          </div>
+                          {format(new Date(call.date), 'HH:mm')} {call.type}
                         </div>
                       ))}
+                      {calls.length > 3 && (
+                        <div className="text-xs text-muted-foreground">
+                          +{calls.length - 3} más
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
-          </Card>
-        </div>
-
-        {/* Upcoming Calls Sidebar */}
-        <div className="space-y-6">
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <CalendarIcon size={20} />
-              Próximas Llamadas
-            </h3>
+          </>
+        ) : (
+          /* Week View */
+          <div className="space-y-4">
+            {/* Week days header */}
+            <div className="grid grid-cols-8 gap-1">
+              <div className="p-2"></div>
+              {weekDays.map(day => (
+                <div key={day.toString()} className="p-2 text-center">
+                  <div className={`text-sm font-medium ${isToday(day) ? 'text-primary' : 'text-foreground'}`}>
+                    {format(day, 'EEE', { locale: es })}
+                  </div>
+                  <div className={`text-lg font-bold ${
+                    isToday(day) ? 'text-primary bg-primary/10 rounded-full w-8 h-8 flex items-center justify-center mx-auto' : 'text-foreground'
+                  }`}>
+                    {format(day, 'd')}
+                  </div>
+                </div>
+              ))}
+            </div>
             
-            {upcomingCallsList.length > 0 ? (
-              <div className="space-y-4">
-                {upcomingCallsList.map(call => (
+            {/* Hour grid */}
+            <div className="max-h-[600px] overflow-y-auto">
+              <div className="grid grid-cols-8 gap-1">
+                {hours.map(hour => (
+                  <React.Fragment key={hour}>
+                    {/* Hour label */}
+                    <div className="p-2 text-xs text-muted-foreground text-right border-r">
+                      {format(setHours(new Date(), hour), 'HH:mm')}
+                    </div>
+                    {/* Day columns */}
+                    {weekDays.map(day => {
+                      const hourCalls = getCallsForHour(day, hour);
+                      return (
+                        <div
+                          key={`${day.toString()}-${hour}`}
+                          className="min-h-[40px] p-1 border-b border-border hover:bg-accent/50 transition-colors"
+                        >
+                          {hourCalls.map(call => (
+                            <div
+                              key={call.id}
+                              className={`text-xs p-1 rounded mb-1 ${getCallTypeColor(call.type)} cursor-pointer`}
+                              title={`${call.opportunity_name} - ${call.salesperson_name}`}
+                            >
+                              <div className="font-medium">{call.type} #{call.number}</div>
+                              <div className="truncate">{call.opportunity_name}</div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Selected Day Details - Only show in month view */}
+      {view === 'month' && selectedDate && (
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">
+            {format(selectedDate, 'EEEE, dd MMMM yyyy', { locale: es })}
+          </h3>
+          
+          {(() => {
+            const daysCalls = getCallsForDay(selectedDate);
+            return daysCalls.length > 0 ? (
+              <div className="space-y-3">
+                {daysCalls.map(call => (
                   <div key={call.id} className="p-4 bg-muted rounded-lg">
                     <div className="flex items-start justify-between mb-2">
                       <Badge className={getCallTypeColor(call.type)}>
                         {call.type} #{call.number}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-sm text-muted-foreground">
                         {call.duration}min
                       </span>
                     </div>
                     
-                    <h4 className="font-medium text-sm mb-1">
+                    <h4 className="font-medium mb-1">
                       {call.opportunity_name}
                     </h4>
-                    <p className="text-xs text-muted-foreground mb-2">
+                    <p className="text-sm text-muted-foreground mb-2">
                       con {call.salesperson_name}
                     </p>
                     
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <CalendarIcon size={12} />
-                      {format(new Date(call.date), 'dd MMM', { locale: es })}
-                      <Clock size={12} />
-                      {format(new Date(call.date), 'HH:mm')}
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Clock size={14} />
+                        {format(new Date(call.date), 'HH:mm')}
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                No hay llamadas próximas programadas
-              </p>
-            )}
-          </Card>
-
-          {/* Quick Stats */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Estadísticas</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Esta semana</span>
-                <span className="font-semibold">
-                  {allCalls.filter(call => {
-                    const callDate = new Date(call.date);
-                    return callDate >= weekStart && callDate <= weekEnd;
-                  }).length} llamadas
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Discovery</span>
-                <span className="font-semibold text-blue-600">
-                  {allCalls.filter(call => call.type === 'Discovery').length}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Closing</span>
-                <span className="font-semibold text-success-600">
-                  {allCalls.filter(call => call.type === 'Closing').length}
-                </span>
-              </div>
-            </div>
-          </Card>
-        </div>
-      </div>
+              <p className="text-muted-foreground">No hay llamadas programadas para este día.</p>
+            );
+          })()}
+        </Card>
+      )}
     </div>
   );
 };

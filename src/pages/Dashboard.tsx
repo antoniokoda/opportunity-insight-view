@@ -5,25 +5,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SalespersonManager } from '@/components/SalespersonManager';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
-import { DollarSign, TrendingUp, Phone, Users, Loader2, Target, Clock, Percent } from 'lucide-react';
+import { DollarSign, TrendingUp, Phone, Users, Loader2, Target, Clock, Percent, Plus, Edit, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useCalls } from '@/hooks/useCalls';
 import { formatCurrency } from '@/config/currency';
-
-const months = [
-  { value: 'all', label: 'Todos los meses' },
-  { value: '2024-06', label: 'Junio 2024' },
-  { value: '2024-05', label: 'Mayo 2024' },
-  { value: '2024-04', label: 'Abril 2024' },
-];
-
-const leadSources = [
-  { value: 'all', label: 'Todas las fuentes' },
-  { value: 'Website', label: 'Website' },
-  { value: 'Referral', label: 'Referencia' },
-  { value: 'Cold Outreach', label: 'Prospección' },
-];
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -37,11 +28,45 @@ export const Dashboard: React.FC = () => {
     calls: true,
   });
 
-  const { salespeople, isLoading: salesLoading } = useSalespeople();
+  // Modal states for managing salespeople and lead sources
+  const [showSalespersonDialog, setShowSalespersonDialog] = useState(false);
+  const [showLeadSourceDialog, setShowLeadSourceDialog] = useState(false);
+  const [newSalesperson, setNewSalesperson] = useState({ name: '', email: '' });
+  const [customLeadSources, setCustomLeadSources] = useState(['Website', 'Referral', 'Cold Outreach']);
+  const [newLeadSource, setNewLeadSource] = useState('');
+
+  const { salespeople, isLoading: salesLoading, addSalesperson, isAdding } = useSalespeople();
   const { opportunities, isLoading: oppsLoading } = useOpportunities();
   const { calls, isLoading: callsLoading } = useCalls();
 
   const isLoading = salesLoading || oppsLoading || callsLoading;
+
+  // Generate dynamic months based on actual data
+  const availableMonths = useMemo(() => {
+    const monthsWithData = new Set<string>();
+    
+    // Add months from opportunities
+    opportunities.forEach(opp => {
+      const month = format(new Date(opp.created_at), 'yyyy-MM');
+      monthsWithData.add(month);
+    });
+    
+    // Add months from calls
+    calls.forEach(call => {
+      const month = format(new Date(call.date), 'yyyy-MM');
+      monthsWithData.add(month);
+    });
+
+    const sortedMonths = Array.from(monthsWithData).sort().reverse();
+    
+    return [
+      { value: 'all', label: 'Todos los meses' },
+      ...sortedMonths.map(month => ({
+        value: month,
+        label: format(new Date(month + '-01'), 'MMMM yyyy', { locale: es })
+      }))
+    ];
+  }, [opportunities, calls]);
 
   const filteredOpportunities = useMemo(() => {
     return opportunities.filter(opp => {
@@ -51,9 +76,15 @@ export const Dashboard: React.FC = () => {
       if (selectedLeadSource !== 'all' && opp.lead_source !== selectedLeadSource) {
         return false;
       }
+      if (selectedMonth !== 'all') {
+        const oppMonth = format(new Date(opp.created_at), 'yyyy-MM');
+        if (oppMonth !== selectedMonth) {
+          return false;
+        }
+      }
       return true;
     });
-  }, [opportunities, selectedSalesperson, selectedLeadSource]);
+  }, [opportunities, selectedSalesperson, selectedLeadSource, selectedMonth]);
 
   const kpis = useMemo(() => {
     const totalRevenue = filteredOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
@@ -61,7 +92,6 @@ export const Dashboard: React.FC = () => {
     const totalCalls = calls.length;
     const activeOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'active').length;
     
-    // Nuevas métricas
     const wonOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'won');
     const lostOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'lost');
     const closedOpportunities = wonOpportunities.length + lostOpportunities.length;
@@ -118,7 +148,7 @@ export const Dashboard: React.FC = () => {
   }, [salespeople, opportunities]);
 
   const leadSourceData = useMemo(() => {
-    const sources = ['Website', 'Referral', 'Cold Outreach'];
+    const sources = customLeadSources;
     return sources.map(source => {
       const sourceOpps = opportunities.filter(opp => opp.lead_source === source);
       return {
@@ -127,7 +157,30 @@ export const Dashboard: React.FC = () => {
         revenue: sourceOpps.reduce((sum, opp) => sum + opp.revenue, 0),
       };
     });
-  }, [opportunities]);
+  }, [opportunities, customLeadSources]);
+
+  const handleAddSalesperson = () => {
+    if (newSalesperson.name && newSalesperson.email) {
+      addSalesperson(newSalesperson);
+      setNewSalesperson({ name: '', email: '' });
+      setShowSalespersonDialog(false);
+    }
+  };
+
+  const handleAddLeadSource = () => {
+    if (newLeadSource && !customLeadSources.includes(newLeadSource)) {
+      setCustomLeadSources([...customLeadSources, newLeadSource]);
+      setNewLeadSource('');
+      setShowLeadSourceDialog(false);
+    }
+  };
+
+  const handleDeleteLeadSource = (source: string) => {
+    setCustomLeadSources(customLeadSources.filter(s => s !== source));
+    if (selectedLeadSource === source) {
+      setSelectedLeadSource('all');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -147,19 +200,51 @@ export const Dashboard: React.FC = () => {
         <div className="flex flex-wrap gap-4">
           <div className="min-w-[200px]">
             <label className="block text-sm font-medium mb-2">Vendedor</label>
-            <Select value={selectedSalesperson} onValueChange={setSelectedSalesperson}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar vendedor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los vendedores</SelectItem>
-                {salespeople.map(person => (
-                  <SelectItem key={person.id} value={person.id.toString()}>
-                    {person.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select value={selectedSalesperson} onValueChange={setSelectedSalesperson}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Seleccionar vendedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los vendedores</SelectItem>
+                  {salespeople.map(person => (
+                    <SelectItem key={person.id} value={person.id.toString()}>
+                      {person.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Dialog open={showSalespersonDialog} onOpenChange={setShowSalespersonDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Plus size={16} />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Gestionar Vendedores</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <Input
+                        placeholder="Nombre"
+                        value={newSalesperson.name}
+                        onChange={(e) => setNewSalesperson(prev => ({ ...prev, name: e.target.value }))}
+                      />
+                      <Input
+                        placeholder="Email"
+                        value={newSalesperson.email}
+                        onChange={(e) => setNewSalesperson(prev => ({ ...prev, email: e.target.value }))}
+                      />
+                    </div>
+                    <Button onClick={handleAddSalesperson} disabled={isAdding} className="w-full">
+                      {isAdding && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                      Agregar Vendedor
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
           
           <div className="min-w-[200px]">
@@ -169,7 +254,7 @@ export const Dashboard: React.FC = () => {
                 <SelectValue placeholder="Seleccionar mes" />
               </SelectTrigger>
               <SelectContent>
-                {months.map(month => (
+                {availableMonths.map(month => (
                   <SelectItem key={month.value} value={month.value}>
                     {month.label}
                   </SelectItem>
@@ -180,18 +265,60 @@ export const Dashboard: React.FC = () => {
           
           <div className="min-w-[200px]">
             <label className="block text-sm font-medium mb-2">Fuente de Lead</label>
-            <Select value={selectedLeadSource} onValueChange={setSelectedLeadSource}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar fuente" />
-              </SelectTrigger>
-              <SelectContent>
-                {leadSources.map(source => (
-                  <SelectItem key={source.value} value={source.value}>
-                    {source.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select value={selectedLeadSource} onValueChange={setSelectedLeadSource}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Seleccionar fuente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las fuentes</SelectItem>
+                  {customLeadSources.map(source => (
+                    <SelectItem key={source} value={source}>
+                      {source}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Dialog open={showLeadSourceDialog} onOpenChange={setShowLeadSourceDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Plus size={16} />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Gestionar Fuentes de Lead</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Nueva fuente de lead"
+                        value={newLeadSource}
+                        onChange={(e) => setNewLeadSource(e.target.value)}
+                      />
+                      <Button onClick={handleAddLeadSource}>
+                        Agregar
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Fuentes existentes:</h4>
+                      {customLeadSources.map(source => (
+                        <div key={source} className="flex items-center justify-between p-2 bg-muted rounded">
+                          <span>{source}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteLeadSource(source)}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </div>
       </Card>
