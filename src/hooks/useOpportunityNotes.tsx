@@ -39,7 +39,7 @@ export const useOpportunityNotes = (opportunityId: number) => {
           user_id,
           created_at,
           updated_at,
-          profiles!inner (
+          profiles (
             name,
             email
           )
