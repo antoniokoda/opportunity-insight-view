@@ -79,11 +79,88 @@ export const useSalespeople = () => {
     },
   });
 
+  const updateSalesperson = useMutation({
+    mutationFn: async ({ id, name, email }: { id: number; name: string; email: string }) => {
+      if (!user) throw new Error('User not authenticated');
+
+      console.log('Updating salesperson:', { id, name, email });
+      const { data, error } = await supabase
+        .from('salespeople')
+        .update({ name, email })
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating salesperson:', error);
+        throw error;
+      }
+
+      console.log('Updated salesperson:', data);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['salespeople'] });
+      toast({
+        title: 'Vendedor actualizado',
+        description: 'El vendedor ha sido actualizado exitosamente.',
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating salesperson:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo actualizar el vendedor.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const deleteSalesperson = useMutation({
+    mutationFn: async (id: number) => {
+      if (!user) throw new Error('User not authenticated');
+
+      console.log('Deleting salesperson:', id);
+      const { error } = await supabase
+        .from('salespeople')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error deleting salesperson:', error);
+        throw error;
+      }
+
+      console.log('Deleted salesperson:', id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['salespeople'] });
+      toast({
+        title: 'Vendedor eliminado',
+        description: 'El vendedor ha sido eliminado exitosamente.',
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting salesperson:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo eliminar el vendedor.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   return {
     salespeople,
     isLoading,
     error,
     addSalesperson: addSalesperson.mutate,
+    updateSalesperson: updateSalesperson.mutate,
+    deleteSalesperson: deleteSalesperson.mutate,
     isAdding: addSalesperson.isPending,
+    isUpdating: updateSalesperson.isPending,
+    isDeleting: deleteSalesperson.isPending,
   };
 };

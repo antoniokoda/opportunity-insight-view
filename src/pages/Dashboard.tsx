@@ -1,38 +1,42 @@
 
 import React, { useState } from 'react';
-import { Loader2 } from 'lucide-react';
-import { useSalespeople } from '@/hooks/useSalespeople';
+import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
+import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
+import { DashboardFilters } from '@/components/dashboard/DashboardFilters';
+import { DashboardPerformance } from '@/components/dashboard/DashboardPerformance';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useCalls } from '@/hooks/useCalls';
+import { useSalespeople } from '@/hooks/useSalespeople';
+import { useLeadSources } from '@/hooks/useLeadSources';
 import { useDashboardFilters } from '@/hooks/useDashboardFilters';
 import { useDashboardKpis } from '@/hooks/useDashboardKpis';
 import { useDashboardChartData } from '@/hooks/useDashboardChartData';
-import { useSalesPerformance } from '@/hooks/useSalesPerformance';
 import { useLeadSourceData } from '@/hooks/useLeadSourceData';
-import { DashboardFilters } from '@/components/dashboard/DashboardFilters';
-import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
-import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
-import { DashboardPerformance } from '@/components/dashboard/DashboardPerformance';
+import { useSalesPerformance } from '@/hooks/useSalesPerformance';
 
-export const Dashboard: React.FC = () => {
-  const [visibleMetrics, setVisibleMetrics] = useState({
-    revenue: true,
-    cash: true,
-    calls: true,
-  });
+export const Dashboard = () => {
+  const { opportunities, isLoading: opportunitiesLoading } = useOpportunities();
+  const { calls, isLoading: callsLoading } = useCalls();
+  const { 
+    salespeople, 
+    isLoading: salespeopleLoading, 
+    addSalesperson, 
+    updateSalesperson, 
+    deleteSalesperson,
+    isAdding 
+  } = useSalespeople();
+  
+  const { 
+    customLeadSources, 
+    addLeadSource, 
+    updateLeadSource, 
+    deleteLeadSource 
+  } = useLeadSources();
 
-  // Modal states for managing salespeople and lead sources
+  const [newSalesperson, setNewSalesperson] = useState({ name: '', email: '' });
+  const [newLeadSource, setNewLeadSource] = useState('');
   const [showSalespersonDialog, setShowSalespersonDialog] = useState(false);
   const [showLeadSourceDialog, setShowLeadSourceDialog] = useState(false);
-  const [newSalesperson, setNewSalesperson] = useState({ name: '', email: '' });
-  const [customLeadSources, setCustomLeadSources] = useState(['Website', 'Referral', 'Cold Outreach']);
-  const [newLeadSource, setNewLeadSource] = useState('');
-
-  const { salespeople, isLoading: salesLoading, addSalesperson, isAdding } = useSalespeople();
-  const { opportunities, isLoading: oppsLoading } = useOpportunities();
-  const { calls, isLoading: callsLoading } = useCalls();
-
-  const isLoading = salesLoading || oppsLoading || callsLoading;
 
   const {
     selectedSalesperson,
@@ -46,9 +50,9 @@ export const Dashboard: React.FC = () => {
   } = useDashboardFilters(opportunities, calls);
 
   const kpis = useDashboardKpis(filteredOpportunities, calls);
-  const chartData = useDashboardChartData();
-  const salesPerformance = useSalesPerformance(salespeople, opportunities);
-  const leadSourceData = useLeadSourceData(opportunities, customLeadSources);
+  const chartData = useDashboardChartData(filteredOpportunities, selectedMonth);
+  const leadSourceData = useLeadSourceData(filteredOpportunities, customLeadSources);
+  const performanceData = useSalesPerformance(filteredOpportunities, salespeople);
 
   const handleAddSalesperson = () => {
     if (newSalesperson.name && newSalesperson.email) {
@@ -59,34 +63,78 @@ export const Dashboard: React.FC = () => {
   };
 
   const handleAddLeadSource = () => {
-    if (newLeadSource && !customLeadSources.includes(newLeadSource)) {
-      setCustomLeadSources([...customLeadSources, newLeadSource]);
+    if (newLeadSource.trim()) {
+      addLeadSource(newLeadSource.trim());
       setNewLeadSource('');
       setShowLeadSourceDialog(false);
     }
   };
 
+  const handleUpdateSalesperson = (id: string, newName: string) => {
+    const salesperson = salespeople.find(s => s.id.toString() === id);
+    if (salesperson) {
+      updateSalesperson({
+        id: parseInt(id),
+        name: newName,
+        email: salesperson.email
+      });
+    }
+  };
+
+  const handleDeleteSalesperson = (id: string) => {
+    deleteSalesperson(parseInt(id));
+    // Si el vendedor eliminado estaba seleccionado, cambiar a "all"
+    if (selectedSalesperson === id) {
+      setSelectedSalesperson('all');
+    }
+  };
+
+  const handleUpdateLeadSource = (oldSource: string, newSource: string) => {
+    updateLeadSource(oldSource, newSource);
+    // Si la fuente editada estaba seleccionada, actualizar la selección
+    if (selectedLeadSource === oldSource) {
+      setSelectedLeadSource(newSource);
+    }
+  };
+
   const handleDeleteLeadSource = (source: string) => {
-    setCustomLeadSources(customLeadSources.filter(s => s !== source));
+    deleteLeadSource(source);
+    // Si la fuente eliminada estaba seleccionada, cambiar a "all"
     if (selectedLeadSource === source) {
       setSelectedLeadSource('all');
     }
   };
 
-  if (isLoading) {
+  if (opportunitiesLoading || callsLoading || salespeopleLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Cargando datos...</p>
+      <div className="p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="h-80 bg-gray-200 rounded"></div>
+            <div className="h-80 bg-gray-200 rounded"></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Filters */}
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Vista general de tu rendimiento de ventas
+          </p>
+        </div>
+      </div>
+
       <DashboardFilters
         selectedSalesperson={selectedSalesperson}
         setSelectedSalesperson={setSelectedSalesperson}
@@ -108,22 +156,24 @@ export const Dashboard: React.FC = () => {
         handleAddSalesperson={handleAddSalesperson}
         handleAddLeadSource={handleAddLeadSource}
         handleDeleteLeadSource={handleDeleteLeadSource}
+        handleUpdateSalesperson={handleUpdateSalesperson}
+        handleDeleteSalesperson={handleDeleteSalesperson}
+        handleUpdateLeadSource={handleUpdateLeadSource}
         isAdding={isAdding}
       />
 
-      {/* KPIs */}
       <DashboardKpis kpis={kpis} />
 
-      {/* Charts and Lead Sources */}
-      <DashboardCharts
-        chartData={chartData}
-        leadSourceData={leadSourceData}
-        visibleMetrics={visibleMetrics}
-        setVisibleMetrics={setVisibleMetrics}
-      />
-
-      {/* Performance and Salespeople Manager */}
-      <DashboardPerformance salesPerformance={salesPerformance} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <DashboardCharts 
+          chartData={chartData} 
+          leadSourceData={leadSourceData}
+        />
+        <DashboardPerformance 
+          performanceData={performanceData}
+          salespeople={salespeople}
+        />
+      </div>
     </div>
   );
 };

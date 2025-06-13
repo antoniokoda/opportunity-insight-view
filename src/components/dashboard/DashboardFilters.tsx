@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SelectWithActions } from '@/components/ui/select-with-actions';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Plus, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import { Salesperson } from '@/hooks/useSalespeople';
 
 interface DashboardFiltersProps {
@@ -29,6 +30,9 @@ interface DashboardFiltersProps {
   handleAddSalesperson: () => void;
   handleAddLeadSource: () => void;
   handleDeleteLeadSource: (source: string) => void;
+  handleUpdateSalesperson: (id: string, name: string) => void;
+  handleDeleteSalesperson: (id: string) => void;
+  handleUpdateLeadSource: (oldSource: string, newSource: string) => void;
   isAdding: boolean;
 }
 
@@ -53,27 +57,52 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   handleAddSalesperson,
   handleAddLeadSource,
   handleDeleteLeadSource,
+  handleUpdateSalesperson,
+  handleDeleteSalesperson,
+  handleUpdateLeadSource,
   isAdding,
 }) => {
+  const salespeopleOptions = [
+    { value: 'all', label: 'Todos los vendedores' },
+    ...salespeople.map(person => ({
+      value: person.id.toString(),
+      label: person.name
+    }))
+  ];
+
+  const leadSourceOptions = [
+    { value: 'all', label: 'Todas las fuentes' },
+    ...customLeadSources.map(source => ({
+      value: source,
+      label: source
+    }))
+  ];
+
+  const handleSalespersonEdit = (oldValue: string, newValue: string) => {
+    handleUpdateSalesperson(oldValue, newValue);
+  };
+
+  const handleSalespersonDelete = (value: string) => {
+    handleDeleteSalesperson(value);
+  };
+
   return (
     <Card className="p-6">
       <div className="flex flex-wrap gap-4">
         <div className="min-w-[200px]">
           <label className="block text-sm font-medium mb-2">Vendedor</label>
           <div className="flex gap-2">
-            <Select value={selectedSalesperson} onValueChange={setSelectedSalesperson}>
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Seleccionar vendedor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los vendedores</SelectItem>
-                {salespeople.map(person => (
-                  <SelectItem key={person.id} value={person.id.toString()}>
-                    {person.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SelectWithActions
+              value={selectedSalesperson}
+              onValueChange={setSelectedSalesperson}
+              placeholder="Seleccionar vendedor"
+              options={salespeopleOptions}
+              onEdit={handleSalespersonEdit}
+              onDelete={handleSalespersonDelete}
+              allowEdit={true}
+              allowDelete={true}
+              className="flex-1"
+            />
             <Dialog open={showSalespersonDialog} onOpenChange={setShowSalespersonDialog}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -126,19 +155,17 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
         <div className="min-w-[200px]">
           <label className="block text-sm font-medium mb-2">Fuente de Lead</label>
           <div className="flex gap-2">
-            <Select value={selectedLeadSource} onValueChange={setSelectedLeadSource}>
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Seleccionar fuente" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las fuentes</SelectItem>
-                {customLeadSources.map(source => (
-                  <SelectItem key={source} value={source}>
-                    {source}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SelectWithActions
+              value={selectedLeadSource}
+              onValueChange={setSelectedLeadSource}
+              placeholder="Seleccionar fuente"
+              options={leadSourceOptions}
+              onEdit={handleUpdateLeadSource}
+              onDelete={handleDeleteLeadSource}
+              allowEdit={true}
+              allowDelete={true}
+              className="flex-1"
+            />
             <Dialog open={showLeadSourceDialog} onOpenChange={setShowLeadSourceDialog}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -165,13 +192,6 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
                     {customLeadSources.map(source => (
                       <div key={source} className="flex items-center justify-between p-2 bg-muted rounded">
                         <span>{source}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteLeadSource(source)}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
                       </div>
                     ))}
                   </div>
