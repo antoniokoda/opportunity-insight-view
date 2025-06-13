@@ -29,7 +29,7 @@ export const useOpportunityNotes = (opportunityId: number) => {
         .from('opportunity_notes')
         .select('*')
         .eq('opportunity_id', opportunityId)
-        .order('updated_at', { ascending: false });
+        .order('created_at', { ascending: true }); // Ordenar por fecha ascendente (más antiguos primero)
 
       if (error) {
         console.error('Error fetching opportunity notes:', error);
@@ -69,85 +69,15 @@ export const useOpportunityNotes = (opportunityId: number) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunity-notes', opportunityId] });
       toast({
-        title: 'Nota agregada',
-        description: 'La nota se ha agregado exitosamente.',
+        title: 'Mensaje enviado',
+        description: 'Tu mensaje se ha enviado exitosamente.',
       });
     },
     onError: (error) => {
       console.error('Error adding note:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo agregar la nota.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const updateNote = useMutation({
-    mutationFn: async ({ noteId, updates }: { 
-      noteId: string; 
-      updates: { title?: string; content?: string }
-    }) => {
-      console.log('Updating note:', noteId, updates);
-      const { data, error } = await supabase
-        .from('opportunity_notes')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', noteId)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error updating note:', error);
-        throw error;
-      }
-
-      console.log('Note updated successfully:', data);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['opportunity-notes', opportunityId] });
-      toast({
-        title: 'Nota actualizada',
-        description: 'La nota se ha actualizado exitosamente.',
-      });
-    },
-    onError: (error) => {
-      console.error('Error updating note:', error);
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar la nota.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const deleteNote = useMutation({
-    mutationFn: async (noteId: string) => {
-      console.log('Deleting note:', noteId);
-      const { error } = await supabase
-        .from('opportunity_notes')
-        .delete()
-        .eq('id', noteId);
-
-      if (error) {
-        console.error('Error deleting note:', error);
-        throw error;
-      }
-
-      console.log('Note deleted successfully');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['opportunity-notes', opportunityId] });
-      toast({
-        title: 'Nota eliminada',
-        description: 'La nota se ha eliminado exitosamente.',
-      });
-    },
-    onError: (error) => {
-      console.error('Error deleting note:', error);
-      toast({
-        title: 'Error',
-        description: 'No se pudo eliminar la nota.',
+        description: 'No se pudo enviar el mensaje.',
         variant: 'destructive',
       });
     },
@@ -158,10 +88,6 @@ export const useOpportunityNotes = (opportunityId: number) => {
     isLoading,
     error,
     addNote: addNote.mutate,
-    updateNote: updateNote.mutate,
-    deleteNote: deleteNote.mutate,
     isAdding: addNote.isPending,
-    isUpdating: updateNote.isPending,
-    isDeleting: deleteNote.isPending,
   };
 };

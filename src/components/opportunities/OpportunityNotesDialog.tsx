@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Plus, Edit, Trash2, StickyNote } from 'lucide-react';
+import { Loader2, Send, StickyNote } from 'lucide-react';
 import { useOpportunityNotes } from '@/hooks/useOpportunityNotes';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -22,9 +22,7 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { notes, isLoading, addNote, updateNote, deleteNote, isAdding, isUpdating, isDeleting } = useOpportunityNotes(opportunityId);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const { notes, isLoading, addNote, isAdding } = useOpportunityNotes(opportunityId);
   const [noteForm, setNoteForm] = useState({
     title: '',
     content: ''
@@ -34,44 +32,22 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
     e.preventDefault();
     if (!noteForm.title.trim()) return;
 
-    if (editingNoteId) {
-      updateNote({
-        noteId: editingNoteId,
-        updates: {
-          title: noteForm.title,
-          content: noteForm.content
-        }
-      });
-      setEditingNoteId(null);
-    } else {
-      addNote({
-        title: noteForm.title,
-        content: noteForm.content
-      });
-      setShowAddForm(false);
-    }
-
-    setNoteForm({ title: '', content: '' });
-  };
-
-  const handleEdit = (note: any) => {
-    setNoteForm({
-      title: note.title,
-      content: note.content || ''
+    addNote({
+      title: noteForm.title,
+      content: noteForm.content
     });
-    setEditingNoteId(note.id);
-    setShowAddForm(true);
-  };
 
-  const handleCancel = () => {
-    setShowAddForm(false);
-    setEditingNoteId(null);
     setNoteForm({ title: '', content: '' });
   };
+
+  // Ordenar notas por fecha de creación (más antiguas primero, como WhatsApp)
+  const sortedNotes = [...notes].sort((a, b) => 
+    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <StickyNote className="w-5 h-5" />
@@ -79,105 +55,69 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Add Note Button */}
-          {!showAddForm && (
-            <Button onClick={() => setShowAddForm(true)} className="w-full">
-              <Plus className="w-4 h-4 mr-2" />
-              Agregar nota
-            </Button>
-          )}
-
-          {/* Add/Edit Note Form */}
-          {showAddForm && (
-            <div className="p-4 border rounded-lg bg-muted/50">
-              <h3 className="font-medium mb-4">
-                {editingNoteId ? 'Editar nota' : 'Nueva nota'}
-              </h3>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Título</label>
-                  <Input
-                    value={noteForm.title}
-                    onChange={(e) => setNoteForm(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Título de la nota"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Contenido</label>
-                  <Textarea
-                    value={noteForm.content}
-                    onChange={(e) => setNoteForm(prev => ({ ...prev, content: e.target.value }))}
-                    placeholder="Contenido de la nota..."
-                    rows={4}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button type="submit" disabled={isAdding || isUpdating}>
-                    {(isAdding || isUpdating) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    {editingNoteId ? 'Actualizar' : 'Agregar'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={handleCancel}>
-                    Cancelar
-                  </Button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* Notes List */}
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin mr-2" />
-              <span>Cargando notas...</span>
-            </div>
-          ) : notes.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No hay notas aún
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <h3 className="font-semibold">Notas ({notes.length})</h3>
-              {notes.map((note) => (
-                <div key={note.id} className="p-4 border rounded-lg">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-medium mb-2">{note.title}</h4>
-                      {note.content && (
-                        <p className="text-muted-foreground whitespace-pre-wrap mb-2">
-                          {note.content}
-                        </p>
-                      )}
-                      <div className="text-xs text-muted-foreground">
-                        Creada: {format(new Date(note.created_at), 'dd/MM/yyyy HH:mm', { locale: es })}
-                        {note.updated_at !== note.created_at && (
-                          <span> • Editada: {format(new Date(note.updated_at), 'dd/MM/yyyy HH:mm', { locale: es })}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 ml-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(note)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteNote(note.id)}
-                        disabled={isDeleting}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Chat Messages Area */}
+          <div className="flex-1 overflow-y-auto mb-4 space-y-3 p-4 bg-muted/20 rounded-lg min-h-[300px] max-h-[400px]">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                <span>Cargando notas...</span>
+              </div>
+            ) : sortedNotes.length === 0 ? (
+              <div className="flex items-center justify-center py-8 text-muted-foreground">
+                No hay mensajes aún
+              </div>
+            ) : (
+              sortedNotes.map((note) => (
+                <div key={note.id} className="bg-background p-3 rounded-lg shadow-sm border">
+                  <div className="mb-2">
+                    <h4 className="font-medium text-sm">{note.title}</h4>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {format(new Date(note.created_at), 'dd/MM/yyyy HH:mm', { locale: es })}
                     </div>
                   </div>
+                  {note.content && (
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      {note.content}
+                    </p>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
+
+          {/* Message Input Form */}
+          <div className="border-t pt-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <Input
+                value={noteForm.title}
+                onChange={(e) => setNoteForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Título del mensaje..."
+                required
+              />
+              <div className="flex gap-2">
+                <Textarea
+                  value={noteForm.content}
+                  onChange={(e) => setNoteForm(prev => ({ ...prev, content: e.target.value }))}
+                  placeholder="Escribe tu mensaje..."
+                  rows={2}
+                  className="flex-1 resize-none"
+                />
+                <Button 
+                  type="submit" 
+                  disabled={isAdding || !noteForm.title.trim()}
+                  size="sm"
+                  className="self-end"
+                >
+                  {isAdding ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
