@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 import { DashboardFilters } from '@/components/dashboard/DashboardFilters';
-import { DashboardPerformance } from '@/components/dashboard/DashboardPerformance';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useCalls } from '@/hooks/useCalls';
 import { useSalespeople } from '@/hooks/useSalespeople';
@@ -12,7 +11,6 @@ import { useDashboardFilters } from '@/hooks/useDashboardFilters';
 import { useDashboardKpis } from '@/hooks/useDashboardKpis';
 import { useDashboardChartData } from '@/hooks/useDashboardChartData';
 import { useLeadSourceData } from '@/hooks/useLeadSourceData';
-import { useSalesPerformance } from '@/hooks/useSalesPerformance';
 
 export const Dashboard = () => {
   const { opportunities, isLoading: opportunitiesLoading } = useOpportunities();
@@ -64,7 +62,6 @@ export const Dashboard = () => {
   const kpis = useDashboardKpis(filteredOpportunities, metricsCall);
   const chartData = useDashboardChartData();
   const leadSourceData = useLeadSourceData(filteredOpportunities, customLeadSources);
-  const salesPerformance = useSalesPerformance(salespeople, opportunities);
 
   const handleAddSalesperson = () => {
     if (newSalesperson.name && newSalesperson.email) {
@@ -176,20 +173,12 @@ export const Dashboard = () => {
 
       <DashboardKpis kpis={kpis} />
 
-      {/* Tendencias en ancho completo */}
       <DashboardCharts 
         chartData={chartData} 
         leadSourceData={leadSourceData}
         visibleMetrics={visibleMetrics}
         setVisibleMetrics={setVisibleMetrics}
       />
-
-      {/* Rendimiento de ventas y distribución de fuentes en fila separada */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardPerformance 
-          salesPerformance={salesPerformance}
-        />
-      </div>
     </div>
   );
 };
