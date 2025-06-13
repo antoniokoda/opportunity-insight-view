@@ -11,6 +11,7 @@ import { Dashboard } from "@/pages/Dashboard";
 import { Opportunities } from "@/pages/Opportunities";
 import { Calendar } from "@/pages/Calendar";
 import { Auth } from "@/pages/Auth";
+import { ResetPassword } from "@/pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/" element={
               <ProtectedRoute>
                 <MainLayout>
