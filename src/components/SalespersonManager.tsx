@@ -37,8 +37,11 @@ export const SalespersonManager: React.FC = () => {
     }
   };
 
-  const handleDeleteSalesperson = async (salespersonId: number) => {
-    if (confirm('¿Estás seguro de que quieres eliminar este vendedor?')) {
+  const handleDeleteSalesperson = async (salespersonId: number, salespersonName: string) => {
+    // Diálogo de confirmación crítico con información sobre las consecuencias
+    const confirmMessage = `¿Estás seguro de que quieres eliminar a "${salespersonName}"?\n\nEsta acción no se puede deshacer y se realizarán los siguientes cambios:\n• El vendedor será eliminado permanentemente\n• Las oportunidades asignadas a este vendedor quedarán sin asignar\n• Esta operación puede afectar tus reportes y estadísticas\n\n¿Continuar con la eliminación?`;
+    
+    if (confirm(confirmMessage)) {
       console.log('Deleting salesperson with ID:', salespersonId);
       setDeletingId(salespersonId);
       try {
@@ -144,7 +147,7 @@ export const SalespersonManager: React.FC = () => {
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => handleDeleteSalesperson(person.id)}
+                  onClick={() => handleDeleteSalesperson(person.id, person.name)}
                   disabled={deletingId === person.id || isDeleting}
                 >
                   {(deletingId === person.id || isDeleting) ? (
