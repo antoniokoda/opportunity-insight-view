@@ -224,12 +224,11 @@ export const Opportunities = () => {
                       {opportunity.calls.slice(0, 3).map((call) => (
                         <div key={call.id} className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-2">
-                            <Badge size="sm" className={getCallTypeColor(call.type)}>
+                            <Badge className={getCallTypeColor(call.type)}>
                               {call.type} #{call.number}
                             </Badge>
                             {call.attended !== null && (
                               <Badge 
-                                size="sm" 
                                 variant={call.attended ? "default" : "destructive"}
                               >
                                 {call.attended ? "✓" : "✗"}
