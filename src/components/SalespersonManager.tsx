@@ -4,14 +4,18 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Users, Loader2, Edit, Trash2, Mail } from 'lucide-react';
-import { useSalespeople } from '@/hooks/useSalespeople';
+import { Plus, Users, Loader2, Edit, Trash2, Mail, X, Check } from 'lucide-react';
+import { useSalespeople, Salesperson } from '@/hooks/useSalespeople';
 
 export const SalespersonManager: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingSalesperson, setEditingSalesperson] = useState<any>(null);
+  const [editingSalesperson, setEditingSalesperson] = useState<Salesperson | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [newSalesperson, setNewSalesperson] = useState({
+    name: '',
+    email: ''
+  });
+  const [editForm, setEditForm] = useState({
     name: '',
     email: ''
   });
@@ -23,6 +27,7 @@ export const SalespersonManager: React.FC = () => {
     updateSalesperson,
     deleteSalesperson,
     isAdding,
+    isUpdating,
     isDeleting
   } = useSalespeople();
 
@@ -37,8 +42,32 @@ export const SalespersonManager: React.FC = () => {
     }
   };
 
+  const handleEditStart = (salesperson: Salesperson) => {
+    setEditingSalesperson(salesperson);
+    setEditForm({
+      name: salesperson.name,
+      email: salesperson.email
+    });
+  };
+
+  const handleEditSave = () => {
+    if (editingSalesperson && editForm.name && editForm.email) {
+      updateSalesperson({
+        id: editingSalesperson.id,
+        name: editForm.name,
+        email: editForm.email
+      });
+      setEditingSalesperson(null);
+      setEditForm({ name: '', email: '' });
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingSalesperson(null);
+    setEditForm({ name: '', email: '' });
+  };
+
   const handleDeleteSalesperson = async (salespersonId: number, salespersonName: string) => {
-    // Diálogo de confirmación crítico con información sobre las consecuencias
     const confirmMessage = `¿Estás seguro de que quieres eliminar a "${salespersonName}"?\n\nEsta acción no se puede deshacer y se realizarán los siguientes cambios:\n• El vendedor será eliminado permanentemente\n• Las oportunidades asignadas a este vendedor quedarán sin asignar\n• Esta operación puede afectar tus reportes y estadísticas\n\n¿Continuar con la eliminación?`;
     
     if (confirm(confirmMessage)) {
@@ -61,6 +90,7 @@ export const SalespersonManager: React.FC = () => {
       name: '',
       email: ''
     });
+    setEditForm({ name: '', email: '' });
   };
 
   if (isLoading) {
@@ -128,35 +158,89 @@ export const SalespersonManager: React.FC = () => {
         ) : (
           salespeople.map((person) => (
             <div key={person.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm">
-                  {person.name.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <p className="font-medium">{person.name}</p>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Mail className="w-3 h-3" />
-                    <span>{person.email}</span>
+              {editingSalesperson?.id === person.id ? (
+                // Edit Mode
+                <div className="flex-1 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm">
+                    {editForm.name.charAt(0).toUpperCase() || person.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <Input
+                      placeholder="Nombre completo"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                      className="h-8"
+                    />
+                    <Input
+                      type="email"
+                      placeholder="Email"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                      className="h-8"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={handleEditSave}
+                      disabled={isUpdating || !editForm.name || !editForm.email}
+                    >
+                      {isUpdating ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Check className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={handleEditCancel}
+                      disabled={isUpdating}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="sm">
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => handleDeleteSalesperson(person.id, person.name)}
-                  disabled={deletingId === person.id || isDeleting}
-                >
-                  {(deletingId === person.id || isDeleting) ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="w-4 h-4" />
-                  )}
-                </Button>
-              </div>
+              ) : (
+                // View Mode
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm">
+                      {person.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-medium">{person.name}</p>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Mail className="w-3 h-3" />
+                        <span>{person.email}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleEditStart(person)}
+                      disabled={editingSalesperson !== null || isUpdating}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDeleteSalesperson(person.id, person.name)}
+                      disabled={deletingId === person.id || isDeleting || editingSalesperson !== null}
+                    >
+                      {(deletingId === person.id) ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           ))
         )}

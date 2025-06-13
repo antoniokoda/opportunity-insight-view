@@ -4,14 +4,22 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Target, Loader2, Edit, Trash2 } from 'lucide-react';
+import { Plus, Target, Loader2, Edit, Trash2, X, Check } from 'lucide-react';
 import { useLeadSourcesWithPersistence } from '@/hooks/useLeadSourcesWithPersistence';
+
+interface LeadSource {
+  id: string;
+  name: string;
+  user_id: string;
+  created_at: string;
+}
 
 export const LeadSourceManager: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingSource, setEditingSource] = useState<any>(null);
+  const [editingSource, setEditingSource] = useState<LeadSource | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [newSourceName, setNewSourceName] = useState('');
+  const [editName, setEditName] = useState('');
 
   const {
     leadSources,
@@ -20,6 +28,7 @@ export const LeadSourceManager: React.FC = () => {
     updateLeadSource,
     deleteLeadSource,
     isAdding,
+    isUpdating,
     isDeleting
   } = useLeadSourcesWithPersistence();
 
@@ -29,6 +38,27 @@ export const LeadSourceManager: React.FC = () => {
       setNewSourceName('');
       setShowAddForm(false);
     }
+  };
+
+  const handleEditStart = (source: LeadSource) => {
+    setEditingSource(source);
+    setEditName(source.name);
+  };
+
+  const handleEditSave = () => {
+    if (editingSource && editName.trim()) {
+      updateLeadSource({
+        id: editingSource.id,
+        name: editName.trim()
+      });
+      setEditingSource(null);
+      setEditName('');
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingSource(null);
+    setEditName('');
   };
 
   const handleDeleteSource = async (sourceId: string, sourceName: string) => {
@@ -49,6 +79,7 @@ export const LeadSourceManager: React.FC = () => {
     setShowAddForm(false);
     setEditingSource(null);
     setNewSourceName('');
+    setEditName('');
   };
 
   if (isLoading) {
@@ -110,34 +141,84 @@ export const LeadSourceManager: React.FC = () => {
         ) : (
           leadSources.map((source) => (
             <div key={source.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm">
-                  {source.name.charAt(0).toUpperCase()}
+              {editingSource?.id === source.id ? (
+                // Edit Mode
+                <div className="flex-1 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm">
+                    {editName.charAt(0).toUpperCase() || source.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Nombre de la fuente"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="h-8"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Creada: {new Date(source.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={handleEditSave}
+                      disabled={isUpdating || !editName.trim()}
+                    >
+                      {isUpdating ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Check className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={handleEditCancel}
+                      disabled={isUpdating}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium">{source.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Creada: {new Date(source.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="sm">
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => handleDeleteSource(source.id, source.name)}
-                  disabled={deletingId === source.id || isDeleting}
-                >
-                  {(deletingId === source.id || isDeleting) ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="w-4 h-4" />
-                  )}
-                </Button>
-              </div>
+              ) : (
+                // View Mode
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm">
+                      {source.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-medium">{source.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Creada: {new Date(source.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleEditStart(source)}
+                      disabled={editingSource !== null || isUpdating}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDeleteSource(source.id, source.name)}
+                      disabled={deletingId === source.id || isDeleting || editingSource !== null}
+                    >
+                      {(deletingId === source.id) ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           ))
         )}

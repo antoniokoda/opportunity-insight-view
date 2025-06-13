@@ -209,7 +209,7 @@ export const useLeadSourcesWithPersistence = () => {
     error,
     addLeadSource: addLeadSource.mutate,
     updateLeadSource: updateLeadSource.mutate,
-    deleteLeadSource: deleteLeadSource.mutate,
+    deleteLeadSource: deleteLeadSource.mutateAsync,
     isAdding: addLeadSource.isPending,
     isUpdating: updateLeadSource.isPending,
     isDeleting: deleteLeadSource.isPending,

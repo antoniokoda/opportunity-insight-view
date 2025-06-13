@@ -194,7 +194,7 @@ export const useSalespeople = () => {
     error,
     addSalesperson: addSalesperson.mutate,
     updateSalesperson: updateSalesperson.mutate,
-    deleteSalesperson: deleteSalesperson.mutate,
+    deleteSalesperson: deleteSalesperson.mutateAsync,
     isAdding: addSalesperson.isPending,
     isUpdating: updateSalesperson.isPending,
     isDeleting: deleteSalesperson.isPending,
