@@ -65,7 +65,8 @@ export const WeekView: React.FC<WeekViewProps> = ({
                       const callDate = new Date(call.date);
                       const startMinutes = callDate.getMinutes();
                       const topOffset = (startMinutes / 60) * 64; // 64px = h-16
-                      const height = Math.max((call.duration / 60) * 64, 20); // Minimum 20px height
+                      // Fixed height for 30 minutes regardless of actual duration
+                      const height = 32; // 30 minutes = 32px (half of 64px hour height)
                       
                       return (
                         <div
