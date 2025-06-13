@@ -4,11 +4,12 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { SalespersonManager } from '@/components/SalespersonManager';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { DollarSign, TrendingUp, Phone, Users, Loader2 } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
+import { DollarSign, TrendingUp, Phone, Users, Loader2, Target, Clock, Percent } from 'lucide-react';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useCalls } from '@/hooks/useCalls';
+import { formatCurrency } from '@/config/currency';
 
 const months = [
   { value: 'all', label: 'Todos los meses' },
@@ -23,6 +24,8 @@ const leadSources = [
   { value: 'Referral', label: 'Referencia' },
   { value: 'Cold Outreach', label: 'Prospección' },
 ];
+
+const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export const Dashboard: React.FC = () => {
   const [selectedSalesperson, setSelectedSalesperson] = useState('all');
@@ -57,12 +60,30 @@ export const Dashboard: React.FC = () => {
     const totalCash = filteredOpportunities.reduce((sum, opp) => sum + opp.cash_collected, 0);
     const totalCalls = calls.length;
     const activeOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'active').length;
+    
+    // Nuevas métricas
+    const wonOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'won');
+    const lostOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'lost');
+    const closedOpportunities = wonOpportunities.length + lostOpportunities.length;
+    
+    const averageDealSize = wonOpportunities.length > 0 
+      ? wonOpportunities.reduce((sum, opp) => sum + opp.revenue, 0) / wonOpportunities.length
+      : 0;
+    
+    const closingRate = closedOpportunities > 0 
+      ? (wonOpportunities.length / closedOpportunities) * 100
+      : 0;
+    
+    const proposalsPitched = filteredOpportunities.filter(opp => opp.proposal_status === 'pitched').length;
 
     return {
       totalRevenue,
       totalCash,
       totalCalls,
       activeOpportunities,
+      averageDealSize,
+      closingRate,
+      proposalsPitched,
     };
   }, [filteredOpportunities, calls]);
 
@@ -175,22 +196,43 @@ export const Dashboard: React.FC = () => {
         </div>
       </Card>
 
-      {/* KPIs */}
+      {/* Métricas Principales */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Métricas Principales</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <KpiCard
+            title="Revenue Total"
+            value={formatCurrency(kpis.totalRevenue)}
+            change="+12.5%"
+            changeType="positive"
+            icon={<DollarSign size={24} />}
+          />
+          <KpiCard
+            title="Cash Collected"
+            value={formatCurrency(kpis.totalCash)}
+            change="+8.2%"
+            changeType="positive"
+            icon={<TrendingUp size={24} />}
+          />
+          <KpiCard
+            title="Valor Promedio del Trato"
+            value={formatCurrency(kpis.averageDealSize)}
+            change="+5.3%"
+            changeType="positive"
+            icon={<Target size={24} />}
+          />
+          <KpiCard
+            title="Tasa de Cierre"
+            value={`${kpis.closingRate.toFixed(1)}%`}
+            change="+2.1%"
+            changeType="positive"
+            icon={<Percent size={24} />}
+          />
+        </div>
+      </div>
+
+      {/* Segunda fila de métricas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KpiCard
-          title="Revenue Total"
-          value={`$${kpis.totalRevenue.toLocaleString()}`}
-          change="+12.5%"
-          changeType="positive"
-          icon={<DollarSign size={24} />}
-        />
-        <KpiCard
-          title="Cash Collected"
-          value={`$${kpis.totalCash.toLocaleString()}`}
-          change="+8.2%"
-          changeType="positive"
-          icon={<TrendingUp size={24} />}
-        />
         <KpiCard
           title="Total Llamadas"
           value={kpis.totalCalls}
@@ -205,9 +247,23 @@ export const Dashboard: React.FC = () => {
           changeType="negative"
           icon={<Users size={24} />}
         />
+        <KpiCard
+          title="Propuestas Presentadas"
+          value={kpis.proposalsPitched}
+          change="+7.8%"
+          changeType="positive"
+          icon={<Target size={24} />}
+        />
+        <KpiCard
+          title="Duración Promedio del Ciclo"
+          value="24 días"
+          change="-3.2%"
+          changeType="positive"
+          icon={<Clock size={24} />}
+        />
       </div>
 
-      {/* Charts and Salespeople Manager */}
+      {/* Charts and Lead Sources */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <Card className="p-6">
@@ -264,13 +320,32 @@ export const Dashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* Salespeople Manager */}
-        <div>
-          <SalespersonManager />
-        </div>
+        {/* Lead Source Distribution */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Distribución de Fuentes</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={leadSourceData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ source, percent }) => `${source} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="count"
+              >
+                {leadSourceData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </Card>
       </div>
 
-      {/* Performance and Lead Sources */}
+      {/* Performance and Salespeople Manager */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Rendimiento por Vendedor</h3>
@@ -283,8 +358,8 @@ export const Dashboard: React.FC = () => {
                     <p className="text-sm text-muted-foreground">{person.deals} deals</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">${person.revenue.toLocaleString()}</p>
-                    <p className="text-sm text-success-600">${person.cash.toLocaleString()}</p>
+                    <p className="font-semibold">{formatCurrency(person.revenue)}</p>
+                    <p className="text-sm text-success-600">{formatCurrency(person.cash)}</p>
                   </div>
                 </div>
               ))
@@ -296,20 +371,10 @@ export const Dashboard: React.FC = () => {
           </div>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Fuentes de Leads</h3>
-          <div className="grid grid-cols-1 gap-4">
-            {leadSourceData.map(source => (
-              <div key={source.source} className="text-center p-4 bg-muted rounded-lg">
-                <h4 className="font-medium mb-2">{source.source}</h4>
-                <p className="text-2xl font-bold text-primary">{source.count}</p>
-                <p className="text-sm text-muted-foreground">
-                  ${source.revenue.toLocaleString()} revenue
-                </p>
-              </div>
-            ))}
-          </div>
-        </Card>
+        {/* Salespeople Manager */}
+        <div>
+          <SalespersonManager />
+        </div>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import { useOpportunities } from '@/hooks/useOpportunities';
 import { useCalls } from '@/hooks/useCalls';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { formatCurrency } from '@/config/currency';
 
 export const Opportunities: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -129,7 +130,7 @@ export const Opportunities: React.FC = () => {
               </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Revenue ($)</label>
+              <label className="block text-sm font-medium mb-2">Revenue (€)</label>
               <Input
                 type="number"
                 value={newOpportunity.revenue}
@@ -172,14 +173,14 @@ export const Opportunities: React.FC = () => {
                   <DollarSign className="text-primary" size={16} />
                   <div>
                     <p className="text-sm text-muted-foreground">Revenue</p>
-                    <p className="font-semibold">${opportunity.revenue.toLocaleString()}</p>
+                    <p className="font-semibold">{formatCurrency(opportunity.revenue)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="text-success-600" size={16} />
                   <div>
                     <p className="text-sm text-muted-foreground">Cash Collected</p>
-                    <p className="font-semibold text-success-600">${opportunity.cash_collected.toLocaleString()}</p>
+                    <p className="font-semibold text-success-600">{formatCurrency(opportunity.cash_collected)}</p>
                   </div>
                 </div>
               </div>
@@ -193,9 +194,9 @@ export const Opportunities: React.FC = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="won">Won</SelectItem>
-                    <SelectItem value="lost">Lost</SelectItem>
+                    <SelectItem value="active">Abierto</SelectItem>
+                    <SelectItem value="won">Ganado</SelectItem>
+                    <SelectItem value="lost">Perdido</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select
@@ -206,8 +207,8 @@ export const Opportunities: React.FC = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="created">Created</SelectItem>
-                    <SelectItem value="pitched">Pitched</SelectItem>
+                    <SelectItem value="created">Creada</SelectItem>
+                    <SelectItem value="pitched">Presentada</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { User, Bell, Settings, LogOut } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { User, Bell, Settings, LogOut, Home, Briefcase, Calendar } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +13,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
+
+const navItems = [
+  { to: '/', label: 'Dashboard', icon: Home },
+  { to: '/opportunities', label: 'Oportunidades', icon: Briefcase },
+  { to: '/calendar', label: 'Calendario', icon: Calendar },
+];
 
 export const Header: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -36,10 +43,33 @@ export const Header: React.FC = () => {
   return (
     <header className="bg-card border-b border-border px-6 py-4 shadow-sm">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">CRM Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">Gestiona tus oportunidades de venta</p>
+        <div className="flex items-center gap-8">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">SalesTracker</h1>
+            <p className="text-sm text-muted-foreground mt-1">Gestiona tus oportunidades de venta</p>
+          </div>
+          
+          {/* Navigation moved to header */}
+          <nav className="flex items-center space-x-1">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-foreground hover:text-foreground hover:bg-accent'
+                  }`
+                }
+              >
+                <item.icon size={18} className="flex-shrink-0" />
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
         </div>
+        
         <div className="flex items-center space-x-2">
           <button className="p-3 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
             <Bell size={20} />
