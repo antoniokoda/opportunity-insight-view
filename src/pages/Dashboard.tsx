@@ -4,10 +4,12 @@ import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 import { DashboardFilters } from '@/components/dashboard/DashboardFilters';
 import { CallDetails } from '@/components/dashboard/CallDetails';
+import { SalespersonManager } from '@/components/SalespersonManager';
+import { LeadSourceManager } from '@/components/LeadSourceManager';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useCalls } from '@/hooks/useCalls';
 import { useSalespeople } from '@/hooks/useSalespeople';
-import { useLeadSources } from '@/hooks/useLeadSources';
+import { useLeadSourcesWithPersistence } from '@/hooks/useLeadSourcesWithPersistence';
 import { useDashboardFilters } from '@/hooks/useDashboardFilters';
 import { useDashboardKpis } from '@/hooks/useDashboardKpis';
 import { useDashboardChartData } from '@/hooks/useDashboardChartData';
@@ -23,24 +25,13 @@ export const Dashboard = () => {
   
   const { 
     salespeople, 
-    isLoading: salespeopleLoading, 
-    addSalesperson, 
-    updateSalesperson, 
-    deleteSalesperson,
-    isAdding 
+    isLoading: salespeopleLoading
   } = useSalespeople();
   
   const { 
-    customLeadSources, 
-    addLeadSource, 
-    updateLeadSource, 
-    deleteLeadSource 
-  } = useLeadSources();
-
-  const [newSalesperson, setNewSalesperson] = useState({ name: '', email: '' });
-  const [newLeadSource, setNewLeadSource] = useState('');
-  const [showSalespersonDialog, setShowSalespersonDialog] = useState(false);
-  const [showLeadSourceDialog, setShowLeadSourceDialog] = useState(false);
+    leadSources,
+    isLoading: leadSourcesLoading 
+  } = useLeadSourcesWithPersistence();
 
   // Chart visibility state
   const [visibleMetrics, setVisibleMetrics] = useState({
@@ -66,6 +57,9 @@ export const Dashboard = () => {
   
   // Pass filtered opportunities, calls, and selected month to generate dynamic chart data
   const chartData = useDashboardChartData(filteredOpportunities, metricsCall, selectedMonth);
+  
+  // Create custom lead sources from the persistent lead sources for backward compatibility
+  const customLeadSources = leadSources.map(ls => ls.name);
   const leadSourceData = useLeadSourceData(filteredOpportunities, customLeadSources);
   
   // Get detailed call metrics for the filtered calls
@@ -100,58 +94,7 @@ export const Dashboard = () => {
     selectedMonth
   );
 
-  const handleAddSalesperson = () => {
-    if (newSalesperson.name && newSalesperson.email) {
-      addSalesperson(newSalesperson);
-      setNewSalesperson({ name: '', email: '' });
-      setShowSalespersonDialog(false);
-    }
-  };
-
-  const handleAddLeadSource = () => {
-    if (newLeadSource.trim()) {
-      addLeadSource(newLeadSource.trim());
-      setNewLeadSource('');
-      setShowLeadSourceDialog(false);
-    }
-  };
-
-  const handleUpdateSalesperson = (id: string, newName: string) => {
-    const salesperson = salespeople.find(s => s.id.toString() === id);
-    if (salesperson) {
-      updateSalesperson({
-        id: parseInt(id),
-        name: newName,
-        email: salesperson.email
-      });
-    }
-  };
-
-  const handleDeleteSalesperson = (id: string) => {
-    deleteSalesperson(parseInt(id));
-    // Si el vendedor eliminado estaba seleccionado, cambiar a "all"
-    if (selectedSalesperson === id) {
-      setSelectedSalesperson('all');
-    }
-  };
-
-  const handleUpdateLeadSource = (oldSource: string, newSource: string) => {
-    updateLeadSource(oldSource, newSource);
-    // Si la fuente editada estaba seleccionada, actualizar la selección
-    if (selectedLeadSource === oldSource) {
-      setSelectedLeadSource(newSource);
-    }
-  };
-
-  const handleDeleteLeadSource = (source: string) => {
-    deleteLeadSource(source);
-    // Si la fuente eliminada estaba seleccionada, cambiar a "all"
-    if (selectedLeadSource === source) {
-      setSelectedLeadSource('all');
-    }
-  };
-
-  if (opportunitiesLoading || callsLoading || metricsCallsLoading || salespeopleLoading) {
+  if (opportunitiesLoading || callsLoading || metricsCallsLoading || salespeopleLoading || leadSourcesLoading) {
     return (
       <div className="space-y-8">
         <div className="animate-pulse space-y-8">
@@ -194,21 +137,6 @@ export const Dashboard = () => {
         availableMonths={availableMonths}
         salespeople={salespeople}
         customLeadSources={customLeadSources}
-        newSalesperson={newSalesperson}
-        setNewSalesperson={setNewSalesperson}
-        newLeadSource={newLeadSource}
-        setNewLeadSource={setNewLeadSource}
-        showSalespersonDialog={showSalespersonDialog}
-        setShowSalespersonDialog={setShowSalespersonDialog}
-        showLeadSourceDialog={showLeadSourceDialog}
-        setShowLeadSourceDialog={setShowLeadSourceDialog}
-        handleAddSalesperson={handleAddSalesperson}
-        handleAddLeadSource={handleAddLeadSource}
-        handleDeleteLeadSource={handleDeleteLeadSource}
-        handleUpdateSalesperson={handleUpdateSalesperson}
-        handleDeleteSalesperson={handleDeleteSalesperson}
-        handleUpdateLeadSource={handleUpdateLeadSource}
-        isAdding={isAdding}
       />
 
       <DashboardKpis kpis={kpis} kpiChanges={kpiChanges} />
@@ -221,6 +149,15 @@ export const Dashboard = () => {
           visibleMetrics={visibleMetrics}
           setVisibleMetrics={setVisibleMetrics}
         />
+      </div>
+
+      {/* Management section */}
+      <div className="border-t border-zinc-200 pt-10">
+        <h2 className="text-2xl font-bold text-zinc-900 mb-6">Gestión</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <SalespersonManager />
+          <LeadSourceManager />
+        </div>
       </div>
 
       {/* Otro separador sutil para la sección de llamadas - Tarea 2.2 */}
