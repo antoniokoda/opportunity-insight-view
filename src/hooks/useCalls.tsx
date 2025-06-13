@@ -66,7 +66,7 @@ export const useCalls = (opportunityId?: number) => {
         .limit(1);
 
       const nextNumber = existingCalls && existingCalls.length > 0 
-        ? existingCalls[0].number + 1 
+        ? (existingCalls[0] as any).number + 1 
         : 1;
 
       console.log('Adding call:', { ...newCall, number: nextNumber });

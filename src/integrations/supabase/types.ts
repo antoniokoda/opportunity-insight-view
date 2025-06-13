@@ -9,7 +9,118 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      calls: {
+        Row: {
+          created_at: string | null
+          date: string
+          duration: number
+          id: number
+          number: number
+          opportunity_id: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          duration: number
+          id?: number
+          number: number
+          opportunity_id: number
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          duration?: number
+          id?: number
+          number?: number
+          opportunity_id?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calls_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunities: {
+        Row: {
+          cash_collected: number
+          created_at: string | null
+          id: number
+          lead_source: string
+          name: string
+          opportunity_status: string
+          proposal_status: string
+          revenue: number
+          salesperson_id: number
+          user_id: string
+        }
+        Insert: {
+          cash_collected?: number
+          created_at?: string | null
+          id?: number
+          lead_source: string
+          name: string
+          opportunity_status?: string
+          proposal_status?: string
+          revenue?: number
+          salesperson_id: number
+          user_id: string
+        }
+        Update: {
+          cash_collected?: number
+          created_at?: string | null
+          id?: number
+          lead_source?: string
+          name?: string
+          opportunity_status?: string
+          proposal_status?: string
+          revenue?: number
+          salesperson_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_salesperson_id_fkey"
+            columns: ["salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "salespeople"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salespeople: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: number
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: number
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: number
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
