@@ -1,33 +1,22 @@
 
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { Call, CallType } from './useCalls';
 
 export interface Opportunity {
   id: number;
   name: string;
   salesperson_id: number;
-  lead_source: string;
-  opportunity_status: 'active' | 'won' | 'lost';
-  proposal_status: 'created' | 'pitched';
   revenue: number;
   cash_collected: number;
   user_id: string;
+  proposal_status: string;
+  lead_source: string;
+  opportunity_status: string;
   created_at: string;
   calls?: Call[];
-}
-
-export interface Call {
-  id: number;
-  opportunity_id: number;
-  type: 'Discovery' | 'Closing';
-  number: number;
-  date: string;
-  duration: number;
-  user_id: string;
-  created_at: string;
 }
 
 export const useOpportunities = () => {
@@ -45,7 +34,17 @@ export const useOpportunities = () => {
         .from('opportunities')
         .select(`
           *,
-          calls (*)
+          calls (
+            id,
+            opportunity_id,
+            type,
+            number,
+            date,
+            duration,
+            attended,
+            user_id,
+            created_at
+          )
         `)
         .order('created_at', { ascending: false });
 
@@ -66,6 +65,7 @@ export const useOpportunities = () => {
       salesperson_id: number;
       lead_source: string;
       revenue: number;
+      cash_collected: number;
     }) => {
       if (!user) throw new Error('User not authenticated');
 
@@ -74,10 +74,7 @@ export const useOpportunities = () => {
         .from('opportunities')
         .insert([{
           ...newOpportunity,
-          user_id: user.id,
-          opportunity_status: 'active' as const,
-          proposal_status: 'created' as const,
-          cash_collected: 0,
+          user_id: user.id
         }])
         .select()
         .single();
@@ -93,27 +90,24 @@ export const useOpportunities = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
       toast({
-        title: 'Oportunidad creada',
-        description: 'La oportunidad ha sido creada exitosamente.',
+        title: 'Oportunidad agregada',
+        description: 'La oportunidad ha sido agregada exitosamente.',
       });
     },
     onError: (error) => {
       console.error('Error adding opportunity:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo crear la oportunidad.',
+        description: 'No se pudo agregar la oportunidad.',
         variant: 'destructive',
       });
     },
   });
 
   const updateOpportunity = useMutation({
-    mutationFn: async ({
-      id,
-      updates,
-    }: {
-      id: number;
-      updates: Partial<Opportunity>;
+    mutationFn: async ({ id, updates }: { 
+      id: number; 
+      updates: Partial<Omit<Opportunity, 'id' | 'user_id' | 'created_at' | 'calls'>>
     }) => {
       console.log('Updating opportunity:', id, updates);
       const { data, error } = await supabase
@@ -148,13 +142,47 @@ export const useOpportunities = () => {
     },
   });
 
+  const deleteOpportunity = useMutation({
+    mutationFn: async (id: number) => {
+      console.log('Deleting opportunity:', id);
+      const { error } = await supabase
+        .from('opportunities')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting opportunity:', error);
+        throw error;
+      }
+
+      console.log('Deleted opportunity:', id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      toast({
+        title: 'Oportunidad eliminada',
+        description: 'La oportunidad ha sido eliminada exitosamente.',
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting opportunity:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo eliminar la oportunidad.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   return {
     opportunities,
     isLoading,
     error,
     addOpportunity: addOpportunity.mutate,
     updateOpportunity: updateOpportunity.mutate,
+    deleteOpportunity: deleteOpportunity.mutate,
     isAdding: addOpportunity.isPending,
     isUpdating: updateOpportunity.isPending,
+    isDeleting: deleteOpportunity.isPending,
   };
 };

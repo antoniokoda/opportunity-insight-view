@@ -1,40 +1,43 @@
-
 import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
+import { Plus, Phone, Edit, Trash2, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Phone, DollarSign, Edit, Loader2 } from 'lucide-react';
-import { useSalespeople } from '@/hooks/useSalespeople';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useOpportunities } from '@/hooks/useOpportunities';
+import { useSalespeople } from '@/hooks/useSalespeople';
+import { OpportunityDialog } from '@/components/opportunities/OpportunityDialog';
+import { OpportunityEditSheet } from '@/components/opportunities/OpportunityEditSheet';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { formatCurrency } from '@/config/currency';
-import { OpportunityEditSheet } from '@/components/opportunities/OpportunityEditSheet';
-import { Opportunity } from '@/hooks/useOpportunities';
+import type { Opportunity } from '@/hooks/useOpportunities';
 
-export const Opportunities: React.FC = () => {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
-  const [showEditSheet, setShowEditSheet] = useState(false);
-  const [newOpportunity, setNewOpportunity] = useState({
-    name: '',
-    salesperson_id: '',
-    lead_source: '',
-    revenue: '',
+export const Opportunities = () => {
+  const { opportunities, isLoading, deleteOpportunity } = useOpportunities();
+  const { salespeople } = useSalespeople();
+  
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingOpportunity, setEditingOpportunity] = useState<Opportunity | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState('all');
+
+  const filteredOpportunities = opportunities.filter(opportunity => {
+    const matchesSearch = opportunity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         getSalespersonName(opportunity.salesperson_id).toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || opportunity.opportunity_status === statusFilter;
+    const matchesSource = sourceFilter === 'all' || opportunity.lead_source === sourceFilter;
+    
+    return matchesSearch && matchesStatus && matchesSource;
   });
 
-  const { salespeople, isLoading: salesLoading } = useSalespeople();
-  const { 
-    opportunities, 
-    isLoading: oppsLoading, 
-    addOpportunity, 
-    updateOpportunity, 
-    isAdding 
-  } = useOpportunities();
-
-  const isLoading = salesLoading || oppsLoading;
+  const getSalespersonName = (id: number) => {
+    const salesperson = salespeople.find(s => s.id === id);
+    return salesperson ? salesperson.name : 'Unknown';
+  };
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -56,244 +59,240 @@ export const Opportunities: React.FC = () => {
     return 'bg-gray-100 text-gray-800';
   };
 
-  const handleAddOpportunity = () => {
-    if (newOpportunity.name && newOpportunity.salesperson_id && newOpportunity.lead_source) {
-      addOpportunity({
-        name: newOpportunity.name,
-        salesperson_id: parseInt(newOpportunity.salesperson_id),
-        lead_source: newOpportunity.lead_source,
-        revenue: parseInt(newOpportunity.revenue) || 0,
-      });
-      
-      setNewOpportunity({ name: '', salesperson_id: '', lead_source: '', revenue: '' });
-      setShowAddForm(false);
-    }
-  };
-
-  const updateOpportunityStatus = (id: number, field: 'opportunity_status' | 'proposal_status', value: string) => {
-    updateOpportunity({
-      id,
-      updates: { [field]: value }
-    });
-  };
-
-  const handleEditOpportunity = (opportunity: Opportunity) => {
-    setSelectedOpportunity(opportunity);
-    setShowEditSheet(true);
-  };
-
-  const handleCloseEditSheet = () => {
-    setShowEditSheet(false);
-    setSelectedOpportunity(null);
-  };
-
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Cargando oportunidades...</p>
+      <div className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader>
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="h-3 bg-gray-200 rounded"></div>
+                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Oportunidades</h1>
-          <p className="text-muted-foreground">Gestiona tus deals y propuestas</p>
-        </div>
-        <Button onClick={() => setShowAddForm(!showAddForm)} className="flex items-center gap-2">
-          <Plus size={16} />
-          Nueva Oportunidad
-        </Button>
-      </div>
-
-      {showAddForm && (
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Nueva Oportunidad</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Nombre</label>
-              <Input
-                value={newOpportunity.name}
-                onChange={(e) => setNewOpportunity(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Ej: ABC Corporation Deal"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Vendedor</label>
-              <Select value={newOpportunity.salesperson_id} onValueChange={(value) => setNewOpportunity(prev => ({ ...prev, salesperson_id: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar vendedor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {salespeople.map(person => (
-                    <SelectItem key={person.id} value={person.id.toString()}>
-                      {person.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Fuente</label>
-              <Select value={newOpportunity.lead_source} onValueChange={(value) => setNewOpportunity(prev => ({ ...prev, lead_source: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar fuente" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Website">Website</SelectItem>
-                  <SelectItem value="Referral">Referencia</SelectItem>
-                  <SelectItem value="Cold Outreach">Prospección</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Revenue (€)</label>
-              <Input
-                type="number"
-                value={newOpportunity.revenue}
-                onChange={(e) => setNewOpportunity(prev => ({ ...prev, revenue: e.target.value }))}
-                placeholder="50000"
-              />
-            </div>
+    <TooltipProvider>
+      <div className="p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Oportunidades</h1>
+            <p className="text-muted-foreground">Gestiona tus oportunidades de venta</p>
           </div>
-          <div className="flex gap-2 mt-4">
-            <Button onClick={handleAddOpportunity} disabled={isAdding}>
-              {isAdding && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Crear Oportunidad
-            </Button>
-            <Button variant="outline" onClick={() => setShowAddForm(false)}>Cancelar</Button>
-          </div>
-        </Card>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {opportunities.map(opportunity => {
-          const salesperson = salespeople.find(p => p.id === opportunity.salesperson_id);
-          const opportunityCalls = opportunity.calls || [];
-          
-          return (
-            <Card key={opportunity.id} className="p-6 hover:shadow-lg transition-shadow">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold mb-1">{opportunity.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {salesperson?.name} • {opportunity.lead_source}
-                  </p>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => handleEditOpportunity(opportunity)}
-                >
-                  <Edit size={16} />
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="text-primary" size={16} />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Revenue</p>
-                    <p className="font-semibold">{formatCurrency(opportunity.revenue)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="text-success-600" size={16} />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Cash Collected</p>
-                    <p className="font-semibold text-success-600">{formatCurrency(opportunity.cash_collected)}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-2 mb-4">
-                <Select
-                  value={opportunity.opportunity_status}
-                  onValueChange={(value) => updateOpportunityStatus(opportunity.id, 'opportunity_status', value)}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Abierto</SelectItem>
-                    <SelectItem value="won">Ganado</SelectItem>
-                    <SelectItem value="lost">Perdido</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select
-                  value={opportunity.proposal_status}
-                  onValueChange={(value) => updateOpportunityStatus(opportunity.id, 'proposal_status', value)}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="created">Creada</SelectItem>
-                    <SelectItem value="pitched">Presentada</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium flex items-center gap-2">
-                    <Phone size={16} />
-                    Llamadas ({opportunityCalls.length})
-                  </h4>
-                </div>
-                {opportunityCalls.length > 0 ? (
-                  <div className="space-y-2">
-                    {opportunityCalls.map(call => (
-                      <div key={call.id} className="flex items-center justify-between p-2 bg-muted rounded">
-                        <div className="flex items-center gap-2">
-                          <Badge className={getCallTypeColor(call.type)}>
-                            {call.type} #{call.number}
-                          </Badge>
-                          <span className="text-sm">
-                            {format(new Date(call.date), 'dd/MM/yyyy HH:mm', { locale: es })}
-                          </span>
-                          {call.attended !== null && (
-                            <Badge variant={call.attended ? "default" : "destructive"}>
-                              {call.attended ? "Asistió" : "No asistió"}
-                            </Badge>
-                          )}
-                        </div>
-                        <span className="text-sm text-muted-foreground">{call.duration}min</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No hay llamadas registradas</p>
-                )}
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-
-      {opportunities.length === 0 && !isLoading && (
-        <Card className="p-12 text-center">
-          <h3 className="text-lg font-semibold mb-2">No hay oportunidades</h3>
-          <p className="text-muted-foreground mb-4">
-            Crea tu primera oportunidad para comenzar a gestionar tus deals.
-          </p>
-          <Button onClick={() => setShowAddForm(true)}>
-            <Plus size={16} className="mr-2" />
-            Crear Primera Oportunidad
+          <Button onClick={() => setIsDialogOpen(true)} className="w-full sm:w-auto">
+            <Plus className="w-4 h-4 mr-2" />
+            Nueva Oportunidad
           </Button>
-        </Card>
-      )}
+        </div>
 
-      <OpportunityEditSheet
-        opportunity={selectedOpportunity}
-        isOpen={showEditSheet}
-        onClose={handleCloseEditSheet}
-      />
-    </div>
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar oportunidades..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-48">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="active">Activo</SelectItem>
+              <SelectItem value="won">Ganado</SelectItem>
+              <SelectItem value="lost">Perdido</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sourceFilter} onValueChange={setSourceFilter}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Fuente" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las fuentes</SelectItem>
+              <SelectItem value="Website">Website</SelectItem>
+              <SelectItem value="Referral">Referencia</SelectItem>
+              <SelectItem value="Cold Outreach">Prospección</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Opportunities Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredOpportunities.map((opportunity) => (
+            <Card key={opportunity.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg text-foreground line-clamp-2">
+                      {opportunity.name}
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {getSalespersonName(opportunity.salesperson_id)}
+                    </p>
+                  </div>
+                  <div className="flex gap-1 ml-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingOpportunity(opportunity)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Editar</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteOpportunity(opportunity.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Eliminar</TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                {/* Status and Financial Info */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Estado:</span>
+                    <Badge className={getStatusBadge(opportunity.opportunity_status)}>
+                      {opportunity.opportunity_status === 'active' && 'Activo'}
+                      {opportunity.opportunity_status === 'won' && 'Ganado'}
+                      {opportunity.opportunity_status === 'lost' && 'Perdido'}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Propuesta:</span>
+                    <Badge className={getStatusBadge(opportunity.proposal_status)}>
+                      {opportunity.proposal_status === 'created' && 'Creada'}
+                      {opportunity.proposal_status === 'pitched' && 'Presentada'}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-center p-2 bg-muted rounded">
+                      <div className="text-xs text-muted-foreground">Revenue</div>
+                      <div className="font-semibold text-sm">
+                        {formatCurrency(opportunity.revenue)}
+                      </div>
+                    </div>
+                    <div className="text-center p-2 bg-muted rounded">
+                      <div className="text-xs text-muted-foreground">Cobrado</div>
+                      <div className="font-semibold text-sm">
+                        {formatCurrency(opportunity.cash_collected)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Calls Section */}
+                {opportunity.calls && opportunity.calls.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Llamadas ({opportunity.calls.length})</span>
+                    </div>
+                    <div className="space-y-1 max-h-20 overflow-y-auto">
+                      {opportunity.calls.slice(0, 3).map((call) => (
+                        <div key={call.id} className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <Badge size="sm" className={getCallTypeColor(call.type)}>
+                              {call.type} #{call.number}
+                            </Badge>
+                            {call.attended !== null && (
+                              <Badge 
+                                size="sm" 
+                                variant={call.attended ? "default" : "destructive"}
+                              >
+                                {call.attended ? "✓" : "✗"}
+                              </Badge>
+                            )}
+                          </div>
+                          <span className="text-muted-foreground">
+                            {format(new Date(call.date), 'dd/MM', { locale: es })}
+                          </span>
+                        </div>
+                      ))}
+                      {opportunity.calls.length > 3 && (
+                        <div className="text-xs text-muted-foreground text-center">
+                          +{opportunity.calls.length - 3} más
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Source and Date */}
+                <div className="pt-2 border-t space-y-1">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-muted-foreground">Fuente:</span>
+                    <span className="font-medium">{opportunity.lead_source}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-muted-foreground">Creada:</span>
+                    <span>{format(new Date(opportunity.created_at), 'dd/MM/yyyy', { locale: es })}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {filteredOpportunities.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-muted-foreground mb-4">
+              {searchTerm || statusFilter !== 'all' || sourceFilter !== 'all' 
+                ? 'No se encontraron oportunidades con los filtros aplicados'
+                : 'No hay oportunidades aún'}
+            </div>
+            {(!searchTerm && statusFilter === 'all' && sourceFilter === 'all') && (
+              <Button onClick={() => setIsDialogOpen(true)} variant="outline">
+                <Plus className="w-4 h-4 mr-2" />
+                Crear primera oportunidad
+              </Button>
+            )}
+          </div>
+        )}
+
+        <OpportunityDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+        />
+
+        <OpportunityEditSheet
+          opportunity={editingOpportunity}
+          isOpen={!!editingOpportunity}
+          onClose={() => setEditingOpportunity(null)}
+        />
+      </div>
+    </TooltipProvider>
   );
 };
