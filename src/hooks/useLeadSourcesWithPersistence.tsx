@@ -127,24 +127,42 @@ export const useLeadSourcesWithPersistence = () => {
 
       console.log('Deleting lead source with ID:', id, 'for user:', user.id);
       
-      // Verificar si hay oportunidades que usan esta fuente
-      const { data: opportunities, error: checkError } = await supabase
-        .from('opportunities')
-        .select('id, name')
-        .eq('lead_source', id)
-        .eq('user_id', user.id);
+      // First verify the lead source belongs to the current user
+      const { data: existingData, error: checkError } = await supabase
+        .from('lead_sources')
+        .select('id, name, user_id')
+        .eq('id', id)
+        .single();
 
       if (checkError) {
-        console.error('Error checking opportunities:', checkError);
+        console.error('Error checking lead source:', checkError);
+        throw new Error('No se pudo verificar la fuente de lead');
+      }
+
+      if (!existingData || existingData.user_id !== user.id) {
+        throw new Error('Fuente de lead no encontrada o no tienes permisos para eliminarla');
+      }
+
+      console.log('Lead source found and verified:', existingData);
+      
+      // Check for opportunities using this lead source
+      const { data: opportunities, error: oppError } = await supabase
+        .from('opportunities')
+        .select('id, name')
+        .eq('lead_source', existingData.name)
+        .eq('user_id', user.id);
+
+      if (oppError) {
+        console.error('Error checking opportunities:', oppError);
         throw new Error('No se pudo verificar si hay oportunidades asociadas');
       }
 
+      // Update opportunities to use generic lead source
       if (opportunities && opportunities.length > 0) {
-        // Actualizar oportunidades para usar fuente genérica
         const { error: updateError } = await supabase
           .from('opportunities')
           .update({ lead_source: 'Unknown' })
-          .eq('lead_source', id)
+          .eq('lead_source', existingData.name)
           .eq('user_id', user.id);
 
         if (updateError) {
@@ -155,7 +173,7 @@ export const useLeadSourcesWithPersistence = () => {
         console.log(`Updated ${opportunities.length} opportunities to use generic lead source`);
       }
 
-      // Ahora eliminar la fuente de lead
+      // Delete the lead source
       const { error } = await supabase
         .from('lead_sources')
         .delete()
@@ -168,22 +186,27 @@ export const useLeadSourcesWithPersistence = () => {
       }
 
       console.log('Successfully deleted lead source:', id);
-      return id;
+      return { id, affectedOpportunities: opportunities?.length || 0 };
     },
-    onSuccess: (deletedId) => {
+    onSuccess: ({ id, affectedOpportunities }) => {
       queryClient.invalidateQueries({ queryKey: ['lead_sources'] });
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      
+      const message = affectedOpportunities > 0
+        ? `La fuente de lead ha sido eliminada exitosamente. ${affectedOpportunities} oportunidad(es) fueron actualizadas.`
+        : 'La fuente de lead ha sido eliminada exitosamente.';
+      
       toast({
         title: 'Fuente eliminada',
-        description: 'La fuente de lead ha sido eliminada exitosamente.',
+        description: message,
       });
-      console.log('Lead source deletion completed for ID:', deletedId);
+      console.log('Lead source deletion completed for ID:', id);
     },
     onError: (error) => {
       console.error('Error deleting lead source:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo eliminar la fuente de lead.',
+        description: error.message || 'No se pudo eliminar la fuente de lead.',
         variant: 'destructive',
       });
     },

@@ -27,6 +27,7 @@ export const useSalespeople = () => {
       const { data, error } = await supabase
         .from('salespeople')
         .select('*')
+        .eq('user_id', user.id)
         .order('name');
 
       if (error) {
@@ -123,12 +124,11 @@ export const useSalespeople = () => {
 
       console.log('Deleting salesperson with ID:', id, 'for user:', user.id);
       
-      // Verificar si el vendedor existe y pertenece al usuario
+      // First verify the salesperson belongs to the current user
       const { data: existingData, error: checkError } = await supabase
         .from('salespeople')
-        .select('id, name')
+        .select('id, name, user_id')
         .eq('id', id)
-        .eq('user_id', user.id)
         .single();
 
       if (checkError) {
@@ -136,13 +136,13 @@ export const useSalespeople = () => {
         throw new Error('No se pudo verificar el vendedor');
       }
 
-      if (!existingData) {
-        throw new Error('Vendedor no encontrado');
+      if (!existingData || existingData.user_id !== user.id) {
+        throw new Error('Vendedor no encontrado o no tienes permisos para eliminarlo');
       }
 
-      console.log('Salesperson found, proceeding with deletion:', existingData);
+      console.log('Salesperson found and verified:', existingData);
 
-      // Verificar si hay oportunidades asignadas a este vendedor
+      // Check for opportunities assigned to this salesperson
       const { data: opportunities, error: oppError } = await supabase
         .from('opportunities')
         .select('id, name')
@@ -154,7 +154,7 @@ export const useSalespeople = () => {
         throw new Error('No se pudo verificar las oportunidades asociadas');
       }
 
-      // Si hay oportunidades, actualizar para desasociarlas del vendedor
+      // Update opportunities to remove salesperson assignment
       if (opportunities && opportunities.length > 0) {
         console.log(`Found ${opportunities.length} opportunities assigned to this salesperson`);
         
@@ -172,7 +172,7 @@ export const useSalespeople = () => {
         console.log(`Updated ${opportunities.length} opportunities to remove salesperson assignment`);
       }
 
-      // Ahora eliminar el vendedor
+      // Delete the salesperson
       const { error } = await supabase
         .from('salespeople')
         .delete()
@@ -205,7 +205,7 @@ export const useSalespeople = () => {
       console.error('Error deleting salesperson:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo eliminar el vendedor.',
+        description: error.message || 'No se pudo eliminar el vendedor.',
         variant: 'destructive',
       });
     },
