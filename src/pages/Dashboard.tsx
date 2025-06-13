@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 import { DashboardFilters } from '@/components/dashboard/DashboardFilters';
+import { CallDetails } from '@/components/dashboard/CallDetails';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useCalls } from '@/hooks/useCalls';
 import { useSalespeople } from '@/hooks/useSalespeople';
@@ -11,6 +11,7 @@ import { useDashboardFilters } from '@/hooks/useDashboardFilters';
 import { useDashboardKpis } from '@/hooks/useDashboardKpis';
 import { useDashboardChartData } from '@/hooks/useDashboardChartData';
 import { useLeadSourceData } from '@/hooks/useLeadSourceData';
+import { useDetailedCallMetrics } from '@/hooks/useDetailedCallMetrics';
 
 export const Dashboard = () => {
   const { opportunities, isLoading: opportunitiesLoading } = useOpportunities();
@@ -62,6 +63,29 @@ export const Dashboard = () => {
   const kpis = useDashboardKpis(filteredOpportunities, metricsCall);
   const chartData = useDashboardChartData();
   const leadSourceData = useLeadSourceData(filteredOpportunities, customLeadSources);
+  
+  // Get detailed call metrics for the filtered calls
+  const filteredCalls = metricsCall.filter(call => {
+    // Apply the same filters as opportunities
+    const opportunity = opportunities.find(opp => opp.id === call.opportunity_id);
+    if (!opportunity) return false;
+    
+    if (selectedSalesperson !== 'all' && opportunity.salesperson_id !== parseInt(selectedSalesperson)) {
+      return false;
+    }
+    if (selectedLeadSource !== 'all' && opportunity.lead_source !== selectedLeadSource) {
+      return false;
+    }
+    if (selectedMonth !== 'all') {
+      const callMonth = new Date(call.date).toISOString().slice(0, 7);
+      if (callMonth !== selectedMonth) {
+        return false;
+      }
+    }
+    return true;
+  });
+  
+  const detailedCallMetrics = useDetailedCallMetrics(filteredCalls);
 
   const handleAddSalesperson = () => {
     if (newSalesperson.name && newSalesperson.email) {
@@ -178,6 +202,12 @@ export const Dashboard = () => {
         leadSourceData={leadSourceData}
         visibleMetrics={visibleMetrics}
         setVisibleMetrics={setVisibleMetrics}
+      />
+
+      <CallDetails 
+        callCounts={detailedCallMetrics.callCounts}
+        averageDurations={detailedCallMetrics.averageDurations}
+        showUpRates={detailedCallMetrics.showUpRates}
       />
     </div>
   );
