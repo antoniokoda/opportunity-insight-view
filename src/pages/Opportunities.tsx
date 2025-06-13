@@ -8,13 +8,16 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Phone, DollarSign, Edit, Loader2 } from 'lucide-react';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useOpportunities } from '@/hooks/useOpportunities';
-import { useCalls } from '@/hooks/useCalls';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { formatCurrency } from '@/config/currency';
+import { OpportunityEditSheet } from '@/components/opportunities/OpportunityEditSheet';
+import { Opportunity } from '@/hooks/useOpportunities';
 
 export const Opportunities: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
+  const [showEditSheet, setShowEditSheet] = useState(false);
   const [newOpportunity, setNewOpportunity] = useState({
     name: '',
     salesperson_id: '',
@@ -63,6 +66,16 @@ export const Opportunities: React.FC = () => {
       id,
       updates: { [field]: value }
     });
+  };
+
+  const handleEditOpportunity = (opportunity: Opportunity) => {
+    setSelectedOpportunity(opportunity);
+    setShowEditSheet(true);
+  };
+
+  const handleCloseEditSheet = () => {
+    setShowEditSheet(false);
+    setSelectedOpportunity(null);
   };
 
   if (isLoading) {
@@ -163,7 +176,11 @@ export const Opportunities: React.FC = () => {
                     {salesperson?.name} • {opportunity.lead_source}
                   </p>
                 </div>
-                <Button variant="ghost" size="sm">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => handleEditOpportunity(opportunity)}
+                >
                   <Edit size={16} />
                 </Button>
               </div>
@@ -219,9 +236,6 @@ export const Opportunities: React.FC = () => {
                     <Phone size={16} />
                     Llamadas ({opportunityCalls.length})
                   </h4>
-                  <Button variant="outline" size="sm">
-                    <Plus size={14} />
-                  </Button>
                 </div>
                 {opportunityCalls.length > 0 ? (
                   <div className="space-y-2">
@@ -260,6 +274,12 @@ export const Opportunities: React.FC = () => {
           </Button>
         </Card>
       )}
+
+      <OpportunityEditSheet
+        opportunity={selectedOpportunity}
+        isOpen={showEditSheet}
+        onClose={handleCloseEditSheet}
+      />
     </div>
   );
 };

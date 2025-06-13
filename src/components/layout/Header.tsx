@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { User, Bell, Settings, LogOut, Home, Briefcase, Calendar } from 'lucide-react';
+import { User, Bell, LogOut, Home, Briefcase, Calendar } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
@@ -74,10 +74,6 @@ export const Header: React.FC = () => {
           <button className="p-3 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
             <Bell size={20} />
             <span className="sr-only">Notificaciones</span>
-          </button>
-          <button className="p-3 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-            <Settings size={20} />
-            <span className="sr-only">Configuración</span>
           </button>
           
           <DropdownMenu>
