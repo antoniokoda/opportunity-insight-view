@@ -179,27 +179,6 @@ export type Database = {
           },
         ]
       }
-      profiles: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          id: string
-          name: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email?: string | null
-          id: string
-          name?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          name?: string | null
-        }
-        Relationships: []
-      }
       salespeople: {
         Row: {
           created_at: string | null

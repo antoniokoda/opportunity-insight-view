@@ -45,16 +45,6 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
     new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
 
-  const getUserDisplayName = (note: any) => {
-    if (note.profiles?.name) {
-      return note.profiles.name;
-    }
-    if (note.profiles?.email) {
-      return note.profiles.email;
-    }
-    return 'Usuario desconocido';
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
@@ -81,14 +71,9 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
               sortedNotes.map((note) => (
                 <div key={note.id} className="bg-background p-3 rounded-lg shadow-sm border">
                   <div className="mb-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-sm">{note.title}</h4>
-                      <div className="text-xs text-muted-foreground">
-                        {format(new Date(note.created_at), 'dd/MM/yyyy HH:mm', { locale: es })}
-                      </div>
-                    </div>
+                    <h4 className="font-medium text-sm">{note.title}</h4>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Por: {getUserDisplayName(note)}
+                      {format(new Date(note.created_at), 'dd/MM/yyyy HH:mm', { locale: es })}
                     </div>
                   </div>
                   {note.content && (
