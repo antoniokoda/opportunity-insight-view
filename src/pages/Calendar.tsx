@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Separator } from '@/components/ui/separator';
 import { Phone, Calendar as CalendarIcon, Clock, Plus, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useOpportunities } from '@/hooks/useOpportunities';
@@ -179,18 +180,18 @@ export const Calendar: React.FC = () => {
         </div>
 
         {view === 'month' ? (
-          /* Month View */
+          /* Month View - Made smaller */
           <>
             {/* Days of week header */}
             <div className="grid grid-cols-7 gap-1 mb-2">
               {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => (
-                <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
+                <div key={day} className="p-1 text-center text-xs font-medium text-muted-foreground">
                   {day}
                 </div>
               ))}
             </div>
             
-            {/* Calendar Grid */}
+            {/* Calendar Grid - Made smaller */}
             <div className="grid grid-cols-7 gap-1">
               {monthDays.map(day => {
                 const calls = getCallsForDay(day);
@@ -200,14 +201,14 @@ export const Calendar: React.FC = () => {
                 return (
                   <div
                     key={day.toString()}
-                    className={`min-h-[100px] p-2 border rounded-lg ${
+                    className={`min-h-[70px] p-1.5 border rounded-lg ${
                       isDayToday ? 'bg-primary/10 border-primary' : 
                       isCurrentMonth ? 'bg-card border-border hover:bg-accent' : 
                       'bg-muted/30 border-border'
                     } cursor-pointer transition-colors`}
                     onClick={() => setSelectedDate(day)}
                   >
-                    <div className={`text-sm font-medium mb-1 ${
+                    <div className={`text-xs font-medium mb-1 ${
                       isDayToday ? 'text-primary' : 
                       isCurrentMonth ? 'text-foreground' : 
                       'text-muted-foreground'
@@ -215,19 +216,19 @@ export const Calendar: React.FC = () => {
                       {format(day, 'd')}
                     </div>
                     
-                    <div className="space-y-1">
-                      {calls.slice(0, 3).map(call => (
+                    <div className="space-y-0.5">
+                      {calls.slice(0, 2).map(call => (
                         <div
                           key={call.id}
-                          className="text-xs p-1 rounded bg-primary/10 text-primary truncate"
+                          className="text-[10px] p-0.5 rounded bg-primary/10 text-primary truncate"
                           title={`${call.type} #${call.number} - ${call.opportunity_name}`}
                         >
                           {format(new Date(call.date), 'HH:mm')} {call.type}
                         </div>
                       ))}
-                      {calls.length > 3 && (
-                        <div className="text-xs text-muted-foreground">
-                          +{calls.length - 3} más
+                      {calls.length > 2 && (
+                        <div className="text-[10px] text-muted-foreground">
+                          +{calls.length - 2} más
                         </div>
                       )}
                     </div>
@@ -237,53 +238,64 @@ export const Calendar: React.FC = () => {
             </div>
           </>
         ) : (
-          /* Week View */
+          /* Week View - Added separators between days */
           <div className="space-y-4">
             {/* Week days header */}
-            <div className="grid grid-cols-8 gap-1">
+            <div className="grid grid-cols-8 gap-0">
               <div className="p-2"></div>
-              {weekDays.map(day => (
-                <div key={day.toString()} className="p-2 text-center">
-                  <div className={`text-sm font-medium ${isToday(day) ? 'text-primary' : 'text-foreground'}`}>
-                    {format(day, 'EEE', { locale: es })}
+              {weekDays.map((day, index) => (
+                <React.Fragment key={day.toString()}>
+                  <div className="p-2 text-center">
+                    <div className={`text-sm font-medium ${isToday(day) ? 'text-primary' : 'text-foreground'}`}>
+                      {format(day, 'EEE', { locale: es })}
+                    </div>
+                    <div className={`text-lg font-bold ${
+                      isToday(day) ? 'text-primary bg-primary/10 rounded-full w-8 h-8 flex items-center justify-center mx-auto' : 'text-foreground'
+                    }`}>
+                      {format(day, 'd')}
+                    </div>
                   </div>
-                  <div className={`text-lg font-bold ${
-                    isToday(day) ? 'text-primary bg-primary/10 rounded-full w-8 h-8 flex items-center justify-center mx-auto' : 'text-foreground'
-                  }`}>
-                    {format(day, 'd')}
-                  </div>
-                </div>
+                  {index < weekDays.length - 1 && (
+                    <div className="flex justify-center items-center">
+                      <Separator orientation="vertical" className="h-12" />
+                    </div>
+                  )}
+                </React.Fragment>
               ))}
             </div>
             
-            {/* Hour grid */}
+            {/* Hour grid with separators */}
             <div className="max-h-[600px] overflow-y-auto">
-              <div className="grid grid-cols-8 gap-1">
+              <div className="grid grid-cols-8 gap-0">
                 {hours.map(hour => (
                   <React.Fragment key={hour}>
                     {/* Hour label */}
                     <div className="p-2 text-xs text-muted-foreground text-right border-r">
                       {format(setHours(new Date(), hour), 'HH:mm')}
                     </div>
-                    {/* Day columns */}
-                    {weekDays.map(day => {
+                    {/* Day columns with separators */}
+                    {weekDays.map((day, dayIndex) => {
                       const hourCalls = getCallsForHour(day, hour);
                       return (
-                        <div
-                          key={`${day.toString()}-${hour}`}
-                          className="min-h-[40px] p-1 border-b border-border hover:bg-accent/50 transition-colors"
-                        >
-                          {hourCalls.map(call => (
-                            <div
-                              key={call.id}
-                              className={`text-xs p-1 rounded mb-1 ${getCallTypeColor(call.type)} cursor-pointer`}
-                              title={`${call.opportunity_name} - ${call.salesperson_name}`}
-                            >
-                              <div className="font-medium">{call.type} #{call.number}</div>
-                              <div className="truncate">{call.opportunity_name}</div>
+                        <React.Fragment key={`${day.toString()}-${hour}`}>
+                          <div className="min-h-[40px] p-1 border-b border-border hover:bg-accent/50 transition-colors">
+                            {hourCalls.map(call => (
+                              <div
+                                key={call.id}
+                                className={`text-xs p-1 rounded mb-1 ${getCallTypeColor(call.type)} cursor-pointer`}
+                                title={`${call.opportunity_name} - ${call.salesperson_name}`}
+                              >
+                                <div className="font-medium">{call.type} #{call.number}</div>
+                                <div className="truncate">{call.opportunity_name}</div>
+                              </div>
+                            ))}
+                          </div>
+                          {dayIndex < weekDays.length - 1 && (
+                            <div className="border-b border-border">
+                              <Separator orientation="vertical" className="h-full min-h-[40px]" />
                             </div>
-                          ))}
-                        </div>
+                          )}
+                        </React.Fragment>
                       );
                     })}
                   </React.Fragment>
