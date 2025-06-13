@@ -27,7 +27,6 @@ export const useLeadSourcesWithPersistence = () => {
       const { data, error } = await supabase
         .from('lead_sources')
         .select('*')
-        .eq('user_id', user.id)
         .order('name');
 
       if (error) {
@@ -91,7 +90,6 @@ export const useLeadSourcesWithPersistence = () => {
         .from('lead_sources')
         .update({ name })
         .eq('id', id)
-        .eq('user_id', user.id)
         .select()
         .single();
 
@@ -125,32 +123,27 @@ export const useLeadSourcesWithPersistence = () => {
     mutationFn: async (id: string) => {
       if (!user) throw new Error('User not authenticated');
 
-      console.log('Deleting lead source with ID:', id, 'for user:', user.id);
+      console.log('Deleting lead source with ID:', id);
       
-      // First verify the lead source belongs to the current user
-      const { data: existingData, error: checkError } = await supabase
+      // First get the lead source to know its name
+      const { data: leadSourceData, error: fetchError } = await supabase
         .from('lead_sources')
-        .select('id, name, user_id')
+        .select('name')
         .eq('id', id)
         .single();
 
-      if (checkError) {
-        console.error('Error checking lead source:', checkError);
-        throw new Error('No se pudo verificar la fuente de lead');
+      if (fetchError) {
+        console.error('Error fetching lead source:', fetchError);
+        throw new Error('No se pudo encontrar la fuente de lead');
       }
 
-      if (!existingData || existingData.user_id !== user.id) {
-        throw new Error('Fuente de lead no encontrada o no tienes permisos para eliminarla');
-      }
-
-      console.log('Lead source found and verified:', existingData);
+      console.log('Lead source found:', leadSourceData);
       
       // Check for opportunities using this lead source
       const { data: opportunities, error: oppError } = await supabase
         .from('opportunities')
         .select('id, name')
-        .eq('lead_source', existingData.name)
-        .eq('user_id', user.id);
+        .eq('lead_source', leadSourceData.name);
 
       if (oppError) {
         console.error('Error checking opportunities:', oppError);
@@ -162,8 +155,7 @@ export const useLeadSourcesWithPersistence = () => {
         const { error: updateError } = await supabase
           .from('opportunities')
           .update({ lead_source: 'Unknown' })
-          .eq('lead_source', existingData.name)
-          .eq('user_id', user.id);
+          .eq('lead_source', leadSourceData.name);
 
         if (updateError) {
           console.error('Error updating opportunities:', updateError);
@@ -173,12 +165,11 @@ export const useLeadSourcesWithPersistence = () => {
         console.log(`Updated ${opportunities.length} opportunities to use generic lead source`);
       }
 
-      // Delete the lead source
+      // Delete the lead source - RLS will ensure only the user's own lead source can be deleted
       const { error } = await supabase
         .from('lead_sources')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
 
       if (error) {
         console.error('Error deleting lead source:', error);

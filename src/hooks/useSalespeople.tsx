@@ -27,7 +27,6 @@ export const useSalespeople = () => {
       const { data, error } = await supabase
         .from('salespeople')
         .select('*')
-        .eq('user_id', user.id)
         .order('name');
 
       if (error) {
@@ -89,7 +88,6 @@ export const useSalespeople = () => {
         .from('salespeople')
         .update({ name, email })
         .eq('id', id)
-        .eq('user_id', user.id)
         .select()
         .single();
 
@@ -122,32 +120,13 @@ export const useSalespeople = () => {
     mutationFn: async (id: number) => {
       if (!user) throw new Error('User not authenticated');
 
-      console.log('Deleting salesperson with ID:', id, 'for user:', user.id);
+      console.log('Deleting salesperson with ID:', id);
       
-      // First verify the salesperson belongs to the current user
-      const { data: existingData, error: checkError } = await supabase
-        .from('salespeople')
-        .select('id, name, user_id')
-        .eq('id', id)
-        .single();
-
-      if (checkError) {
-        console.error('Error checking salesperson:', checkError);
-        throw new Error('No se pudo verificar el vendedor');
-      }
-
-      if (!existingData || existingData.user_id !== user.id) {
-        throw new Error('Vendedor no encontrado o no tienes permisos para eliminarlo');
-      }
-
-      console.log('Salesperson found and verified:', existingData);
-
       // Check for opportunities assigned to this salesperson
       const { data: opportunities, error: oppError } = await supabase
         .from('opportunities')
         .select('id, name')
-        .eq('salesperson_id', id)
-        .eq('user_id', user.id);
+        .eq('salesperson_id', id);
 
       if (oppError) {
         console.error('Error checking opportunities:', oppError);
@@ -161,8 +140,7 @@ export const useSalespeople = () => {
         const { error: updateError } = await supabase
           .from('opportunities')
           .update({ salesperson_id: null })
-          .eq('salesperson_id', id)
-          .eq('user_id', user.id);
+          .eq('salesperson_id', id);
 
         if (updateError) {
           console.error('Error updating opportunities:', updateError);
@@ -172,12 +150,11 @@ export const useSalespeople = () => {
         console.log(`Updated ${opportunities.length} opportunities to remove salesperson assignment`);
       }
 
-      // Delete the salesperson
+      // Delete the salesperson - RLS will ensure only the user's own salesperson can be deleted
       const { error } = await supabase
         .from('salespeople')
         .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
 
       if (error) {
         console.error('Error deleting salesperson:', error);
