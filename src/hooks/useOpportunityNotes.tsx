@@ -29,7 +29,7 @@ export const useOpportunityNotes = (opportunityId: number) => {
         .from('opportunity_notes')
         .select('*')
         .eq('opportunity_id', opportunityId)
-        .order('created_at', { ascending: true }); // Ordenar por fecha ascendente (más antiguos primero)
+        .order('created_at', { ascending: true });
 
       if (error) {
         console.error('Error fetching opportunity notes:', error);
@@ -83,11 +83,92 @@ export const useOpportunityNotes = (opportunityId: number) => {
     },
   });
 
+  const updateNote = useMutation({
+    mutationFn: async (noteData: { id: string; title: string; content: string }) => {
+      if (!user) throw new Error('User not authenticated');
+
+      console.log('Updating note:', noteData);
+      const { data, error } = await supabase
+        .from('opportunity_notes')
+        .update({
+          title: noteData.title,
+          content: noteData.content,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', noteData.id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating note:', error);
+        throw error;
+      }
+
+      console.log('Note updated successfully:', data);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['opportunity-notes', opportunityId] });
+      toast({
+        title: 'Mensaje actualizado',
+        description: 'El mensaje se ha actualizado exitosamente.',
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating note:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo actualizar el mensaje.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const deleteNote = useMutation({
+    mutationFn: async (noteId: string) => {
+      if (!user) throw new Error('User not authenticated');
+
+      console.log('Deleting note:', noteId);
+      const { error } = await supabase
+        .from('opportunity_notes')
+        .delete()
+        .eq('id', noteId)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error deleting note:', error);
+        throw error;
+      }
+
+      console.log('Note deleted successfully');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['opportunity-notes', opportunityId] });
+      toast({
+        title: 'Mensaje eliminado',
+        description: 'El mensaje se ha eliminado exitosamente.',
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting note:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo eliminar el mensaje.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   return {
     notes,
     isLoading,
     error,
     addNote: addNote.mutate,
     isAdding: addNote.isPending,
+    updateNote: updateNote.mutate,
+    isUpdating: updateNote.isPending,
+    deleteNote: deleteNote.mutate,
+    isDeleting: deleteNote.isPending,
   };
 };
