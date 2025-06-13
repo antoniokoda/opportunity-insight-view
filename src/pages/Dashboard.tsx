@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
@@ -175,13 +176,16 @@ export const Dashboard = () => {
 
       <DashboardKpis kpis={kpis} />
 
+      {/* Tendencias en ancho completo */}
+      <DashboardCharts 
+        chartData={chartData} 
+        leadSourceData={leadSourceData}
+        visibleMetrics={visibleMetrics}
+        setVisibleMetrics={setVisibleMetrics}
+      />
+
+      {/* Rendimiento de ventas y distribución de fuentes en fila separada */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardCharts 
-          chartData={chartData} 
-          leadSourceData={leadSourceData}
-          visibleMetrics={visibleMetrics}
-          setVisibleMetrics={setVisibleMetrics}
-        />
         <DashboardPerformance 
           salesPerformance={salesPerformance}
         />

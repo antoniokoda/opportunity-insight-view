@@ -36,63 +36,62 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   setVisibleMetrics,
 }) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2">
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Tendencias</h3>
-            <div className="flex gap-2">
-              <label className="flex items-center text-sm">
-                <input
-                  type="checkbox"
-                  checked={visibleMetrics.revenue}
-                  onChange={(e) => setVisibleMetrics(prev => ({ ...prev, revenue: e.target.checked }))}
-                  className="mr-1"
-                />
-                Revenue
-              </label>
-              <label className="flex items-center text-sm">
-                <input
-                  type="checkbox"
-                  checked={visibleMetrics.cash}
-                  onChange={(e) => setVisibleMetrics(prev => ({ ...prev, cash: e.target.checked }))}
-                  className="mr-1"
-                />
-                Cash
-              </label>
-              <label className="flex items-center text-sm">
-                <input
-                  type="checkbox"
-                  checked={visibleMetrics.calls}
-                  onChange={(e) => setVisibleMetrics(prev => ({ ...prev, calls: e.target.checked }))}
-                  className="mr-1"
-                />
-                Calls
-              </label>
-            </div>
+    <div className="space-y-6">
+      {/* Tendencias - Ancho completo */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Tendencias</h3>
+          <div className="flex gap-2">
+            <label className="flex items-center text-sm">
+              <input
+                type="checkbox"
+                checked={visibleMetrics.revenue}
+                onChange={(e) => setVisibleMetrics(prev => ({ ...prev, revenue: e.target.checked }))}
+                className="mr-1"
+              />
+              Revenue
+            </label>
+            <label className="flex items-center text-sm">
+              <input
+                type="checkbox"
+                checked={visibleMetrics.cash}
+                onChange={(e) => setVisibleMetrics(prev => ({ ...prev, cash: e.target.checked }))}
+                className="mr-1"
+              />
+              Cash
+            </label>
+            <label className="flex items-center text-sm">
+              <input
+                type="checkbox"
+                checked={visibleMetrics.calls}
+                onChange={(e) => setVisibleMetrics(prev => ({ ...prev, calls: e.target.checked }))}
+                className="mr-1"
+              />
+              Calls
+            </label>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              {visibleMetrics.revenue && (
-                <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} />
-              )}
-              {visibleMetrics.cash && (
-                <Line type="monotone" dataKey="cash" stroke="#22c55e" strokeWidth={2} />
-              )}
-              {visibleMetrics.calls && (
-                <Line type="monotone" dataKey="calls" stroke="#f59e0b" strokeWidth={2} />
-              )}
-            </LineChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
+        </div>
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            {visibleMetrics.revenue && (
+              <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} />
+            )}
+            {visibleMetrics.cash && (
+              <Line type="monotone" dataKey="cash" stroke="#22c55e" strokeWidth={2} />
+            )}
+            {visibleMetrics.calls && (
+              <Line type="monotone" dataKey="calls" stroke="#f59e0b" strokeWidth={2} />
+            )}
+          </LineChart>
+        </ResponsiveContainer>
+      </Card>
 
-      {/* Lead Source Distribution */}
+      {/* Distribución de Fuentes */}
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Distribución de Fuentes</h3>
         <ResponsiveContainer width="100%" height={300}>
