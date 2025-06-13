@@ -121,7 +121,27 @@ export const useSalespeople = () => {
     mutationFn: async (id: number) => {
       if (!user) throw new Error('User not authenticated');
 
-      console.log('Deleting salesperson:', id);
+      console.log('Deleting salesperson with ID:', id, 'for user:', user.id);
+      
+      // First check if the salesperson exists and belongs to the user
+      const { data: existingData, error: checkError } = await supabase
+        .from('salespeople')
+        .select('id, name')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .single();
+
+      if (checkError) {
+        console.error('Error checking salesperson:', checkError);
+        throw new Error('No se pudo verificar el vendedor');
+      }
+
+      if (!existingData) {
+        throw new Error('Vendedor no encontrado');
+      }
+
+      console.log('Salesperson found, proceeding with deletion:', existingData);
+
       const { error } = await supabase
         .from('salespeople')
         .delete()
@@ -133,14 +153,16 @@ export const useSalespeople = () => {
         throw error;
       }
 
-      console.log('Deleted salesperson:', id);
+      console.log('Successfully deleted salesperson:', id);
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: (deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['salespeople'] });
       toast({
         title: 'Vendedor eliminado',
         description: 'El vendedor ha sido eliminado exitosamente.',
       });
+      console.log('Salesperson deletion completed for ID:', deletedId);
     },
     onError: (error) => {
       console.error('Error deleting salesperson:', error);
@@ -158,7 +180,7 @@ export const useSalespeople = () => {
     error,
     addSalesperson: addSalesperson.mutate,
     updateSalesperson: updateSalesperson.mutate,
-    deleteSalesperson: deleteSalesperson.mutate,
+    deleteSalesperson: deleteSalesperson.mutateAsync,
     isAdding: addSalesperson.isPending,
     isUpdating: updateSalesperson.isPending,
     isDeleting: deleteSalesperson.isPending,

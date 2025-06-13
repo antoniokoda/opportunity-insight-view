@@ -10,6 +10,7 @@ import { useSalespeople } from '@/hooks/useSalespeople';
 export const SalespersonManager: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingSalesperson, setEditingSalesperson] = useState<any>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [newSalesperson, setNewSalesperson] = useState({
     name: '',
     email: ''
@@ -36,9 +37,17 @@ export const SalespersonManager: React.FC = () => {
     }
   };
 
-  const handleDeleteSalesperson = (salespersonId: number) => {
+  const handleDeleteSalesperson = async (salespersonId: number) => {
     if (confirm('¿Estás seguro de que quieres eliminar este vendedor?')) {
-      deleteSalesperson(salespersonId);
+      console.log('Deleting salesperson with ID:', salespersonId);
+      setDeletingId(salespersonId);
+      try {
+        await deleteSalesperson(salespersonId);
+      } catch (error) {
+        console.error('Error deleting salesperson:', error);
+      } finally {
+        setDeletingId(null);
+      }
     }
   };
 
@@ -136,9 +145,9 @@ export const SalespersonManager: React.FC = () => {
                   variant="ghost" 
                   size="sm"
                   onClick={() => handleDeleteSalesperson(person.id)}
-                  disabled={isDeleting}
+                  disabled={deletingId === person.id || isDeleting}
                 >
-                  {isDeleting ? (
+                  {(deletingId === person.id || isDeleting) ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Trash2 className="w-4 h-4" />
