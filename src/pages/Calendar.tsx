@@ -25,7 +25,10 @@ import {
   startOfDay,
   setHours,
   isToday,
-  getDay
+  getDay,
+  parseISO,
+  addHours,
+  differenceInMinutes
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -33,7 +36,7 @@ type ViewType = 'month' | 'week';
 
 export const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 1)); // January 2025
-  const [view, setView] = useState<ViewType>('month');
+  const [view, setView] = useState<ViewType>('week'); // Default to week view
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   const { salespeople, isLoading: salesLoading } = useSalespeople();
@@ -69,11 +72,11 @@ export const Calendar: React.FC = () => {
 
   const getCallTypeColor = (type: string) => {
     if (type.startsWith('Discovery')) {
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-blue-500 text-white border-blue-600';
     } else if (type.startsWith('Closing')) {
-      return 'bg-success-50 text-success-600';
+      return 'bg-green-500 text-white border-green-600';
     }
-    return 'bg-gray-100 text-gray-800';
+    return 'bg-gray-500 text-white border-gray-600';
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -102,7 +105,8 @@ export const Calendar: React.FC = () => {
   const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-  const hours = Array.from({ length: 24 }, (_, i) => i);
+  // Hours from 8 AM to 10 PM like Google Calendar
+  const hours = Array.from({ length: 15 }, (_, i) => i + 8);
 
   if (isLoading) {
     return (
@@ -142,14 +146,14 @@ export const Calendar: React.FC = () => {
         </div>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-0 overflow-hidden">
         {/* Calendar Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between p-6 pb-4">
           <div className="flex items-center gap-4">
             <h2 className="text-2xl font-bold">
               {view === 'month' 
                 ? format(currentDate, 'MMMM yyyy', { locale: es })
-                : `Semana del ${format(weekStart, 'dd', { locale: es })} al ${format(weekEnd, 'dd MMM yyyy', { locale: es })}`
+                : `${format(weekStart, 'dd MMM', { locale: es })} - ${format(weekEnd, 'dd MMM yyyy', { locale: es })}`
               }
             </h2>
             <Button
@@ -179,8 +183,7 @@ export const Calendar: React.FC = () => {
         </div>
 
         {view === 'month' ? (
-          /* Month View - Made smaller */
-          <>
+          <div className="px-6 pb-6">
             {/* Days of week header */}
             <div className="grid grid-cols-7 gap-1 mb-2">
               {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => (
@@ -190,7 +193,7 @@ export const Calendar: React.FC = () => {
               ))}
             </div>
             
-            {/* Calendar Grid - Made smaller */}
+            {/* Calendar Grid */}
             <div className="grid grid-cols-7 gap-1">
               {monthDays.map(day => {
                 const calls = getCallsForDay(day);
@@ -235,69 +238,86 @@ export const Calendar: React.FC = () => {
                 );
               })}
             </div>
-          </>
+          </div>
         ) : (
-          /* Week View - Added separators between days */
-          <div className="space-y-4">
-            {/* Week days header */}
-            <div className="grid grid-cols-8 gap-0">
-              <div className="p-2"></div>
-              {weekDays.map((day, index) => (
-                <React.Fragment key={day.toString()}>
-                  <div className="p-2 text-center">
-                    <div className={`text-sm font-medium ${isToday(day) ? 'text-primary' : 'text-foreground'}`}>
+          /* Week View - Google Calendar Style */
+          <div className="bg-white">
+            {/* Week header with days */}
+            <div className="border-b border-gray-200">
+              <div className="grid grid-cols-8 h-16">
+                {/* GMT indicator */}
+                <div className="flex items-center justify-center text-xs text-gray-500 border-r border-gray-200">
+                  GMT+01
+                </div>
+                {/* Day headers */}
+                {weekDays.map(day => (
+                  <div key={day.toString()} className="flex flex-col items-center justify-center border-r border-gray-200 last:border-r-0">
+                    <div className="text-xs text-gray-600 uppercase font-medium">
                       {format(day, 'EEE', { locale: es })}
                     </div>
-                    <div className={`text-lg font-bold ${
-                      isToday(day) ? 'text-primary bg-primary/10 rounded-full w-8 h-8 flex items-center justify-center mx-auto' : 'text-foreground'
+                    <div className={`text-2xl font-normal ${
+                      isToday(day) 
+                        ? 'bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center' 
+                        : 'text-gray-900'
                     }`}>
                       {format(day, 'd')}
                     </div>
                   </div>
-                  {index < weekDays.length - 1 && (
-                    <div className="flex justify-center items-center">
-                      <Separator orientation="vertical" className="h-12" />
-                    </div>
-                  )}
-                </React.Fragment>
-              ))}
+                ))}
+              </div>
             </div>
             
-            {/* Hour grid with separators */}
-            <div className="max-h-[600px] overflow-y-auto">
-              <div className="grid grid-cols-8 gap-0">
-                {hours.map(hour => (
-                  <React.Fragment key={hour}>
-                    {/* Hour label */}
-                    <div className="p-2 text-xs text-muted-foreground text-right border-r">
-                      {format(setHours(new Date(), hour), 'HH:mm')}
+            {/* Time grid */}
+            <div className="overflow-y-auto max-h-[600px]">
+              <div className="relative">
+                {hours.map((hour, hourIndex) => (
+                  <div key={hour} className="grid grid-cols-8 border-b border-gray-100 last:border-b-0">
+                    {/* Time label */}
+                    <div className="h-16 flex items-start justify-end pr-2 pt-1 text-xs text-gray-500 border-r border-gray-200">
+                      {hour === 12 ? '12 PM' : hour > 12 ? `${hour - 12} PM` : `${hour} AM`}
                     </div>
-                    {/* Day columns with separators */}
+                    
+                    {/* Day columns */}
                     {weekDays.map((day, dayIndex) => {
                       const hourCalls = getCallsForHour(day, hour);
                       return (
-                        <React.Fragment key={`${day.toString()}-${hour}`}>
-                          <div className="min-h-[40px] p-1 border-b border-border hover:bg-accent/50 transition-colors">
-                            {hourCalls.map(call => (
+                        <div 
+                          key={`${day.toString()}-${hour}`} 
+                          className="h-16 border-r border-gray-100 last:border-r-0 relative hover:bg-gray-50 transition-colors"
+                        >
+                          {hourCalls.map((call, callIndex) => {
+                            const callDate = new Date(call.date);
+                            const startMinutes = callDate.getMinutes();
+                            const topOffset = (startMinutes / 60) * 64; // 64px = h-16
+                            const height = Math.max((call.duration / 60) * 64, 20); // Minimum 20px height
+                            
+                            return (
                               <div
                                 key={call.id}
-                                className={`text-xs p-1 rounded mb-1 ${getCallTypeColor(call.type)} cursor-pointer`}
-                                title={`${call.opportunity_name} - ${call.salesperson_name}`}
+                                className={`absolute left-1 right-1 rounded text-xs p-1 cursor-pointer shadow-sm ${getCallTypeColor(call.type)}`}
+                                style={{
+                                  top: `${topOffset}px`,
+                                  height: `${height}px`,
+                                  zIndex: 10 + callIndex
+                                }}
+                                title={`${call.opportunity_name} - ${call.salesperson_name} (${call.duration}min)`}
                               >
-                                <div className="font-medium">{call.type} #{call.number}</div>
-                                <div className="truncate">{call.opportunity_name}</div>
+                                <div className="font-medium text-xs leading-3">
+                                  {call.type} #{call.number}
+                                </div>
+                                <div className="text-xs opacity-90 truncate leading-3">
+                                  {call.opportunity_name}
+                                </div>
+                                <div className="text-xs opacity-75 leading-3">
+                                  {format(callDate, 'HH:mm')} ({call.duration}min)
+                                </div>
                               </div>
-                            ))}
-                          </div>
-                          {dayIndex < weekDays.length - 1 && (
-                            <div className="border-b border-border">
-                              <Separator orientation="vertical" className="h-full min-h-[40px]" />
-                            </div>
-                          )}
-                        </React.Fragment>
+                            );
+                          })}
+                        </div>
                       );
                     })}
-                  </React.Fragment>
+                  </div>
                 ))}
               </div>
             </div>
