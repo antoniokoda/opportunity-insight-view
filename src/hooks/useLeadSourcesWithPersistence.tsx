@@ -25,7 +25,7 @@ export const useLeadSourcesWithPersistence = () => {
       
       console.log('Fetching lead sources for user:', user.id);
       const { data, error } = await supabase
-        .from('lead_sources')
+        .from('lead_sources' as any)
         .select('*')
         .eq('user_id', user.id)
         .order('name');
@@ -48,7 +48,7 @@ export const useLeadSourcesWithPersistence = () => {
 
       console.log('Adding lead source:', name);
       const { data, error } = await supabase
-        .from('lead_sources')
+        .from('lead_sources' as any)
         .insert([{
           name,
           user_id: user.id
@@ -88,7 +88,7 @@ export const useLeadSourcesWithPersistence = () => {
 
       console.log('Updating lead source:', { id, name });
       const { data, error } = await supabase
-        .from('lead_sources')
+        .from('lead_sources' as any)
         .update({ name })
         .eq('id', id)
         .eq('user_id', user.id)
@@ -157,7 +157,7 @@ export const useLeadSourcesWithPersistence = () => {
 
       // Ahora eliminar la fuente de lead
       const { error } = await supabase
-        .from('lead_sources')
+        .from('lead_sources' as any)
         .delete()
         .eq('id', id)
         .eq('user_id', user.id);
