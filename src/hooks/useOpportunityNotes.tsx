@@ -39,7 +39,7 @@ export const useOpportunityNotes = (opportunityId: number) => {
           )
         `)
         .eq('opportunity_id', opportunityId)
-        .order('created_at', { ascending: true }); // Ordenar por fecha ascendente (más antiguos primero)
+        .order('created_at', { ascending: true });
 
       if (error) {
         console.error('Error fetching opportunity notes:', error);
@@ -47,7 +47,8 @@ export const useOpportunityNotes = (opportunityId: number) => {
       }
 
       console.log('Fetched opportunity notes:', data);
-      return data as OpportunityNote[];
+      // Type assertion to handle the joined data correctly
+      return (data || []) as OpportunityNote[];
     },
     enabled: !!user && !!opportunityId,
   });
