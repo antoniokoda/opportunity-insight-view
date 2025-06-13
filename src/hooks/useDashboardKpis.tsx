@@ -24,6 +24,22 @@ export const useDashboardKpis = (filteredOpportunities: Opportunity[], calls: Ca
     
     const proposalsPitched = filteredOpportunities.filter(opp => opp.proposal_status === 'pitched').length;
 
+    // Calculate show-up rates - calls array already excludes future calls
+    const totalCallsForShowUp = calls.filter(call => call.attended !== null).length;
+    const attendedCalls = calls.filter(call => call.attended === true).length;
+    const overallShowUpRate = totalCallsForShowUp > 0 ? (attendedCalls / totalCallsForShowUp) * 100 : 0;
+
+    // First discovery show-up rate
+    const firstDiscoveryCalls = calls.filter(call => 
+      call.type === 'Discovery 1' && call.attended !== null
+    );
+    const firstDiscoveryAttended = calls.filter(call => 
+      call.type === 'Discovery 1' && call.attended === true
+    );
+    const firstDiscoveryShowUpRate = firstDiscoveryCalls.length > 0 
+      ? (firstDiscoveryAttended.length / firstDiscoveryCalls.length) * 100 
+      : 0;
+
     return {
       totalRevenue,
       totalCash,
@@ -32,6 +48,8 @@ export const useDashboardKpis = (filteredOpportunities: Opportunity[], calls: Ca
       averageDealSize,
       closingRate,
       proposalsPitched,
+      overallShowUpRate,
+      firstDiscoveryShowUpRate,
     };
   }, [filteredOpportunities, calls]);
 };

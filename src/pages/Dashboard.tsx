@@ -15,7 +15,10 @@ import { useSalesPerformance } from '@/hooks/useSalesPerformance';
 
 export const Dashboard = () => {
   const { opportunities, isLoading: opportunitiesLoading } = useOpportunities();
-  const { calls, isLoading: callsLoading } = useCalls();
+  const { calls: allCalls, isLoading: callsLoading } = useCalls();
+  // Get calls excluding future ones for metrics calculations
+  const { calls: metricsCall, isLoading: metricsCallsLoading } = useCalls(undefined, true);
+  
   const { 
     salespeople, 
     isLoading: salespeopleLoading, 
@@ -44,6 +47,7 @@ export const Dashboard = () => {
     calls: true,
   });
 
+  // Use all calls for filtering but metrics calls for KPI calculations
   const {
     selectedSalesperson,
     setSelectedSalesperson,
@@ -53,9 +57,10 @@ export const Dashboard = () => {
     setSelectedLeadSource,
     availableMonths,
     filteredOpportunities,
-  } = useDashboardFilters(opportunities, calls);
+  } = useDashboardFilters(opportunities, allCalls);
 
-  const kpis = useDashboardKpis(filteredOpportunities, calls);
+  // Use metrics calls (excluding future) for KPI calculations
+  const kpis = useDashboardKpis(filteredOpportunities, metricsCall);
   const chartData = useDashboardChartData();
   const leadSourceData = useLeadSourceData(filteredOpportunities, customLeadSources);
   const salesPerformance = useSalesPerformance(salespeople, opportunities);
@@ -111,7 +116,7 @@ export const Dashboard = () => {
     }
   };
 
-  if (opportunitiesLoading || callsLoading || salespeopleLoading) {
+  if (opportunitiesLoading || callsLoading || metricsCallsLoading || salespeopleLoading) {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-6">

@@ -19,17 +19,17 @@ export interface Call {
   created_at: string;
 }
 
-export const useCalls = (opportunityId?: number) => {
+export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = false) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: calls = [], isLoading, error } = useQuery({
-    queryKey: ['calls', user?.id, opportunityId],
+    queryKey: ['calls', user?.id, opportunityId, excludeFutureCalls],
     queryFn: async () => {
       if (!user) return [];
       
-      console.log('Fetching calls for user:', user.id, 'opportunity:', opportunityId);
+      console.log('Fetching calls for user:', user.id, 'opportunity:', opportunityId, 'excludeFuture:', excludeFutureCalls);
       let query = supabase
         .from('calls')
         .select('*')
@@ -37,6 +37,11 @@ export const useCalls = (opportunityId?: number) => {
 
       if (opportunityId) {
         query = query.eq('opportunity_id', opportunityId);
+      }
+
+      // Add filter to exclude future calls when calculating metrics
+      if (excludeFutureCalls) {
+        query = query.lte('date', new Date().toISOString());
       }
 
       const { data, error } = await query;

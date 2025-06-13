@@ -42,7 +42,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
     type: 'Discovery 1' as CallType,
     date: new Date().toISOString().slice(0, 16),
     duration: '',
-    attended: null as boolean | null,
+    attended: false, // Changed from null to false - default is "not attended"
     link: '',
   });
 
@@ -89,7 +89,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
       type: 'Discovery 1',
       date: new Date().toISOString().slice(0, 16),
       duration: '',
-      attended: null,
+      attended: false, // Reset to false (not attended)
       link: '',
     });
     setShowAddCall(false);
@@ -312,20 +312,14 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                     />
                   </div>
 
+                  {/* Simplified attendance control - only one checkbox for "Attended" */}
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id="attended-yes"
-                      checked={newCall.attended === true}
-                      onCheckedChange={(checked) => setNewCall(prev => ({ ...prev, attended: checked ? true : null }))}
+                      id="attended"
+                      checked={newCall.attended}
+                      onCheckedChange={(checked) => setNewCall(prev => ({ ...prev, attended: !!checked }))}
                     />
-                    <label htmlFor="attended-yes" className="text-sm">Cliente asistió</label>
-                    
-                    <Checkbox
-                      id="attended-no"
-                      checked={newCall.attended === false}
-                      onCheckedChange={(checked) => setNewCall(prev => ({ ...prev, attended: checked ? false : null }))}
-                    />
-                    <label htmlFor="attended-no" className="text-sm">Cliente no asistió</label>
+                    <label htmlFor="attended" className="text-sm">Cliente asistió a la llamada</label>
                   </div>
                 </div>
                 

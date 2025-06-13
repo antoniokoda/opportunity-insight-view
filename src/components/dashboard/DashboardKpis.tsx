@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { DollarSign, TrendingUp, Phone, Users, Target, Clock, Percent } from 'lucide-react';
+import { DollarSign, TrendingUp, Phone, Users, Target, Clock, Percent, UserCheck } from 'lucide-react';
 import { formatCurrency } from '@/config/currency';
 
 interface DashboardKpisProps {
@@ -13,6 +13,8 @@ interface DashboardKpisProps {
     totalCalls: number;
     activeOpportunities: number;
     proposalsPitched: number;
+    overallShowUpRate: number;
+    firstDiscoveryShowUpRate: number;
   };
 }
 
@@ -64,25 +66,25 @@ export const DashboardKpis: React.FC<DashboardKpisProps> = ({ kpis }) => {
           icon={<Phone size={24} />}
         />
         <KpiCard
+          title="Tasa Asistencia General"
+          value={`${kpis.overallShowUpRate.toFixed(1)}%`}
+          change="+4.2%"
+          changeType="positive"
+          icon={<UserCheck size={24} />}
+        />
+        <KpiCard
+          title="Asistencia Discovery 1"
+          value={`${kpis.firstDiscoveryShowUpRate.toFixed(1)}%`}
+          change="+6.1%"
+          changeType="positive"
+          icon={<UserCheck size={24} />}
+        />
+        <KpiCard
           title="Oportunidades Activas"
           value={kpis.activeOpportunities}
           change="-2.1%"
           changeType="negative"
           icon={<Users size={24} />}
-        />
-        <KpiCard
-          title="Propuestas Presentadas"
-          value={kpis.proposalsPitched}
-          change="+7.8%"
-          changeType="positive"
-          icon={<Target size={24} />}
-        />
-        <KpiCard
-          title="Duración Promedio del Ciclo"
-          value="24 días"
-          change="-3.2%"
-          changeType="positive"
-          icon={<Clock size={24} />}
         />
       </div>
     </>
