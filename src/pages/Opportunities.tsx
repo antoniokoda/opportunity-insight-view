@@ -401,6 +401,29 @@ export const Opportunities = () => {
                                   <span className="text-muted-foreground">
                                     {format(new Date(call.date), 'dd/MM', { locale: es })}
                                   </span>
+                                  {/* Nuevo botón: ver enlace de llamada (al lado de editar llamada), solo si existe link */}
+                                  {call.link && !!call.link.trim() && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="w-6 h-6 p-0"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            window.open(call.link!, "_blank", "noopener,noreferrer");
+                                          }}
+                                          aria-label="Ver enlace de llamada"
+                                        >
+                                          <ExternalLink className="w-4 h-4 text-blue-500" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Ver enlace de la llamada</TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                  {/* Botón para editar llamada (no implementado aquí, solo visual, pero se coloca el comentario para ubicación) */}
+                                  {/* Aquí iría el botón de editar llamada si estuviera implementado */}
+
                                   {/* Botón para eliminar la llamada */}
                                   <Tooltip>
                                     <TooltipTrigger asChild>
