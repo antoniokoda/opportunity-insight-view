@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -49,11 +50,9 @@ export const OpportunityDialog: React.FC<OpportunityDialogProps> = ({
       },
       {
         onSuccess: (created: Opportunity) => {
-          // Al crear con éxito, invoca el callback del padre (este cierra el dialog y abre edición)
           if (onCreated) {
             onCreated(created);
           }
-          // Resetea el formulario pero NO llama onClose aquí (lo hace el padre)
           setFormData({
             name: '',
             salesperson_id: '',
@@ -61,9 +60,11 @@ export const OpportunityDialog: React.FC<OpportunityDialogProps> = ({
             revenue: '',
             cash_collected: '',
           });
+          // ¡Forzar cierre inmediato del dialog aquí para evitar dobles renders!
+          onClose();
         },
         onError: () => {
-          // El toast se maneja desde useOpportunities
+          // error toast already handled in useOpportunities
         },
       }
     );
