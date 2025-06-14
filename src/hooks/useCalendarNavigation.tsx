@@ -5,7 +5,8 @@ import { addMonths, subMonths, addDays } from 'date-fns';
 type ViewType = 'month' | 'week';
 
 export const useCalendarNavigation = () => {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 1)); // January 2025
+  // Cambiamos aquí para que por defecto sea la fecha de hoy
+  const [currentDate, setCurrentDate] = useState(new Date()); // Fecha actual por defecto
   const [view, setView] = useState<ViewType>('week'); // Default to week view
 
   const navigateMonth = (direction: 'prev' | 'next') => {
