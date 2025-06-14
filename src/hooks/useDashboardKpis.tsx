@@ -9,13 +9,13 @@ export const useDashboardKpis = (filteredOpportunities: Opportunity[], calls: Ca
     const wonOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'won');
     const totalRevenue = wonOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
 
-    // Facturación potencial: oportunidades activas o en curso (sin cerrar como "lost" o "won")
-    const potentialOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'active');
-    const potentialRevenue = potentialOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
+    // Facturación potencial: monto potencial de TODAS las oportunidades filtradas
+    const potentialRevenue = filteredOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
 
     const totalCash = filteredOpportunities.reduce((sum, opp) => sum + opp.cash_collected, 0);
     const totalCalls = calls.length;
-    const activeOpportunities = potentialOpportunities.length;
+    // Oportunidades activas: solo cantidad, sigue igual
+    const activeOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'active').length;
 
     const lostOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'lost');
     const closedOpportunities = wonOpportunities.length + lostOpportunities.length;
