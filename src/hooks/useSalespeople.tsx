@@ -122,47 +122,54 @@ export const useSalespeople = () => {
 
       console.log('Deleting salesperson with ID:', id);
       
-      // Check for opportunities assigned to this salesperson
-      const { data: opportunities, error: oppError } = await supabase
-        .from('opportunities')
-        .select('id, name')
-        .eq('salesperson_id', id);
-
-      if (oppError) {
-        console.error('Error checking opportunities:', oppError);
-        throw new Error('No se pudo verificar las oportunidades asociadas');
-      }
-
-      // Update opportunities to remove salesperson assignment
-      if (opportunities && opportunities.length > 0) {
-        console.log(`Found ${opportunities.length} opportunities assigned to this salesperson`);
-        
-        const { error: updateError } = await supabase
+      try {
+        // Check for opportunities assigned to this salesperson
+        const { data: opportunities, error: oppError } = await supabase
           .from('opportunities')
-          .update({ salesperson_id: null })
+          .select('id, name')
           .eq('salesperson_id', id);
 
-        if (updateError) {
-          console.error('Error updating opportunities:', updateError);
-          throw new Error('No se pudieron actualizar las oportunidades asociadas');
+        if (oppError) {
+          console.error('Error checking opportunities:', oppError);
+          throw new Error('No se pudo verificar las oportunidades asociadas');
         }
 
-        console.log(`Updated ${opportunities.length} opportunities to remove salesperson assignment`);
-      }
+        console.log(`Found ${opportunities?.length || 0} opportunities assigned to salesperson ${id}`);
 
-      // Delete the salesperson
-      const { error } = await supabase
-        .from('salespeople')
-        .delete()
-        .eq('id', id);
+        // Update opportunities to remove salesperson assignment if any exist
+        if (opportunities && opportunities.length > 0) {
+          console.log(`Updating ${opportunities.length} opportunities to remove salesperson assignment`);
+          
+          const { error: updateError } = await supabase
+            .from('opportunities')
+            .update({ salesperson_id: null })
+            .eq('salesperson_id', id);
 
-      if (error) {
-        console.error('Error deleting salesperson:', error);
+          if (updateError) {
+            console.error('Error updating opportunities:', updateError);
+            throw new Error(`No se pudieron actualizar las oportunidades asociadas: ${updateError.message}`);
+          }
+
+          console.log(`Successfully updated ${opportunities.length} opportunities`);
+        }
+
+        // Delete the salesperson
+        const { error: deleteError } = await supabase
+          .from('salespeople')
+          .delete()
+          .eq('id', id);
+
+        if (deleteError) {
+          console.error('Error deleting salesperson:', deleteError);
+          throw new Error(`No se pudo eliminar el vendedor: ${deleteError.message}`);
+        }
+
+        console.log('Successfully deleted salesperson:', id);
+        return { id, affectedOpportunities: opportunities?.length || 0 };
+      } catch (error) {
+        console.error('Error in deleteSalesperson:', error);
         throw error;
       }
-
-      console.log('Successfully deleted salesperson:', id);
-      return { id, affectedOpportunities: opportunities?.length || 0 };
     },
     onSuccess: ({ id, affectedOpportunities }) => {
       queryClient.invalidateQueries({ queryKey: ['salespeople'] });
