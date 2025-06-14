@@ -48,6 +48,10 @@ export const Opportunities = () => {
   const [notesDialogOpportunity, setNotesDialogOpportunity] = useState<Opportunity | null>(null);
   const [contactsDialogOpportunity, setContactsDialogOpportunity] = useState<Opportunity | null>(null);
 
+  // Add missing state for delete dialog logic
+  const [opportunityToDelete, setOpportunityToDelete] = useState<Opportunity | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   // Manejar apertura automática de la edición después de crear una nueva oportunidad
   const handleOpportunityCreated = (createdOpportunity: Opportunity) => {
     setIsDialogOpen(false);
@@ -59,7 +63,8 @@ export const Opportunities = () => {
   // Para manejo individual de eliminación de llamadas
   const [isDeletingCallId, setIsDeletingCallId] = useState<number | null>(null);
 
-  const { deleteCall, isDeleting } = useCalls();
+  // Fix duplicate isDeleting import from useCalls
+  const { deleteCall, isDeleting: isDeletingCall } = useCalls();
 
   useEffect(() => {
     if (editingOpportunity) {
