@@ -31,22 +31,26 @@ export const KpiCard: React.FC<KpiCardProps> = ({
   };
 
   return (
-    <div className="card-apple py-8 px-8 pr-6 group hover:scale-[1.02] transition-all duration-300 h-full min-h-[186px] flex flex-col justify-between">
+    <div className="card-apple py-6 px-6 pr-5 group hover:scale-[1.02] transition-all duration-300 h-full min-h-[172px] flex flex-col justify-between">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-zinc-600 mb-3 uppercase tracking-wider">{title}</p>
-          <p className="text-4xl font-bold text-zinc-900 mb-2 tracking-tight leading-none break-words">{value}</p>
+          {/* Título KPI - más pequeño y con tracking */}
+          <p className="text-xs font-semibold text-zinc-600 mb-2 uppercase tracking-wider">{title}</p>
+          {/* Valor principal KPI */}
+          <p className="text-3xl font-bold text-zinc-900 mb-1 tracking-tight leading-tight break-words">{value}</p>
+          {/* Subtítulo */}
           {subtitle && (
-            <p className="text-sm text-zinc-600 mb-3 font-medium">{subtitle}</p>
+            <p className="text-xs text-zinc-600 mb-2 font-medium leading-snug">{subtitle}</p>
           )}
+          {/* Cambio KPI */}
           {change && (
-            <div className={`text-sm font-semibold ${getChangeColor()} flex items-center bg-zinc-50 px-3 py-1.5 rounded-lg inline-flex`}>
+            <div className={`text-xs font-semibold ${getChangeColor()} flex items-center bg-zinc-50 px-2.5 py-1.5 rounded-lg inline-flex`}>
               {change}
             </div>
           )}
         </div>
-        {/* Icono bien alineado y nunca cortado */}
-        <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full ml-6 mr-1 bg-blue-500/10">
+        {/* Icono alineado */}
+        <div className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full ml-4 mr-1 bg-blue-500/10">
           <span className="text-blue-500 opacity-70 group-hover:opacity-90 transition-opacity block">
             {icon}
           </span>
@@ -55,3 +59,4 @@ export const KpiCard: React.FC<KpiCardProps> = ({
     </div>
   );
 };
+
