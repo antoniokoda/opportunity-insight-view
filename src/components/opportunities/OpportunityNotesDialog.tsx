@@ -178,7 +178,7 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
           </div>
 
           {/* Message Input Form */}
-          <div className="bg-white border-2 border-blue-800 rounded-lg p-4">
+          <div className="bg-gray-100 rounded-lg p-4">
             <form onSubmit={handleSubmit} className="space-y-3">
               <Input
                 value={noteForm.title}
