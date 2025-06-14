@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -48,7 +47,7 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
       <h3 className="text-lg font-semibold mb-4">Filtros</h3>
       <div className="flex flex-wrap gap-4">
         <div className="min-w-[200px]">
-          <label className="block text-sm font-medium mb-2">Vendedor</label>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Vendedor</label>
           <Select value={selectedSalesperson} onValueChange={setSelectedSalesperson}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar vendedor" />
@@ -64,7 +63,7 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
         </div>
         
         <div className="min-w-[200px]">
-          <label className="block text-sm font-medium mb-2">Mes</label>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Mes</label>
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar mes" />
@@ -80,7 +79,7 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
         </div>
         
         <div className="min-w-[200px]">
-          <label className="block text-sm font-medium mb-2">Fuente de Lead</label>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Fuente de Lead</label>
           <Select value={selectedLeadSource} onValueChange={setSelectedLeadSource}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar fuente" />
