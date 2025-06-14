@@ -4,6 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
 
+// Simple security monitoring/log utility
+const logError = (context: string, error: any) => {
+  // This could be extended to external monitoring
+  console.warn(`[SecurityMonitor] ${context}:`, error?.message || error);
+};
+
 export interface OpportunityContact {
   id: string;
   opportunity_id: number;
@@ -17,6 +23,18 @@ export interface OpportunityContact {
   updated_at: string;
 }
 
+const validateContactInput = (contact: {
+  name: string;
+  position?: string;
+  email?: string;
+  phone?: string;
+  linkedin_url?: string;
+}) => {
+  if (!contact.name?.trim()) return 'El nombre del contacto es obligatorio.';
+  // Basic sanitization for email and phone could be added here.
+  return null;
+};
+
 export const useOpportunityContacts = (opportunityId: number) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -26,8 +44,6 @@ export const useOpportunityContacts = (opportunityId: number) => {
     queryKey: ['opportunity-contacts', opportunityId],
     queryFn: async () => {
       if (!user) return [];
-      
-      console.log('Fetching contacts for opportunity:', opportunityId);
       const { data, error } = await supabase
         .from('opportunity_contacts')
         .select('*')
@@ -35,11 +51,9 @@ export const useOpportunityContacts = (opportunityId: number) => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching opportunity contacts:', error);
-        throw error;
+        logError('Fetch opportunity contacts', error);
+        throw new Error('No se pudieron obtener los contactos.');
       }
-
-      console.log('Fetched contacts:', data);
       return data as OpportunityContact[];
     },
     enabled: !!user && !!opportunityId,
@@ -53,9 +67,10 @@ export const useOpportunityContacts = (opportunityId: number) => {
       phone?: string;
       linkedin_url?: string;
     }) => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error('Usuario no autenticado');
+      const validationError = validateContactInput(newContact);
+      if (validationError) throw new Error(validationError);
 
-      console.log('Adding contact:', newContact);
       const { data, error } = await supabase
         .from('opportunity_contacts')
         .insert([{
@@ -67,11 +82,10 @@ export const useOpportunityContacts = (opportunityId: number) => {
         .single();
 
       if (error) {
-        console.error('Error adding contact:', error);
-        throw error;
+        logError('Add contact', error);
+        throw new Error('No se pudo agregar el contacto.');
       }
 
-      console.log('Added contact:', data);
       return data;
     },
     onSuccess: () => {
@@ -81,11 +95,11 @@ export const useOpportunityContacts = (opportunityId: number) => {
         description: 'El contacto ha sido agregado exitosamente.',
       });
     },
-    onError: (error) => {
-      console.error('Error adding contact:', error);
+    onError: (error: any) => {
+      logError('Add contact', error);
       toast({
         title: 'Error',
-        description: 'No se pudo agregar el contacto.',
+        description: error?.message || 'No se pudo agregar el contacto.',
         variant: 'destructive',
       });
     },
@@ -96,7 +110,8 @@ export const useOpportunityContacts = (opportunityId: number) => {
       id: string; 
       updates: Partial<Omit<OpportunityContact, 'id' | 'opportunity_id' | 'user_id' | 'created_at' | 'updated_at'>>
     }) => {
-      console.log('Updating contact:', id, updates);
+      if (!updates || !id) throw new Error('Datos incompletos para la actualización.');
+
       const { data, error } = await supabase
         .from('opportunity_contacts')
         .update({
@@ -108,11 +123,10 @@ export const useOpportunityContacts = (opportunityId: number) => {
         .single();
 
       if (error) {
-        console.error('Error updating contact:', error);
-        throw error;
+        logError('Update contact', error);
+        throw new Error('No se pudo actualizar el contacto.');
       }
 
-      console.log('Updated contact:', data);
       return data;
     },
     onSuccess: () => {
@@ -122,11 +136,11 @@ export const useOpportunityContacts = (opportunityId: number) => {
         description: 'El contacto ha sido actualizado exitosamente.',
       });
     },
-    onError: (error) => {
-      console.error('Error updating contact:', error);
+    onError: (error: any) => {
+      logError('Update contact', error);
       toast({
         title: 'Error',
-        description: 'No se pudo actualizar el contacto.',
+        description: error?.message || 'No se pudo actualizar el contacto.',
         variant: 'destructive',
       });
     },
@@ -134,18 +148,16 @@ export const useOpportunityContacts = (opportunityId: number) => {
 
   const deleteContact = useMutation({
     mutationFn: async (id: string) => {
-      console.log('Deleting contact:', id);
+      if (!id) throw new Error('ID inválido.');
       const { error } = await supabase
         .from('opportunity_contacts')
         .delete()
         .eq('id', id);
 
       if (error) {
-        console.error('Error deleting contact:', error);
-        throw error;
+        logError('Delete contact', error);
+        throw new Error('No se pudo eliminar el contacto.');
       }
-
-      console.log('Deleted contact:', id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunity-contacts', opportunityId] });
@@ -154,11 +166,11 @@ export const useOpportunityContacts = (opportunityId: number) => {
         description: 'El contacto ha sido eliminado exitosamente.',
       });
     },
-    onError: (error) => {
-      console.error('Error deleting contact:', error);
+    onError: (error: any) => {
+      logError('Delete contact', error);
       toast({
         title: 'Error',
-        description: 'No se pudo eliminar el contacto.',
+        description: error?.message || 'No se pudo eliminar el contacto.',
         variant: 'destructive',
       });
     },

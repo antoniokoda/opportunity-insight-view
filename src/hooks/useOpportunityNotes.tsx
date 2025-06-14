@@ -1,7 +1,15 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+
+// Minimal "security monitoring" util for errors
+const logError = (context: string, error: any) => {
+  // Extend here with external Sentry, analytics, etc. 
+  // Only outputs safe info to console for now.
+  console.warn(`[SecurityMonitor] ${context}:`, error?.message || error);
+};
 
 export interface OpportunityNote {
   id: string;
@@ -15,6 +23,12 @@ export interface OpportunityNote {
   user_email: string | null;
 }
 
+const validateNoteInput = (note: { title: string; content: string }) => {
+  if (!note.title?.trim()) return 'El título del mensaje es obligatorio.';
+  // Content can be empty (?)
+  return null;
+};
+
 export const useOpportunityNotes = (opportunityId: number) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -24,7 +38,6 @@ export const useOpportunityNotes = (opportunityId: number) => {
     queryKey: ['opportunity-notes', opportunityId, user?.id],
     queryFn: async () => {
       if (!user) return [];
-      
       const { data, error } = await supabase
         .from('opportunity_notes_with_users')
         .select('*')
@@ -32,8 +45,8 @@ export const useOpportunityNotes = (opportunityId: number) => {
         .order('created_at', { ascending: true });
 
       if (error) {
-        console.error('Error fetching opportunity notes:', error);
-        throw error;
+        logError('Fetch opportunity notes', error);
+        throw new Error('No se pudieron obtener los mensajes.');
       }
 
       return data as OpportunityNote[];
@@ -43,12 +56,10 @@ export const useOpportunityNotes = (opportunityId: number) => {
 
   const addNote = useMutation({
     mutationFn: async (noteData: { title: string; content: string }) => {
-      if (!user) throw new Error('User not authenticated');
-      if (!noteData.title.trim()) {
-        throw new Error("Note title is required.");
-      }
+      if (!user) throw new Error('Usuario no autenticado');
+      const validationError = validateNoteInput(noteData);
+      if (validationError) throw new Error(validationError);
 
-      console.log('Adding note:', noteData);
       const { data, error } = await supabase
         .from('opportunity_notes')
         .insert([{
@@ -61,11 +72,10 @@ export const useOpportunityNotes = (opportunityId: number) => {
         .single();
 
       if (error) {
-        console.error('Error adding note:', error);
-        throw error;
+        logError('Add note', error);
+        throw new Error('No se pudo enviar el mensaje.');
       }
 
-      console.log('Note added successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -75,11 +85,11 @@ export const useOpportunityNotes = (opportunityId: number) => {
         description: 'Tu mensaje se ha enviado exitosamente.',
       });
     },
-    onError: (error) => {
-      console.error('Error adding note:', error);
+    onError: (error: any) => {
+      logError('Add note', error);
       toast({
         title: 'Error',
-        description: error.message || 'No se pudo enviar el mensaje.',
+        description: error?.message || 'No se pudo enviar el mensaje.',
         variant: 'destructive',
       });
     },
@@ -87,12 +97,10 @@ export const useOpportunityNotes = (opportunityId: number) => {
 
   const updateNote = useMutation({
     mutationFn: async (noteData: { id: string; title: string; content: string }) => {
-      if (!user) throw new Error('User not authenticated');
-      if (!noteData.title.trim()) {
-        throw new Error("Note title cannot be empty.");
-      }
+      if (!user) throw new Error('Usuario no autenticado');
+      const validationError = validateNoteInput(noteData);
+      if (validationError) throw new Error(validationError);
 
-      console.log('Updating note:', noteData);
       const { data, error } = await supabase
         .from('opportunity_notes')
         .update({
@@ -106,11 +114,10 @@ export const useOpportunityNotes = (opportunityId: number) => {
         .single();
 
       if (error) {
-        console.error('Error updating note:', error);
-        throw error;
+        logError('Update note', error);
+        throw new Error('No se pudo actualizar el mensaje.');
       }
 
-      console.log('Note updated successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -120,11 +127,11 @@ export const useOpportunityNotes = (opportunityId: number) => {
         description: 'El mensaje se ha actualizado exitosamente.',
       });
     },
-    onError: (error) => {
-      console.error('Error updating note:', error);
+    onError: (error: any) => {
+      logError('Update note', error);
       toast({
         title: 'Error',
-        description: error.message || 'No se pudo actualizar el mensaje.',
+        description: error?.message || 'No se pudo actualizar el mensaje.',
         variant: 'destructive',
       });
     },
@@ -132,9 +139,9 @@ export const useOpportunityNotes = (opportunityId: number) => {
 
   const deleteNote = useMutation({
     mutationFn: async (noteId: string) => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error('Usuario no autenticado');
+      if (!noteId) throw new Error('ID de mensaje inválido.');
 
-      console.log('Deleting note:', noteId);
       const { error } = await supabase
         .from('opportunity_notes')
         .delete()
@@ -142,8 +149,8 @@ export const useOpportunityNotes = (opportunityId: number) => {
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Error deleting note:', error);
-        throw error;
+        logError('Delete note', error);
+        throw new Error('No se pudo eliminar el mensaje.');
       }
     },
     onSuccess: () => {
@@ -153,11 +160,11 @@ export const useOpportunityNotes = (opportunityId: number) => {
         description: 'El mensaje se ha eliminado exitosamente.',
       });
     },
-    onError: (error) => {
-      console.error('Error deleting note:', error);
+    onError: (error: any) => {
+      logError('Delete note', error);
       toast({
         title: 'Error',
-        description: 'No se pudo eliminar el mensaje.',
+        description: error?.message || 'No se pudo eliminar el mensaje.',
         variant: 'destructive',
       });
     },
