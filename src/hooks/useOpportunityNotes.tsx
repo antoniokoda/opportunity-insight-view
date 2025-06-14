@@ -12,6 +12,8 @@ export interface OpportunityNote {
   user_id: string;
   created_at: string;
   updated_at: string;
+  user_name: string | null;
+  user_email: string | null;
 }
 
 export const useOpportunityNotes = (opportunityId: number) => {
@@ -26,7 +28,7 @@ export const useOpportunityNotes = (opportunityId: number) => {
       
       console.log('Fetching notes for opportunity:', opportunityId);
       const { data, error } = await supabase
-        .from('opportunity_notes')
+        .from('opportunity_notes_with_users')
         .select('*')
         .eq('opportunity_id', opportunityId)
         .order('created_at', { ascending: true });

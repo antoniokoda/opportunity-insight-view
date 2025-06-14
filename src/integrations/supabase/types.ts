@@ -297,7 +297,28 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      opportunity_notes_with_users: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string | null
+          opportunity_id: number | null
+          title: string | null
+          updated_at: string | null
+          user_email: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_notes_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never

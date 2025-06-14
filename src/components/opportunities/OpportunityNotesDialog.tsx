@@ -148,6 +148,7 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
                     <>
                       <div className="mb-2 flex justify-between items-start">
                         <div>
+                          <p className="text-xs font-semibold text-blue-700">{note.user_name || note.user_email || 'Usuario Anónimo'}</p>
                           <h4 className="font-medium text-sm text-black">{note.title}</h4>
                           <div className="text-xs text-gray-600 mt-1">
                             {format(new Date(note.created_at), 'dd/MM/yyyy HH:mm', { locale: es })}
