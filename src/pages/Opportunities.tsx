@@ -277,18 +277,7 @@ export const Opportunities = () => {
                             </TooltipTrigger>
                             <TooltipContent>Editar</TooltipContent>
                           </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => deleteOpportunity(opportunity.id)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Eliminar</TooltipContent>
-                          </Tooltip>
+                          
                         </div>
                       </div>
                     </CardHeader>
@@ -401,7 +390,6 @@ export const Opportunities = () => {
                                   <span className="text-muted-foreground">
                                     {format(new Date(call.date), 'dd/MM', { locale: es })}
                                   </span>
-                                  {/* Nuevo botón: ver enlace de llamada (al lado de editar llamada), solo si existe link */}
                                   {call.link && !!call.link.trim() && (
                                     <Tooltip>
                                       <TooltipTrigger asChild>
@@ -421,33 +409,12 @@ export const Opportunities = () => {
                                       <TooltipContent>Ver enlace de la llamada</TooltipContent>
                                     </Tooltip>
                                   )}
+                                  {/* Nuevo botón: ver enlace de llamada (al lado de editar llamada), solo si existe link */}
                                   {/* Botón para editar llamada (no implementado aquí, solo visual, pero se coloca el comentario para ubicación) */}
                                   {/* Aquí iría el botón de editar llamada si estuviera implementado */}
 
                                   {/* Botón para eliminar la llamada */}
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="w-6 h-6 p-0"
-                                        onClick={async (e) => {
-                                          e.preventDefault();
-                                          const confirmed = window.confirm('¿Estás seguro de que quieres eliminar esta llamada? Esta acción no se puede deshacer.');
-                                          if (!confirmed) return;
-                                          setIsDeletingCallId(call.id);
-                                          deleteCall(call.id, {
-                                            onSettled: () => setIsDeletingCallId(null)
-                                          });
-                                        }}
-                                        aria-label="Eliminar llamada"
-                                        disabled={isDeletingCallId === call.id || isDeleting}
-                                      >
-                                        <Trash className="w-4 h-4 text-red-500" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Eliminar llamada</TooltipContent>
-                                  </Tooltip>
+                                  
                                 </div>
                               </div>
                             ))}

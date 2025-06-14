@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Phone, Plus, Loader2, X, ExternalLink, Edit } from 'lucide-react';
+import { Phone, Plus, Loader2, X, ExternalLink, Edit, Trash } from 'lucide-react';
 import { Opportunity } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useOpportunities } from '@/hooks/useOpportunities';
@@ -28,7 +28,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
 }) => {
   const { salespeople } = useSalespeople();
   const { updateOpportunity } = useOpportunities();
-  const { addCall, isAdding, updateCall, isUpdating } = useCalls();
+  const { addCall, isAdding, updateCall, isUpdating, deleteCall, isDeleting } = useCalls();
   const { leadSources } = useLeadSourcesWithPersistence();
   
   const [editData, setEditData] = useState({
@@ -133,6 +133,12 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
 
   const handleEditCallClick = (call: Call) => {
     setEditingCall(call);
+  };
+
+  const handleDeleteCall = (callId: number) => {
+    const confirmed = window.confirm('¿Estás seguro de que quieres eliminar esta llamada? Esta acción no se puede deshacer.');
+    if (!confirmed) return;
+    deleteCall(callId);
   };
 
   const getStatusBadge = (status: string) => {
@@ -416,8 +422,19 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                         size="sm"
                         onClick={() => handleEditCallClick(call)}
                         className="h-8 w-8 p-0"
+                        aria-label="Editar llamada"
                       >
-                          <Edit className="h-4 w-4" />
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label="Eliminar llamada"
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleDeleteCall(call.id)}
+                        disabled={isDeleting}
+                      >
+                        <Trash className="h-4 w-4 text-red-500" />
                       </Button>
                     </div>
                   </div>
