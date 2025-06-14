@@ -1,12 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Plus, Phone, Edit, Trash2, Search, Filter, Folder, StickyNote, Users, ExternalLink, Link as LinkIcon, Trash } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Separator } from '@/components/ui/separator';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useLeadSourcesWithPersistence } from '@/hooks/useLeadSourcesWithPersistence';
@@ -15,27 +9,14 @@ import { OpportunityEditSheet } from '@/components/opportunities/OpportunityEdit
 import { OpportunityFilesDialog } from '@/components/opportunities/OpportunityFilesDialog';
 import { OpportunityNotesDialog } from '@/components/opportunities/OpportunityNotesDialog';
 import { OpportunityContactsDialog } from '@/components/opportunities/OpportunityContactsDialog';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { formatCurrency } from '@/config/currency';
-import { useCalls } from '@/hooks/useCalls';
 import type { Opportunity } from '@/hooks/useOpportunities';
 import { OpportunitiesFilters } from '@/components/opportunities/OpportunitiesFilters';
-import { CallSummaryList } from '@/components/opportunities/CallSummaryList';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogTrigger
-} from '@/components/ui/alert-dialog';
-
 import { OpportunitiesGroupList } from '@/components/opportunities/OpportunitiesGroupList';
 import { useGroupedOpportunities } from '@/components/opportunities/useGroupedOpportunities';
+import { OpportunitiesLoading } from '@/components/opportunities/OpportunitiesLoading';
+import { OpportunitiesHeader } from '@/components/opportunities/OpportunitiesHeader';
+import { OpportunitiesEmptyState } from '@/components/opportunities/OpportunitiesEmptyState';
+import { DeleteOpportunityDialog } from '@/components/opportunities/DeleteOpportunityDialog';
 
 export const Opportunities = () => {
   const { opportunities, isLoading, deleteOpportunity, isDeleting } = useOpportunities();
@@ -50,53 +31,28 @@ export const Opportunities = () => {
   const [filesDialogOpportunity, setFilesDialogOpportunity] = useState<Opportunity | null>(null);
   const [notesDialogOpportunity, setNotesDialogOpportunity] = useState<Opportunity | null>(null);
   const [contactsDialogOpportunity, setContactsDialogOpportunity] = useState<Opportunity | null>(null);
-
-  // Add missing state for delete dialog logic
   const [opportunityToDelete, setOpportunityToDelete] = useState<Opportunity | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // Manejar apertura automática de la edición después de crear una nueva oportunidad
   const handleOpportunityCreated = (createdOpportunity: Opportunity) => {
-    // El diálogo de creación se encarga de cerrarse a sí mismo.
-    // Aquí, solo nos preocupamos de abrir el panel de edición con la oportunidad recién creada.
     setEditingOpportunity({
       ...createdOpportunity,
-      // La mutación de creación no devuelve las llamadas asociadas,
-      // así que las inicializamos como un array vacío para el panel de edición.
       calls: createdOpportunity.calls ?? [],
     });
   };
-
-  // Para manejo individual de eliminación de llamadas
-  const [isDeletingCallId, setIsDeletingCallId] = useState<number | null>(null);
-
-  // Fix duplicate isDeleting import from useCalls
-  const { deleteCall, isDeleting: isDeletingCall } = useCalls();
 
   useEffect(() => {
     if (editingOpportunity) {
       const updatedOpportunity = opportunities.find(o => o.id === editingOpportunity.id);
       if (updatedOpportunity) {
-        // Compare to prevent re-render loops
         if (JSON.stringify(updatedOpportunity) !== JSON.stringify(editingOpportunity)) {
           setEditingOpportunity(updatedOpportunity);
         }
       } else {
-        // Opportunity was deleted, so close the sheet
         setEditingOpportunity(null);
       }
     }
   }, [opportunities, editingOpportunity]);
-
-  // Nueva función: obtiene la fecha de la última llamada de una oportunidad o undefined si no tiene
-  const getLastCallDate = (opportunity) => {
-    if (opportunity.calls && opportunity.calls.length > 0) {
-      // ordenamos las llamadas en orden descendente y tomamos la fecha más reciente
-      const lastCall = [...opportunity.calls].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-      return lastCall.date;
-    }
-    return undefined;
-  };
 
   const getSalespersonName = (id: number) => {
     const salesperson = salespeople.find(s => s.id === id);
@@ -115,55 +71,25 @@ export const Opportunities = () => {
     return variants[status as keyof typeof variants] || 'bg-gray-100 text-gray-800';
   };
 
-  // Nuevo: agrupación custom hook
   const { groupedOpportunities, sortedMonthKeys, filteredOpportunities } = useGroupedOpportunities(
     opportunities, searchTerm, statusFilter, sourceFilter, getSalespersonName
   );
 
-  // Añadimos esta función para saber si una llamada es pasada
-  const isCallInThePast = (callDate: string) => {
-    return new Date(callDate) < new Date(); // compara con la fecha actual
+  const handleDeleteConfirm = (opportunityId: number) => {
+    deleteOpportunity(opportunityId);
+    setDeleteDialogOpen(false);
+    setOpportunityToDelete(null);
   };
 
   if (isLoading) {
-    return (
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                {/* Loading skeleton mejorado */}
-                <div className="h-4 bg-zinc-200 rounded w-3/4"></div>
-                <div className="h-3 bg-zinc-200 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="h-3 bg-zinc-200 rounded"></div>
-                  <div className="h-3 bg-zinc-200 rounded w-2/3"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
+    return <OpportunitiesLoading />;
   }
 
   return (
     <TooltipProvider>
       <div className="p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            {/* Título principal con color primario para máximo contraste - Tarea 1.2 */}
-            <h1 className="text-3xl font-bold text-zinc-900">Oportunidades</h1>
-            {/* Subtítulo con color secundario legible - Tarea 1.2 */}
-            <p className="text-zinc-600">Gestiona tus oportunidades de venta</p>
-          </div>
-          <Button onClick={() => setIsDialogOpen(true)} className="w-full sm:w-auto">
-            <Plus className="w-4 h-4 mr-2" />
-            Nueva Oportunidad
-          </Button>
-        </div>
+        <OpportunitiesHeader onNewOpportunity={() => setIsDialogOpen(true)} />
+
         <OpportunitiesFilters
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -173,7 +99,7 @@ export const Opportunities = () => {
           setSourceFilter={setSourceFilter}
           leadSources={leadSources}
         />
-        {/* Grouped Opportunities */}
+        
         <OpportunitiesGroupList
           groupedOpportunities={groupedOpportunities}
           sortedMonthKeys={sortedMonthKeys}
@@ -190,26 +116,16 @@ export const Opportunities = () => {
         />
 
         {filteredOpportunities.length === 0 && (
-          <div className="text-center py-12">
-            {/* Mensaje de estado vacío con color secundario legible */}
-            <div className="text-zinc-600 mb-4">
-              {searchTerm || statusFilter !== 'all' || sourceFilter !== 'all' 
-                ? 'No se encontraron oportunidades con los filtros aplicados'
-                : 'No hay oportunidades aún'}
-            </div>
-            {(!searchTerm && statusFilter === 'all' && sourceFilter === 'all') && (
-              <Button onClick={() => setIsDialogOpen(true)} variant="outline">
-                <Plus className="w-4 h-4 mr-2" />
-                Crear primera oportunidad
-              </Button>
-            )}
-          </div>
+          <OpportunitiesEmptyState
+            hasFilters={!!(searchTerm || statusFilter !== 'all' || sourceFilter !== 'all')}
+            onNewOpportunity={() => setIsDialogOpen(true)}
+          />
         )}
 
         <OpportunityDialog
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
-          onCreated={handleOpportunityCreated} // Usa el callback corregido que abre el edit sheet
+          onCreated={handleOpportunityCreated}
         />
         <OpportunityEditSheet
           opportunity={editingOpportunity}
@@ -244,35 +160,13 @@ export const Opportunities = () => {
           />
         )}
 
-        {/* Alert Dialog: Confirmar eliminación */}
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Eliminar oportunidad</AlertDialogTitle>
-              <AlertDialogDescription>
-                ¿Seguro que quieres eliminar la oportunidad <span className="font-semibold">{opportunityToDelete?.name}</span>? Esta acción no se puede deshacer y también eliminará sus llamadas, archivos, notas y contactos asociados.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>
-                Cancelar
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  if (opportunityToDelete) {
-                    deleteOpportunity(opportunityToDelete.id);
-                    setDeleteDialogOpen(false);
-                    setOpportunityToDelete(null);
-                  }
-                }}
-                disabled={isDeleting}
-                className="bg-red-600 text-white hover:bg-red-700"
-              >
-                {isDeleting ? 'Eliminando...' : 'Eliminar'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <DeleteOpportunityDialog
+          opportunity={opportunityToDelete}
+          isOpen={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          onConfirm={handleDeleteConfirm}
+          isDeleting={isDeleting}
+        />
       </div>
     </TooltipProvider>
   );
