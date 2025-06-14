@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -135,7 +134,7 @@ export const LeadSourceManager: React.FC = () => {
       {/* Lead Sources List */}
       <div className="space-y-2">
         {leadSources.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8 text-zinc-700 dark:text-zinc-300">
             No hay fuentes de lead registradas
           </div>
         ) : (
