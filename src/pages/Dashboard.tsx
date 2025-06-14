@@ -16,6 +16,7 @@ import { useDashboardChartData } from '@/hooks/useDashboardChartData';
 import { useLeadSourceData } from '@/hooks/useLeadSourceData';
 import { useDetailedCallMetrics } from '@/hooks/useDetailedCallMetrics';
 import { useDashboardKpiChanges } from '@/hooks/useDashboardKpiChanges';
+import { usePeriodFilter } from '@/hooks/usePeriodFilter';
 
 export const Dashboard = () => {
   const { opportunities, isLoading: opportunitiesLoading } = useOpportunities();
@@ -40,6 +41,9 @@ export const Dashboard = () => {
     calls: true,
   });
 
+  // Nuevo hook para manejar período y rango de fechas
+  const { periodType, setPeriodType, dateRange, setDateRange } = usePeriodFilter();
+
   // Use all calls for filtering but metrics calls for KPI calculations
   const {
     selectedSalesperson,
@@ -55,8 +59,14 @@ export const Dashboard = () => {
   // Use metrics calls (excluding future) for KPI calculations
   const kpis = useDashboardKpis(filteredOpportunities, metricsCall);
   
-  // Pass filtered opportunities, calls, and selected month to generate dynamic chart data
-  const chartData = useDashboardChartData(filteredOpportunities, metricsCall, selectedMonth);
+  // Pass filtered opportunities, calls, and the new period parameters
+  const chartData = useDashboardChartData({
+    filteredOpportunities,
+    calls: metricsCall,
+    periodType,
+    dateRange,
+    selectedMonth // Mantener para compatibilidad con filtros legacy
+  });
   
   // Create custom lead sources from the persistent lead sources for backward compatibility
   const customLeadSources = leadSources.map(ls => ls.name);
@@ -148,6 +158,8 @@ export const Dashboard = () => {
           leadSourceData={leadSourceData}
           visibleMetrics={visibleMetrics}
           setVisibleMetrics={setVisibleMetrics}
+          selectedPeriod={periodType}
+          onPeriodChange={setPeriodType}
         />
       </div>
 
