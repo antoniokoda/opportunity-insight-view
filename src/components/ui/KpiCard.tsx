@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from './card';
 
@@ -36,8 +35,8 @@ export const KpiCard: React.FC<KpiCardProps> = ({
         <div className="flex-1 min-w-0">
           {/* Título KPI - más pequeño y con tracking */}
           <p className="text-xs font-semibold text-zinc-600 mb-2 uppercase tracking-wider">{title}</p>
-          {/* Valor principal KPI */}
-          <p className="text-3xl font-bold text-zinc-900 mb-1 tracking-tight leading-tight break-words">{value}</p>
+          {/* Valor principal KPI más pequeño */}
+          <p className="text-2xl font-bold text-zinc-900 mb-1 tracking-tight leading-tight break-words">{value}</p>
           {/* Subtítulo */}
           {subtitle && (
             <p className="text-xs text-zinc-600 mb-2 font-medium leading-snug">{subtitle}</p>
@@ -59,4 +58,3 @@ export const KpiCard: React.FC<KpiCardProps> = ({
     </div>
   );
 };
-
