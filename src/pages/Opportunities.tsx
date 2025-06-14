@@ -21,7 +21,7 @@ import { formatCurrency } from '@/config/currency';
 import { useCalls } from '@/hooks/useCalls';
 import type { Opportunity } from '@/hooks/useOpportunities';
 import { OpportunitiesFilters } from '@/components/opportunities/OpportunitiesFilters';
-import { getStatusBadge, getCallTypeColor, isCallInThePast } from "@/components/opportunities/opportunityHelpers";
+import { CallSummaryList } from '@/components/opportunities/CallSummaryList';
 
 export const Opportunities = () => {
   const { opportunities, isLoading, deleteOpportunity } = useOpportunities();
@@ -317,108 +317,7 @@ export const Opportunities = () => {
 
                       {/* Calls Section */}
                       {opportunity.calls && opportunity.calls.length > 0 && (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            {/* Icono con color secundario */}
-                            <Phone className="w-4 h-4 text-zinc-600" />
-                            {/* Título de sección con color primario */}
-                            <span className="text-sm font-medium text-zinc-900">Llamadas ({opportunity.calls.length})</span>
-                          </div>
-                          <div className="space-y-1 max-h-20 overflow-y-auto">
-                            {opportunity.calls.slice(0, 3).map((call) => (
-                              <div key={call.id} className="flex items-center justify-between text-xs">
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline" className={getCallTypeColor(call.type)}>
-                                    {call.type} #{call.number}
-                                  </Badge>
-                                  
-                                  {/* Solo mostramos el badge "No asistió" si la llamada es del pasado y no asistió */}
-                                  {call.attended === false && isCallInThePast(call.date) && (
-                                    <Badge variant="not-attended">
-                                      No asistió
-                                    </Badge>
-                                  )}
-                                  {/* Mostramos badge de asistencia positiva (asistió) si corresponde */}
-                                  {call.attended === true && (
-                                    <Badge variant="attended">
-                                      Asistió
-                                    </Badge>
-                                  )}
-
-                                  {/* Si hay link, mostramos iconos de acceso a la reunión */}
-                                  {call.link && !!call.link.trim() && (
-                                    <>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <a href={call.link} target="_blank" rel="noopener noreferrer" className="flex items-center">
-                                            <ExternalLink className="w-3 h-3 text-zinc-500 hover:text-zinc-800" />
-                                          </a>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>Abrir enlace</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="w-6 h-6 p-0"
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              window.open(call.link!, "_blank", "noopener,noreferrer");
-                                            }}
-                                            aria-label="Ir al enlace de la reunión"
-                                          >
-                                            <LinkIcon className="w-4 h-4 text-blue-500" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>Ir a la reunión</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <span className="text-muted-foreground">
-                                    {format(new Date(call.date), 'dd/MM', { locale: es })}
-                                  </span>
-                                  {call.link && !!call.link.trim() && (
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="w-6 h-6 p-0"
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            window.open(call.link!, "_blank", "noopener,noreferrer");
-                                          }}
-                                          aria-label="Ver enlace de llamada"
-                                        >
-                                          <ExternalLink className="w-4 h-4 text-blue-500" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Ver enlace de la llamada</TooltipContent>
-                                    </Tooltip>
-                                  )}
-                                  {/* Nuevo botón: ver enlace de llamada (al lado de editar llamada), solo si existe link */}
-                                  {/* Botón para editar llamada (no implementado aquí, solo visual, pero se coloca el comentario para ubicación) */}
-                                  {/* Aquí iría el botón de editar llamada si estuviera implementado */}
-
-                                  {/* Botón para eliminar la llamada */}
-                                  
-                                </div>
-                              </div>
-                            ))}
-                            {opportunity.calls.length > 3 && (
-                              <div className="text-xs text-muted-foreground text-center">
-                                +{opportunity.calls.length - 3} más
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                        <CallSummaryList calls={opportunity.calls} />
                       )}
 
                       {/* Source and Date */}
