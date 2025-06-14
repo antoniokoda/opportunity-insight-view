@@ -38,7 +38,7 @@ export const MonthView: React.FC<MonthViewProps> = ({
             <div
               key={day.toString()}
               className={`min-h-[70px] p-1.5 border rounded-lg ${
-                isDayToday ? 'bg-primary/10 border-primary' : 
+                isDayToday ? 'bg-accent border-primary' : 
                 isCurrentMonth ? 'bg-card border-border hover:bg-accent' : 
                 'bg-muted/30 border-border'
               } cursor-pointer transition-colors`}
