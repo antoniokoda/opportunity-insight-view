@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,20 +8,23 @@ import { Label } from '@/components/ui/label';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useLeadSourcesWithPersistence } from '@/hooks/useLeadSourcesWithPersistence';
+import type { Opportunity } from '@/hooks/useOpportunities';
 
 interface OpportunityDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onCreated?: (opportunity: Opportunity) => void; // NUEVA prop para manejar la oportunidad creada
 }
 
 export const OpportunityDialog: React.FC<OpportunityDialogProps> = ({
   isOpen,
   onClose,
+  onCreated,
 }) => {
   const { addOpportunity, isAdding } = useOpportunities();
   const { salespeople } = useSalespeople();
   const { leadSources } = useLeadSourcesWithPersistence();
-  
+
   const [formData, setFormData] = useState({
     name: '',
     salesperson_id: '',
@@ -31,28 +35,40 @@ export const OpportunityDialog: React.FC<OpportunityDialogProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.salesperson_id || !formData.lead_source) {
       return;
     }
 
-    addOpportunity({
-      name: formData.name,
-      salesperson_id: parseInt(formData.salesperson_id),
-      lead_source: formData.lead_source,
-      revenue: parseFloat(formData.revenue) || 0,
-      cash_collected: parseFloat(formData.cash_collected) || 0,
-    });
-
-    // Reset form and close dialog
-    setFormData({
-      name: '',
-      salesperson_id: '',
-      lead_source: '',
-      revenue: '',
-      cash_collected: '',
-    });
-    onClose();
+    addOpportunity(
+      {
+        name: formData.name,
+        salesperson_id: parseInt(formData.salesperson_id),
+        lead_source: formData.lead_source,
+        revenue: parseFloat(formData.revenue) || 0,
+        cash_collected: parseFloat(formData.cash_collected) || 0,
+      },
+      {
+        onSuccess: (created: Opportunity) => {
+          // Al crear con éxito, invocar el callback si existe
+          if (onCreated) {
+            onCreated(created);
+          }
+          // Resetear estado local y cerrar
+          setFormData({
+            name: '',
+            salesperson_id: '',
+            lead_source: '',
+            revenue: '',
+            cash_collected: '',
+          });
+          onClose();
+        },
+        onError: () => {
+          // El toast se maneja desde useOpportunities
+        },
+      }
+    );
   };
 
   const handleClose = () => {
@@ -72,7 +88,7 @@ export const OpportunityDialog: React.FC<OpportunityDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Nueva Oportunidad</DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="name">Nombre de la oportunidad</Label>

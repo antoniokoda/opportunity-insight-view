@@ -37,6 +37,14 @@ export const Opportunities = () => {
   const [notesDialogOpportunity, setNotesDialogOpportunity] = useState<Opportunity | null>(null);
   const [contactsDialogOpportunity, setContactsDialogOpportunity] = useState<Opportunity | null>(null);
 
+  // Manejar apertura automática de la edición después de crear una nueva oportunidad
+  const handleOpportunityCreated = (createdOpportunity: Opportunity) => {
+    setIsDialogOpen(false);
+    // Buscar el objeto en el array actual por ID (puede variar si la mutación tarda en ser reflejada)
+    const oportunidadFull = opportunities.find(o => o.id === createdOpportunity.id) || createdOpportunity;
+    setEditingOpportunity(oportunidadFull);
+  };
+
   // Para manejo individual de eliminación de llamadas
   const [isDeletingCallId, setIsDeletingCallId] = useState<number | null>(null);
 
@@ -360,6 +368,7 @@ export const Opportunities = () => {
         <OpportunityDialog
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
+          onCreated={handleOpportunityCreated} // <-- AÑADIDO: callback para abrir edición automáticamente
         />
 
         <OpportunityEditSheet
