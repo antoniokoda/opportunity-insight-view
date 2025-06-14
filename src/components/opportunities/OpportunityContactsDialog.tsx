@@ -134,7 +134,7 @@ export const OpportunityContactsDialog: React.FC<OpportunityContactsDialogProps>
               <User className="w-5 h-5" />
               Contactos - {opportunityName}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-zinc-950">
               Gestiona los contactos relacionados con esta oportunidad
             </DialogDescription>
           </DialogHeader>
@@ -202,7 +202,7 @@ export const OpportunityContactsDialog: React.FC<OpportunityContactsDialogProps>
             <div className="space-y-4">
               {contacts.length === 0 ? <div className="text-center py-8 text-muted-foreground">
                   <User className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No hay contactos registrados para esta oportunidad</p>
+                  <p className="text-zinc-950">No hay contactos registrados para esta oportunidad</p>
                   {!showAddForm && <Button variant="outline" onClick={handleAddContact} className="mt-4">
                       <Plus className="w-4 h-4 mr-2" />
                       Agregar primer contacto
