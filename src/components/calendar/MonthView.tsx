@@ -1,4 +1,5 @@
 
+```tsx
 import React from 'react';
 import { format, isSameMonth, isToday } from 'date-fns';
 import type { Call } from '@/hooks/useCalls';
@@ -39,7 +40,7 @@ export const MonthView: React.FC<MonthViewProps> = ({
               key={day.toString()}
               className={`min-h-[70px] p-1.5 border rounded-lg ${
                 isDayToday ? 'bg-accent border-primary' : 
-                isCurrentMonth ? 'bg-card border-border hover:bg-accent' : 
+                isCurrentMonth ? 'bg-accent border-border hover:bg-zinc-200' : 
                 'bg-muted/30 border-border'
               } cursor-pointer transition-colors`}
               onClick={() => onDateSelect(day)}
@@ -77,3 +78,4 @@ export const MonthView: React.FC<MonthViewProps> = ({
     </div>
   );
 };
+```
