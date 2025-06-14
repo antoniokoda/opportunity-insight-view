@@ -44,6 +44,7 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
     title: '',
     content: ''
   });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!noteForm.title.trim()) return;
@@ -94,7 +95,7 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col bg-slate-50">
+      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col bg-white">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <StickyNote className="w-5 h-5" />
@@ -104,11 +105,11 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
 
         <div className="flex-1 flex flex-col min-h-0">
           {/* Chat Messages Area */}
-          <div className="flex-1 overflow-y-auto mb-4 space-y-3 p-4 bg-muted/20 rounded-lg min-h-[300px] max-h-[400px]">
+          <div className="flex-1 overflow-y-auto mb-4 space-y-3 p-4 bg-white rounded-lg min-h-[300px] max-h-[400px] border">
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                <span>Cargando notas...</span>
+                <span className="text-black">Cargando notas...</span>
               </div>
             ) : sortedNotes.length === 0 ? (
               <div className="flex items-center justify-center py-8 text-black">
@@ -116,7 +117,7 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
               </div>
             ) : (
               sortedNotes.map(note => (
-                <div key={note.id} className="bg-background p-3 rounded-lg shadow-sm border">
+                <div key={note.id} className="bg-white p-3 rounded-lg shadow-sm border">
                   {editingNote === note.id ? (
                     // Edit mode
                     <div className="space-y-2">
@@ -124,12 +125,14 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
                         value={editForm.title}
                         onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
                         placeholder="Título del mensaje..."
+                        className="text-black placeholder:text-gray-500"
                       />
                       <Textarea
                         value={editForm.content}
                         onChange={(e) => setEditForm(prev => ({ ...prev, content: e.target.value }))}
                         placeholder="Contenido del mensaje..."
                         rows={3}
+                        className="text-black placeholder:text-gray-500"
                       />
                       <div className="flex gap-2 justify-end">
                         <Button size="sm" variant="outline" onClick={handleCancelEdit} disabled={isUpdating}>
@@ -145,8 +148,8 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
                     <>
                       <div className="mb-2 flex justify-between items-start">
                         <div>
-                          <h4 className="font-medium text-sm">{note.title}</h4>
-                          <div className="text-xs text-muted-foreground mt-1">
+                          <h4 className="font-medium text-sm text-black">{note.title}</h4>
+                          <div className="text-xs text-gray-600 mt-1">
                             {format(new Date(note.created_at), 'dd/MM/yyyy HH:mm', { locale: es })}
                             {note.updated_at !== note.created_at && ' (editado)'}
                           </div>
@@ -163,7 +166,7 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
                         )}
                       </div>
                       {note.content && (
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap">
                           {note.content}
                         </p>
                       )}
@@ -181,7 +184,7 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
                 value={noteForm.title}
                 onChange={(e) => setNoteForm(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Título del mensaje..."
-                className="text-black placeholder:text-black"
+                className="text-black placeholder:text-gray-500"
                 required
               />
               <div className="flex gap-2">
@@ -189,7 +192,7 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
                   value={noteForm.content}
                   onChange={(e) => setNoteForm(prev => ({ ...prev, content: e.target.value }))}
                   placeholder="Escribe tu mensaje..."
-                  className="flex-1 resize-none text-black placeholder:text-black"
+                  className="flex-1 resize-none text-black placeholder:text-gray-500"
                   rows={2}
                 />
                 <Button type="submit" disabled={isAdding || !noteForm.title.trim()} size="sm" className="self-end">
