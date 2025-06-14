@@ -39,34 +39,72 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  console.log('🔍 CALLS DEBUG: Hook called', {
+    hasUser: !!user,
+    userId: user?.id,
+    opportunityId,
+    excludeFutureCalls
+  });
+
   const { data: calls = [], isLoading, error } = useQuery({
     queryKey: ['calls', user?.id, opportunityId, excludeFutureCalls],
     queryFn: async () => {
-      if (!user) return [];
-      let query = supabase
-        .from('calls')
-        .select('*')
-        .order('date', { ascending: false });
+      console.log('🔍 CALLS DEBUG: Starting query...');
+      
+      if (!user) {
+        console.log('🔍 CALLS DEBUG: No user, returning empty array');
+        return [];
+      }
 
-      if (opportunityId) {
-        query = query.eq('opportunity_id', opportunityId);
+      console.log('🔍 CALLS DEBUG: Fetching calls for user:', user.id);
+
+      try {
+        let query = supabase
+          .from('calls')
+          .select('*')
+          .order('date', { ascending: false });
+
+        if (opportunityId) {
+          query = query.eq('opportunity_id', opportunityId);
+          console.log('🔍 CALLS DEBUG: Filtering by opportunity:', opportunityId);
+        }
+        
+        if (excludeFutureCalls) {
+          query = query.lte('date', new Date().toISOString());
+          console.log('🔍 CALLS DEBUG: Excluding future calls');
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error('🔍 CALLS DEBUG: Query error:', error);
+          throw error;
+        }
+
+        console.log('🔍 CALLS DEBUG: Query successful', {
+          resultCount: data?.length || 0,
+          data: data
+        });
+
+        return data as Call[];
+      } catch (queryError) {
+        console.error('🔍 CALLS DEBUG: Query failed:', queryError);
+        throw queryError;
       }
-      if (excludeFutureCalls) {
-        query = query.lte('date', new Date().toISOString());
-      }
-      const { data, error } = await query;
-      if (error) {
-        if (import.meta.env.DEV) console.error('Error fetching calls:', error);
-        throw error;
-      }
-      return data as Call[];
     },
     enabled: !!user,
     meta: {
       onError: (error: any) => {
-        if (import.meta.env.DEV) console.error('Error fetching calls:', error);
+        console.error('🔍 CALLS DEBUG: Query hook error:', error);
       }
     }
+  });
+
+  console.log('🔍 CALLS DEBUG: Hook result', {
+    callsCount: calls?.length || 0,
+    isLoading,
+    hasError: !!error,
+    error: error?.message
   });
 
   const addCall = useMutation({

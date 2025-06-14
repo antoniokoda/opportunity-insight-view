@@ -17,8 +17,20 @@ import { useLeadSourceData } from '@/hooks/useLeadSourceData';
 import { useDetailedCallMetrics } from '@/hooks/useDetailedCallMetrics';
 import { useDashboardKpiChanges } from '@/hooks/useDashboardKpiChanges';
 import { usePeriodFilter } from '@/hooks/usePeriodFilter';
+import { useAuth } from '@/hooks/useAuth';
 
 export const Dashboard = () => {
+  const { user, session, loading: authLoading } = useAuth();
+  
+  // Dashboard debug logging
+  console.log('🔍 DASHBOARD DEBUG: Component rendered', {
+    hasUser: !!user,
+    userId: user?.id,
+    userEmail: user?.email,
+    hasSession: !!session,
+    authLoading
+  });
+
   const { opportunities, isLoading: opportunitiesLoading } = useOpportunities();
   const { calls: allCalls, isLoading: callsLoading } = useCalls();
   // Get calls excluding future ones for metrics calculations
@@ -33,6 +45,27 @@ export const Dashboard = () => {
     leadSources,
     isLoading: leadSourcesLoading 
   } = useLeadSourcesWithPersistence();
+
+  // Debug logging for data hooks
+  console.log('🔍 DASHBOARD DEBUG: Data hooks state', {
+    opportunities: {
+      count: opportunities?.length || 0,
+      loading: opportunitiesLoading
+    },
+    calls: {
+      allCallsCount: allCalls?.length || 0,
+      metricsCallsCount: metricsCall?.length || 0,
+      loading: callsLoading || metricsCallsLoading
+    },
+    salespeople: {
+      count: salespeople?.length || 0,
+      loading: salespeopleLoading
+    },
+    leadSources: {
+      count: leadSources?.length || 0,
+      loading: leadSourcesLoading
+    }
+  });
 
   // Chart visibility state
   const [visibleMetrics, setVisibleMetrics] = useState({
@@ -104,7 +137,44 @@ export const Dashboard = () => {
     selectedMonth
   );
 
+  // Debug logging for filtered data
+  console.log('🔍 DASHBOARD DEBUG: Filtered data', {
+    filteredOpportunities: filteredOpportunities?.length || 0,
+    filteredCalls: filteredCalls?.length || 0,
+    filters: {
+      selectedSalesperson,
+      selectedMonth,
+      selectedLeadSource
+    }
+  });
+
+  if (authLoading) {
+    console.log('🔍 DASHBOARD DEBUG: Auth still loading...');
+    return (
+      <div className="space-y-8">
+        <div className="animate-pulse space-y-8">
+          <div className="h-8 bg-zinc-200 rounded-xl w-1/3"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-32 bg-zinc-200 rounded-2xl"></div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="h-96 bg-zinc-200 rounded-2xl"></div>
+            <div className="h-96 bg-zinc-200 rounded-2xl"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    console.log('🔍 DASHBOARD DEBUG: No user found, this should redirect to login');
+    return null;
+  }
+
   if (opportunitiesLoading || callsLoading || metricsCallsLoading || salespeopleLoading || leadSourcesLoading) {
+    console.log('🔍 DASHBOARD DEBUG: Data still loading...');
     return (
       <div className="space-y-8">
         <div className="animate-pulse space-y-8">
@@ -123,6 +193,8 @@ export const Dashboard = () => {
       </div>
     );
   }
+
+  console.log('🔍 DASHBOARD DEBUG: Rendering dashboard with data');
 
   return (
     <div className="space-y-10">
