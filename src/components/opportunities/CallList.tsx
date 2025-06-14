@@ -28,7 +28,7 @@ export const CallList: React.FC<CallListProps> = ({
         <div key={call.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-3 flex-wrap">
             <Badge variant="outline" className={getCallTypeColor(call.type)}>
-              {call.type} #{call.number}
+              {call.type}
             </Badge>
             <span className="text-sm">{formatCallDate(call.date)}</span>
             {call.attended !== null && (
@@ -70,4 +70,3 @@ export const CallList: React.FC<CallListProps> = ({
     </div>
   );
 };
-

@@ -26,7 +26,7 @@ export const CallSummaryList: React.FC<CallSummaryListProps> = ({ calls }) => {
           <div key={call.id} className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
               <Badge variant="outline" className={getCallTypeColor(call.type)}>
-                {call.type} #{call.number}
+                {call.type}
               </Badge>
               {call.attended === false && isCallInThePast(call.date) && (
                 <Badge variant="not-attended">No asistió</Badge>
@@ -77,7 +77,6 @@ export const CallSummaryList: React.FC<CallSummaryListProps> = ({ calls }) => {
               <span className="text-muted-foreground">
                 {format(new Date(call.date), "dd/MM", { locale: es })}
               </span>
-              {/* Aquí irían más acciones si se requirieran */}
             </div>
           </div>
         ))}

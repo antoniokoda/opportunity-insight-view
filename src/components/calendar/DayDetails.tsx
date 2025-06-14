@@ -29,7 +29,7 @@ export const DayDetails: React.FC<DayDetailsProps> = ({
             <div key={call.id} className="p-4 bg-muted rounded-lg">
               <div className="flex items-start justify-between mb-2">
                 <Badge variant="outline" className={getCallTypeColor(call.type)}>
-                  {call.type} #{call.number}
+                  {call.type}
                 </Badge>
                 <div className="text-sm text-muted-foreground flex items-center gap-2">
                   <span>{call.duration}min</span>
