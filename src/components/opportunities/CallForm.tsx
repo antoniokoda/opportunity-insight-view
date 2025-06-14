@@ -62,7 +62,6 @@ export const CallForm: React.FC<CallFormProps> = ({
             min="0"
             value={callValues.duration}
             onChange={(e) => setCallValues(prev => ({ ...prev, duration: e.target.value }))}
-            placeholder="30"
           />
         </div>
       </div>
@@ -109,4 +108,3 @@ export const CallForm: React.FC<CallFormProps> = ({
     </div>
   </div>
 );
-
