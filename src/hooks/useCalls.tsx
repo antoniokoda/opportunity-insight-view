@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -166,6 +167,38 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
     },
   });
 
+  // Nueva mutación para eliminar llamadas
+  const deleteCall = useMutation({
+    mutationFn: async (id: number) => {
+      if (!user) throw new Error('User not authenticated');
+      const { error } = await supabase
+        .from('calls')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting call:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calls'] });
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      toast({
+        title: 'Llamada eliminada',
+        description: 'La llamada ha sido eliminada exitosamente.',
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting call:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'No se pudo eliminar la llamada.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   return {
     calls,
     isLoading,
@@ -174,5 +207,8 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
     isAdding: addCall.isPending,
     updateCall: updateCall.mutate,
     isUpdating: updateCall.isPending,
+    deleteCall: deleteCall.mutate,
+    isDeleting: deleteCall.isPending,
   };
 };
+

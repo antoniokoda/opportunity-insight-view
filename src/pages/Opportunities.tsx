@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Phone, Edit, Trash2, Search, Filter, Folder, StickyNote, Users, ExternalLink, Link as LinkIcon } from 'lucide-react';
+import { Plus, Phone, Edit, Trash2, Search, Filter, Folder, StickyNote, Users, ExternalLink, Link as LinkIcon, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,13 +18,14 @@ import { OpportunityContactsDialog } from '@/components/opportunities/Opportunit
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { formatCurrency } from '@/config/currency';
+import { useCalls } from '@/hooks/useCalls';
 import type { Opportunity } from '@/hooks/useOpportunities';
 
 export const Opportunities = () => {
   const { opportunities, isLoading, deleteOpportunity } = useOpportunities();
   const { salespeople } = useSalespeople();
   const { leadSources } = useLeadSourcesWithPersistence();
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOpportunity, setEditingOpportunity] = useState<Opportunity | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,6 +34,11 @@ export const Opportunities = () => {
   const [filesDialogOpportunity, setFilesDialogOpportunity] = useState<Opportunity | null>(null);
   const [notesDialogOpportunity, setNotesDialogOpportunity] = useState<Opportunity | null>(null);
   const [contactsDialogOpportunity, setContactsDialogOpportunity] = useState<Opportunity | null>(null);
+
+  // Para manejo individual de eliminación de llamadas
+  const [isDeletingCallId, setIsDeletingCallId] = useState<number | null>(null);
+
+  const { deleteCall, isDeleting } = useCalls();
 
   useEffect(() => {
     if (editingOpportunity) {
@@ -391,9 +397,35 @@ export const Opportunities = () => {
                                     </>
                                   )}
                                 </div>
-                                <span className="text-muted-foreground">
-                                  {format(new Date(call.date), 'dd/MM', { locale: es })}
-                                </span>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-muted-foreground">
+                                    {format(new Date(call.date), 'dd/MM', { locale: es })}
+                                  </span>
+                                  {/* Botón para eliminar la llamada */}
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="w-6 h-6 p-0"
+                                        onClick={async (e) => {
+                                          e.preventDefault();
+                                          const confirmed = window.confirm('¿Estás seguro de que quieres eliminar esta llamada? Esta acción no se puede deshacer.');
+                                          if (!confirmed) return;
+                                          setIsDeletingCallId(call.id);
+                                          deleteCall(call.id, {
+                                            onSettled: () => setIsDeletingCallId(null)
+                                          });
+                                        }}
+                                        aria-label="Eliminar llamada"
+                                        disabled={isDeletingCallId === call.id || isDeleting}
+                                      >
+                                        <Trash className="w-4 h-4 text-red-500" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Eliminar llamada</TooltipContent>
+                                  </Tooltip>
+                                </div>
                               </div>
                             ))}
                             {opportunity.calls.length > 3 && (
