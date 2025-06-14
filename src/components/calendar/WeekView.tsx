@@ -20,7 +20,7 @@ export const WeekView: React.FC<WeekViewProps> = ({
     <div className="bg-white">
       {/* Week header with days */}
       <div className="border-b border-gray-200">
-        <div className="grid grid-cols-8 h-16">
+        <div className="grid grid-cols-[64px_repeat(7,1fr)] h-16">
           {/* GMT indicator */}
           <div className="flex items-center justify-center text-xs text-gray-500 border-r border-gray-200">
             GMT+01
@@ -47,9 +47,9 @@ export const WeekView: React.FC<WeekViewProps> = ({
       <div className="overflow-y-auto max-h-[600px]">
         <div className="relative">
           {hours.map((hour, hourIndex) => (
-            <div key={hour} className="grid grid-cols-8 border-b border-gray-100 last:border-b-0">
+            <div key={hour} className="grid grid-cols-[64px_repeat(7,1fr)] border-b border-gray-100 last:border-b-0">
               {/* Time label */}
-              <div className="h-16 flex items-start justify-end pr-2 pt-1 text-xs text-gray-500 border-r border-gray-200">
+              <div className="h-16 flex items-start justify-end pr-2 pt-1 text-xs text-gray-500 border-r border-gray-200 bg-transparent">
                 {hour === 12 ? '12 PM' : hour > 12 ? `${hour - 12} PM` : `${hour} AM`}
               </div>
               
