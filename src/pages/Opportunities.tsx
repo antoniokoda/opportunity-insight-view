@@ -22,9 +22,20 @@ import { useCalls } from '@/hooks/useCalls';
 import type { Opportunity } from '@/hooks/useOpportunities';
 import { OpportunitiesFilters } from '@/components/opportunities/OpportunitiesFilters';
 import { CallSummaryList } from '@/components/opportunities/CallSummaryList';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog';
 
 export const Opportunities = () => {
-  const { opportunities, isLoading, deleteOpportunity } = useOpportunities();
+  const { opportunities, isLoading, deleteOpportunity, isDeleting } = useOpportunities();
   const { salespeople } = useSalespeople();
   const { leadSources } = useLeadSourcesWithPersistence();
 
@@ -279,7 +290,22 @@ export const Opportunities = () => {
                             </TooltipTrigger>
                             <TooltipContent>Editar</TooltipContent>
                           </Tooltip>
-                          
+                          {/* Botón Eliminar */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setOpportunityToDelete(opportunity);
+                                  setDeleteDialogOpen(true);
+                                }}
+                              >
+                                <Trash className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Eliminar</TooltipContent>
+                          </Tooltip>
                         </div>
                       </div>
                     </CardHeader>
@@ -403,6 +429,36 @@ export const Opportunities = () => {
             onClose={() => setContactsDialogOpportunity(null)}
           />
         )}
+
+        {/* Alert Dialog: Confirmar eliminación */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Eliminar oportunidad</AlertDialogTitle>
+              <AlertDialogDescription>
+                ¿Seguro que quieres eliminar la oportunidad <span className="font-semibold">{opportunityToDelete?.name}</span>? Esta acción no se puede deshacer y también eliminará sus llamadas, archivos, notas y contactos asociados.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (opportunityToDelete) {
+                    deleteOpportunity(opportunityToDelete.id);
+                    setDeleteDialogOpen(false);
+                    setOpportunityToDelete(null);
+                  }
+                }}
+                disabled={isDeleting}
+                className="bg-red-600 text-white hover:bg-red-700"
+              >
+                {isDeleting ? 'Eliminando...' : 'Eliminar'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </TooltipProvider>
   );
