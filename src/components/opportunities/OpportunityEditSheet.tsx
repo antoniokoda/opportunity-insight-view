@@ -14,6 +14,9 @@ import { useLeadSourcesWithPersistence } from '@/hooks/useLeadSourcesWithPersist
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { formatCurrency } from '@/config/currency';
+import { CallForm } from "./CallForm";
+import { CallList } from "./CallList";
+import { getStatusBadge, getCallTypeColor } from "./opportunityHelpers";
 
 interface OpportunityEditSheetProps {
   opportunity: Opportunity | null;
@@ -181,7 +184,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
         </SheetHeader>
 
         <div className="space-y-6 mt-6">
-          {/* Basic Information */}
+          {/* Información Básica */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Información Básica</h3>
             
@@ -248,7 +251,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
             </div>
           </div>
 
-          {/* Status Updates */}
+          {/* Estado */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Estado</h3>
             
@@ -289,7 +292,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
             </div>
           </div>
 
-          {/* Calls Section */}
+          {/* Llamadas */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -301,151 +304,26 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                 Añadir Llamada
               </Button>
             </div>
-
-            {/* Add Call Form */}
+            {/* Add/Edit Call Form */}
             {showAddCall && (
-              <div className="p-4 border rounded-lg bg-white">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-medium">{editingCall ? 'Editar Llamada' : 'Nueva Llamada'}</h4>
-                  <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
-                    <X size={16} />
-                  </Button>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Tipo</label>
-                      <Select value={newCall.type} onValueChange={(value: CallType) => setNewCall(prev => ({ ...prev, type: value }))}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Discovery 1">Discovery 1</SelectItem>
-                          <SelectItem value="Discovery 2">Discovery 2</SelectItem>
-                          <SelectItem value="Discovery 3">Discovery 3</SelectItem>
-                          <SelectItem value="Closing 1">Closing 1</SelectItem>
-                          <SelectItem value="Closing 2">Closing 2</SelectItem>
-                          <SelectItem value="Closing 3">Closing 3</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Duración (min)</label>
-                      <Input
-                        type="number"
-                        min="0"
-                        value={newCall.duration}
-                        onChange={(e) => setNewCall(prev => ({ ...prev, duration: e.target.value }))}
-                        placeholder="30"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Fecha y Hora</label>
-                    <Input
-                      type="datetime-local"
-                      value={newCall.date}
-                      onChange={(e) => setNewCall(prev => ({ ...prev, date: e.target.value }))}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Enlace (opcional)</label>
-                    <Input
-                      type="url"
-                      value={newCall.link}
-                      onChange={(e) => setNewCall(prev => ({ ...prev, link: e.target.value }))}
-                      placeholder="https://meet.google.com/xxx-xxxx-xxx"
-                    />
-                  </div>
-
-                  {/* Attendance checkbox */}
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="attendance"
-                      checked={newCall.attended}
-                      onCheckedChange={(checked) => setNewCall(prev => ({ ...prev, attended: !!checked }))}
-                    />
-                    <label htmlFor="attendance" className="text-sm font-medium">
-                      Asistencia
-                    </label>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2 mt-4">
-                  <Button 
-                    onClick={handleSaveCall} 
-                    size="sm" 
-                    disabled={isAdding || isUpdating}
-                  >
-                    {(isAdding || isUpdating) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    {editingCall ? 'Guardar Cambios' : 'Añadir Llamada'}
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleCancelEdit}>
-                    Cancelar
-                  </Button>
-                </div>
-              </div>
+              <CallForm
+                callValues={newCall}
+                setCallValues={setNewCall}
+                loading={isAdding || isUpdating}
+                isEditing={!!editingCall}
+                onCancel={handleCancelEdit}
+                onSave={handleSaveCall}
+              />
             )}
-
-            {/* Calls List */}
-            {opportunityCalls.length > 0 ? (
-              <div className="space-y-2">
-                {opportunityCalls.map(call => (
-                  <div key={call.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <Badge variant="outline" className={getCallTypeColor(call.type)}>
-                        {call.type} #{call.number}
-                      </Badge>
-                      <span className="text-sm">
-                        {format(new Date(call.date), 'dd/MM/yyyy HH:mm', { locale: es })}
-                      </span>
-                      {call.attended !== null && (
-                        <Badge variant={call.attended ? "attended" : "not-attended"}>
-                          {call.attended ? "Asistió" : "No asistió"}
-                        </Badge>
-                      )}
-                      {call.link && (
-                        <a href={call.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-blue-600 hover:underline">
-                          <ExternalLink size={14} />
-                          <span>Enlace</span>
-                        </a>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge>{call.duration} min</Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditCallClick(call)}
-                        className="h-8 w-8 p-0"
-                        aria-label="Editar llamada"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-label="Eliminar llamada"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleDeleteCall(call.id)}
-                        disabled={isDeleting}
-                      >
-                        <Trash className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">No hay llamadas registradas</p>
-            )}
+            <CallList
+              calls={opportunityCalls}
+              onEdit={handleEditCallClick}
+              onDelete={handleDeleteCall}
+              isDeleting={isDeleting}
+            />
           </div>
 
-          {/* Save Button */}
+          {/* Botones de Guardar/Cerrar */}
           <div className="flex gap-2 pt-4 border-t">
             <Button onClick={handleSave} className="flex-1">
               Guardar Cambios
