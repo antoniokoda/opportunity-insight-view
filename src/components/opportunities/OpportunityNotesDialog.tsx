@@ -104,9 +104,7 @@ export const OpportunityNotesDialog: React.FC<OpportunityNotesDialogProps> = ({
             {isLoading ? <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin mr-2" />
                 <span>Cargando notas...</span>
-              </div> : sortedNotes.length === 0 ? <div className="flex items-center justify-center py-8 text-muted-foreground">
-                No hay mensajes aún
-              </div> : sortedNotes.map(note => <div key={note.id} className="bg-background p-3 rounded-lg shadow-sm border">
+              </div> : sortedNotes.length === 0 ? <div className="flex items-center justify-center py-8 text-muted-foreground">No hay mensajes aún</div> : sortedNotes.map(note => <div key={note.id} className="bg-background p-3 rounded-lg shadow-sm border">
                   {editingNote === note.id ?
             // Edit mode
             <div className="space-y-2">
