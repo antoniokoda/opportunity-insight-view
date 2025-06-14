@@ -55,9 +55,9 @@ export const Opportunities = () => {
   // Manejar apertura automática de la edición después de crear una nueva oportunidad
   const handleOpportunityCreated = (createdOpportunity: Opportunity) => {
     setIsDialogOpen(false);
-    // Buscar el objeto en el array actual por ID (puede variar si la mutación tarda en ser reflejada)
-    const oportunidadFull = opportunities.find(o => o.id === createdOpportunity.id) || createdOpportunity;
-    setEditingOpportunity(oportunidadFull);
+    // Buscar la oportunidad en el array más actualizado (por si la mutación tarda un poco)
+    const fullOpportunity = opportunities.find(o => o.id === createdOpportunity.id) || createdOpportunity;
+    setEditingOpportunity(fullOpportunity);
   };
 
   // Para manejo individual de eliminación de llamadas
@@ -399,9 +399,8 @@ export const Opportunities = () => {
         <OpportunityDialog
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
-          onCreated={handleOpportunityCreated} // <-- AÑADIDO: callback para abrir edición automáticamente
+          onCreated={handleOpportunityCreated} // Usa el callback corregido que abre el edit sheet
         />
-
         <OpportunityEditSheet
           opportunity={editingOpportunity}
           isOpen={!!editingOpportunity}
