@@ -2,6 +2,8 @@
 import React from 'react';
 import { format, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface WeekViewProps {
   weekDays: Date[];
@@ -16,6 +18,8 @@ export const WeekView: React.FC<WeekViewProps> = ({
   getCallsForHour,
   getCallTypeColor
 }) => {
+  const navigate = useNavigate();
+
   // Map colors to Google Calendar-like strong backgrounds
   const googleTypeColor = (type: string) => {
     if (type.startsWith('Discovery')) {
@@ -111,6 +115,16 @@ export const WeekView: React.FC<WeekViewProps> = ({
                           <div className="text-[11px] text-white/70 font-medium leading-tight">
                             {format(callDate, 'HH:mm')} &middot; {call.duration}min
                           </div>
+                          {/* Nuevo botón: Ver oportunidad de venta */}
+                          <button
+                            onClick={() => navigate(`/opportunities/${call.opportunity_id}`)}
+                            className="flex items-center gap-1 mt-1 text-xs underline text-white/90 hover:text-white font-medium transition cursor-pointer"
+                            type="button"
+                            tabIndex={0}
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Ver oportunidad de venta
+                          </button>
                         </div>
                       );
                     })}
