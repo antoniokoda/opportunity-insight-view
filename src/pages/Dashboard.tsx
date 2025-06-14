@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
@@ -91,15 +90,6 @@ export const Dashboard = () => {
 
   // Use metrics calls (excluding future) for KPI calculations
   const kpis = useDashboardKpis(filteredOpportunities, metricsCall);
-  
-  // Pass filtered opportunities, calls, and the new period parameters
-  const chartData = useDashboardChartData({
-    filteredOpportunities,
-    calls: metricsCall,
-    periodType,
-    dateRange,
-    selectedMonth // Mantener para compatibilidad con filtros legacy
-  });
   
   // Create custom lead sources from the persistent lead sources for backward compatibility
   const customLeadSources = leadSources.map(ls => ls.name);
@@ -226,12 +216,7 @@ export const Dashboard = () => {
       {/* Separador sutil entre secciones principales - Tarea 2.2 */}
       <div className="border-t border-zinc-200 pt-10">
         <DashboardCharts 
-          chartData={chartData} 
           leadSourceData={leadSourceData}
-          visibleMetrics={visibleMetrics}
-          setVisibleMetrics={setVisibleMetrics}
-          selectedPeriod={periodType}
-          onPeriodChange={setPeriodType}
         />
       </div>
 
