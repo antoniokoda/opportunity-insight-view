@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { Opportunity } from './useOpportunities';
 import { Call } from './useCalls';
@@ -24,20 +23,23 @@ export const useDashboardKpis = (filteredOpportunities: Opportunity[], calls: Ca
     
     const proposalsPitched = filteredOpportunities.filter(opp => opp.proposal_status === 'pitched').length;
 
-    // Calculate show-up rates - calls array already excludes future calls
-    const totalCallsForShowUp = calls.filter(call => call.attended !== null).length;
-    const attendedCalls = calls.filter(call => call.attended === true).length;
-    const overallShowUpRate = totalCallsForShowUp > 0 ? (attendedCalls / totalCallsForShowUp) * 100 : 0;
+    // Llamadas pasadas
+    const now = new Date();
+    const pastCalls = calls.filter(call => new Date(call.date) <= now);
 
-    // First discovery show-up rate
-    const firstDiscoveryCalls = calls.filter(call => 
-      call.type === 'Discovery 1' && call.attended !== null
+    // Tasa real de asistencia: (asistidas entre todas las pasadas)
+    const attendedPastCalls = pastCalls.filter(call => call.attended === true).length;
+    const overallShowUpRate = pastCalls.length > 0
+      ? (attendedPastCalls / pastCalls.length) * 100
+      : 0;
+
+    // First discovery show-up rate: solo para Discovery 1 pasadas
+    const firstDiscoveryPastCalls = pastCalls.filter(call =>
+      call.type === 'Discovery 1'
     );
-    const firstDiscoveryAttended = calls.filter(call => 
-      call.type === 'Discovery 1' && call.attended === true
-    );
-    const firstDiscoveryShowUpRate = firstDiscoveryCalls.length > 0 
-      ? (firstDiscoveryAttended.length / firstDiscoveryCalls.length) * 100 
+    const attendedFirstDiscoveryPast = firstDiscoveryPastCalls.filter(call => call.attended === true).length;
+    const firstDiscoveryShowUpRate = firstDiscoveryPastCalls.length > 0
+      ? (attendedFirstDiscoveryPast / firstDiscoveryPastCalls.length) * 100
       : 0;
 
     return {

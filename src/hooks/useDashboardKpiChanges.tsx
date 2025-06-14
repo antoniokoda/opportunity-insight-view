@@ -12,7 +12,6 @@ export const useDashboardKpiChanges = (
   selectedMonth: string
 ) => {
   return useMemo(() => {
-    // If showing all data, can't calculate previous period changes
     if (selectedMonth === 'all') {
       return {
         revenueChange: null,
@@ -25,12 +24,10 @@ export const useDashboardKpiChanges = (
       };
     }
 
-    // Calculate previous month
     const currentDate = new Date(selectedMonth + '-01');
     const previousDate = subMonths(currentDate, 1);
     const previousMonth = format(previousDate, 'yyyy-MM');
 
-    // Filter opportunities and calls for previous month
     const previousOpportunities = allOpportunities.filter(opp => {
       const oppMonth = format(new Date(opp.created_at), 'yyyy-MM');
       return oppMonth === previousMonth;
@@ -41,57 +38,68 @@ export const useDashboardKpiChanges = (
       return callMonth === previousMonth;
     });
 
-    // Calculate current metrics
+    // --- NUEVO: Filtrar llamadas pasadas en el mes actual y anterior ---
+    const now = new Date();
+
+    // Calls for the period and current filters (PAST calls only)
+    const currentPastCalls = currentFilteredCalls.filter(call => new Date(call.date) <= now);
+    const previousPastCalls = previousCalls.filter(call => new Date(call.date) <= now);
+
+    // Métricas actuales
     const currentRevenue = currentFilteredOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
     const currentCash = currentFilteredOpportunities.reduce((sum, opp) => sum + opp.cash_collected, 0);
     const currentCallsCount = currentFilteredCalls.length;
 
-    // Calculate current closing rate
+    // Cierre, deal size, etc, igual
     const currentWonOpportunities = currentFilteredOpportunities.filter(opp => opp.opportunity_status === 'won');
     const currentLostOpportunities = currentFilteredOpportunities.filter(opp => opp.opportunity_status === 'lost');
     const currentClosedOpportunities = currentWonOpportunities.length + currentLostOpportunities.length;
     const currentClosingRate = currentClosedOpportunities > 0 ? (currentWonOpportunities.length / currentClosedOpportunities) * 100 : 0;
 
-    // Calculate current average deal size
     const currentAverageDealSize = currentWonOpportunities.length > 0 
       ? currentWonOpportunities.reduce((sum, opp) => sum + opp.revenue, 0) / currentWonOpportunities.length
       : 0;
 
-    // Calculate current show-up rates
-    const currentCallsForShowUp = currentFilteredCalls.filter(call => call.attended !== null);
-    const currentAttendedCalls = currentFilteredCalls.filter(call => call.attended === true);
-    const currentShowUpRate = currentCallsForShowUp.length > 0 ? (currentAttendedCalls.length / currentCallsForShowUp.length) * 100 : 0;
+    // ---- Cambiar Show Up Rate ----
+    const attendedCurrentPast = currentPastCalls.filter(call => call.attended === true).length;
+    const currentShowUpRate = currentPastCalls.length > 0
+      ? (attendedCurrentPast / currentPastCalls.length) * 100
+      : 0;
 
-    const currentFirstDiscoveryCalls = currentFilteredCalls.filter(call => call.type === 'Discovery 1' && call.attended !== null);
-    const currentFirstDiscoveryAttended = currentFilteredCalls.filter(call => call.type === 'Discovery 1' && call.attended === true);
-    const currentFirstDiscoveryShowUpRate = currentFirstDiscoveryCalls.length > 0 ? (currentFirstDiscoveryAttended.length / currentFirstDiscoveryCalls.length) * 100 : 0;
+    // ---- Cambiar First Discovery Show Up Rate ----
+    const currentFirstDiscoveryPast = currentPastCalls.filter(call => call.type === 'Discovery 1');
+    const attendedCurrentFirstDiscovery = currentFirstDiscoveryPast.filter(call => call.attended === true).length;
+    const currentFirstDiscoveryShowUpRate = currentFirstDiscoveryPast.length > 0
+      ? (attendedCurrentFirstDiscovery / currentFirstDiscoveryPast.length) * 100
+      : 0;
 
-    // Calculate previous metrics
+    // --- Métricas anteriores ---
     const previousRevenue = previousOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
     const previousCash = previousOpportunities.reduce((sum, opp) => sum + opp.cash_collected, 0);
     const previousCallsCount = previousCalls.length;
 
-    // Calculate previous closing rate
     const previousWonOpportunities = previousOpportunities.filter(opp => opp.opportunity_status === 'won');
     const previousLostOpportunities = previousOpportunities.filter(opp => opp.opportunity_status === 'lost');
     const previousClosedOpportunities = previousWonOpportunities.length + previousLostOpportunities.length;
     const previousClosingRate = previousClosedOpportunities > 0 ? (previousWonOpportunities.length / previousClosedOpportunities) * 100 : 0;
 
-    // Calculate previous average deal size
     const previousAverageDealSize = previousWonOpportunities.length > 0 
       ? previousWonOpportunities.reduce((sum, opp) => sum + opp.revenue, 0) / previousWonOpportunities.length
       : 0;
 
-    // Calculate previous show-up rates
-    const previousCallsForShowUp = previousCalls.filter(call => call.attended !== null);
-    const previousAttendedCalls = previousCalls.filter(call => call.attended === true);
-    const previousShowUpRate = previousCallsForShowUp.length > 0 ? (previousAttendedCalls.length / previousCallsForShowUp.length) * 100 : 0;
+    // --- NUEVO para show up y discovery en mes anterior ---
+    const attendedPreviousPast = previousPastCalls.filter(call => call.attended === true).length;
+    const previousShowUpRate = previousPastCalls.length > 0
+      ? (attendedPreviousPast / previousPastCalls.length) * 100
+      : 0;
 
-    const previousFirstDiscoveryCalls = previousCalls.filter(call => call.type === 'Discovery 1' && call.attended !== null);
-    const previousFirstDiscoveryAttended = previousCalls.filter(call => call.type === 'Discovery 1' && call.attended === true);
-    const previousFirstDiscoveryShowUpRate = previousFirstDiscoveryCalls.length > 0 ? (previousFirstDiscoveryAttended.length / previousFirstDiscoveryCalls.length) * 100 : 0;
+    const previousFirstDiscoveryPast = previousPastCalls.filter(call => call.type === 'Discovery 1');
+    const attendedPreviousFirstDiscovery = previousFirstDiscoveryPast.filter(call => call.attended === true).length;
+    const previousFirstDiscoveryShowUpRate = previousFirstDiscoveryPast.length > 0
+      ? (attendedPreviousFirstDiscovery / previousFirstDiscoveryPast.length) * 100
+      : 0;
 
-    // Calculate percentage changes
+    // --- Cambios porcentuales (igual) ---
     const calculateChange = (current: number, previous: number) => {
       if (previous === 0) {
         return current > 0 ? 100 : 0;
@@ -110,3 +118,4 @@ export const useDashboardKpiChanges = (
     };
   }, [allOpportunities, allCalls, currentFilteredOpportunities, currentFilteredCalls, selectedMonth]);
 };
+
