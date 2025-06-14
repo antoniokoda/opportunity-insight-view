@@ -68,7 +68,7 @@ export const OpportunityFilesDialog: React.FC<OpportunityFilesDialogProps> = ({
             <input ref={fileInputRef} type="file" onChange={handleFileSelect} className="hidden" accept="*/*" />
             <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">Subir archivo</h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="mb-4 text-zinc-950">
               Haz clic para seleccionar un archivo
             </p>
             <Button onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
