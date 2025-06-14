@@ -62,7 +62,7 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
         let query = supabase
           .from('calls')
           .select('*')
-          .eq('user_id', user.id) // Filter by user_id to only get user's own calls
+          .eq('user_id', user.id)
           .order('date', { ascending: false });
 
         if (opportunityId) {
@@ -86,6 +86,17 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
           resultCount: data?.length || 0,
           data: data
         });
+
+        // Enhanced logging for link field verification
+        if (data) {
+          data.forEach(call => {
+            console.log(`🔍 CALL LINK DEBUG - Call ${call.id}:`, {
+              link: call.link,
+              linkType: typeof call.link,
+              linkLength: call.link ? call.link.length : 0
+            });
+          });
+        }
 
         return data as Call[];
       } catch (queryError) {
@@ -115,15 +126,24 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
       date: string;
       duration: number;
       attended?: boolean | null;
-      link?: string;
+      link?: string | null;
     }) => {
       if (!user) throw new Error('Usuario no autenticado');
-      // Input validation
+      
+      console.log('🔍 ADD CALL DEBUG: Starting add call mutation');
+      console.log('🔍 ADD CALL INPUT:', newCall);
+      console.log('🔍 ADD CALL LINK:', {
+        link: newCall.link,
+        linkType: typeof newCall.link,
+        linkLength: newCall.link ? newCall.link.length : 0
+      });
+
+      // Enhanced input validation
       if (
         !newCall.type ||
         !newCall.date ||
         isNaN(Number(newCall.duration)) ||
-        newCall.duration <= 0
+        newCall.duration < 0
       ) {
         throw new Error("Todos los campos de la llamada deben ser válidos.");
       }
@@ -140,26 +160,45 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
         ? (existingCalls[0] as any).number + 1 
         : 1;
 
+      // Prepare the data for insertion with explicit link handling
+      const insertData = {
+        opportunity_id: newCall.opportunity_id,
+        type: newCall.type,
+        date: newCall.date,
+        duration: newCall.duration,
+        number: nextNumber,
+        user_id: user.id,
+        attended: newCall.attended ?? null,
+        link: newCall.link || null, // Explicitly handle empty string as null
+      };
+
+      console.log('🔍 ADD CALL PREPARED DATA:', insertData);
+      console.log('🔍 ADD CALL LINK FINAL:', {
+        link: insertData.link,
+        linkType: typeof insertData.link
+      });
+
       const { data, error } = await supabase
         .from('calls')
-        .insert([{
-          ...newCall,
-          number: nextNumber,
-          user_id: user.id,
-          attended: newCall.attended ?? null,
-          link: newCall.link ?? null,
-        }])
+        .insert([insertData])
         .select()
         .single();
 
       if (error) {
-        if (import.meta.env.DEV) console.error('Error adding call:', error);
+        console.error('🔍 ADD CALL ERROR:', error);
         throw error;
       }
 
+      console.log('🔍 ADD CALL SUCCESS:', data);
+      console.log('🔍 ADD CALL RETURNED LINK:', {
+        link: data.link,
+        linkType: typeof data.link
+      });
+
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('🔍 ADD CALL SUCCESS CALLBACK:', data);
       queryClient.invalidateQueries({ queryKey: ['calls'] });
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
       toast({
@@ -168,7 +207,7 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
       });
     },
     onError: (error: any) => {
-      if (import.meta.env.DEV) console.error('Error adding call:', error);
+      console.error('🔍 ADD CALL ERROR CALLBACK:', error);
       toast({
         title: 'Error',
         description: sanitizeError(error),
@@ -190,21 +229,44 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
     }) => {
       if (!user) throw new Error('Usuario no autenticado');
 
+      console.log('🔍 UPDATE CALL DEBUG: Starting update call mutation');
+      console.log('🔍 UPDATE CALL INPUT:', callData);
+      console.log('🔍 UPDATE CALL LINK:', {
+        link: callData.updates.link,
+        linkType: typeof callData.updates.link
+      });
+
+      // Process updates with explicit link handling
+      const processedUpdates = { ...callData.updates };
+      if ('link' in processedUpdates) {
+        // Convert empty string to null for database
+        processedUpdates.link = processedUpdates.link || null;
+      }
+
+      console.log('🔍 UPDATE CALL PROCESSED:', processedUpdates);
+
       const { data, error } = await supabase
         .from('calls')
-        .update(callData.updates)
+        .update(processedUpdates)
         .eq('id', callData.id)
         .select()
         .single();
 
       if (error) {
-        if (import.meta.env.DEV) console.error('Error updating call:', error);
+        console.error('🔍 UPDATE CALL ERROR:', error);
         throw error;
       }
 
+      console.log('🔍 UPDATE CALL SUCCESS:', data);
+      console.log('🔍 UPDATE CALL RETURNED LINK:', {
+        link: data.link,
+        linkType: typeof data.link
+      });
+
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('🔍 UPDATE CALL SUCCESS CALLBACK:', data);
       queryClient.invalidateQueries({ queryKey: ['calls'] });
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
       toast({
@@ -213,7 +275,7 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
       });
     },
     onError: (error: any) => {
-      if (import.meta.env.DEV) console.error('Error updating call:', error);
+      console.error('🔍 UPDATE CALL ERROR CALLBACK:', error);
       toast({
         title: 'Error',
         description: sanitizeError(error),

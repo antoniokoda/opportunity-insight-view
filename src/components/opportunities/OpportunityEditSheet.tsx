@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -26,7 +25,6 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
   isOpen,
   onClose,
 }) => {
-  // PASO 1: Logging detallado de props recibidas
   console.log('=== OpportunityEditSheet RENDER ===');
   console.log('isOpen:', isOpen);
   console.log('opportunity:', opportunity);
@@ -49,17 +47,17 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
   const [showAddCall, setShowAddCall] = useState(false);
   const [editingCall, setEditingCall] = useState<Call | null>(null);
   
-  // PASO 2: Eliminar tiempo predeterminado - cambiar de '30' a ''
+  // Mejorar estado inicial para nuevas llamadas
   const initialNewCallState = {
     type: 'Discovery 1' as CallType,
     date: new Date().toISOString().slice(0, 16),
-    duration: '', // Cambio: eliminar valor por defecto de '30'
+    duration: '',
     attended: false,
-    link: '',
+    link: '', // Asegurar que siempre sea string vacío
   };
   const [newCall, setNewCall] = useState(initialNewCallState);
 
-  // PASO 1: useEffect para monitorear cambios en props críticas
+  // ... keep existing code (useEffect hooks)
   React.useEffect(() => {
     console.log('=== OpportunityEditSheet PROPS CHANGE ===');
     console.log('isOpen changed to:', isOpen);
@@ -89,18 +87,22 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
 
   React.useEffect(() => {
     if (editingCall) {
-        setNewCall({
-            type: editingCall.type,
-            date: format(new Date(editingCall.date), "yyyy-MM-dd'T'HH:mm"),
-            // PASO 2: Solo mostrar duración si existe, sino cadena vacía
-            duration: editingCall.duration ? editingCall.duration.toString() : '',
-            attended: !!editingCall.attended,
-            link: editingCall.link || '',
-        });
-        setShowAddCall(true);
+      console.log('=== Setting up call for editing ===');
+      console.log('Editing call:', editingCall);
+      console.log('Editing call link:', editingCall.link);
+      
+      setNewCall({
+        type: editingCall.type,
+        date: format(new Date(editingCall.date), "yyyy-MM-dd'T'HH:mm"),
+        duration: editingCall.duration ? editingCall.duration.toString() : '',
+        attended: !!editingCall.attended,
+        link: editingCall.link || '', // Asegurar que nunca sea null/undefined
+      });
+      setShowAddCall(true);
     }
   }, [editingCall]);
 
+  // ... keep existing code (handleSave function)
   const handleSave = useCallback(() => {
     if (!opportunity) return;
     
@@ -116,29 +118,46 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
     });
   }, [opportunity, editData, updateOpportunity]);
 
+  // Mejorar la lógica de guardado de llamadas con mejor logging
   const handleSaveCall = useCallback(() => {
     if (!opportunity) return;
 
-    // PASO 3: Solo incluir duración si el usuario realmente ingresó un valor
+    console.log('=== handleSaveCall STARTED ===');
+    console.log('Current newCall state:', newCall);
+    console.log('Link value before processing:', newCall.link);
+    console.log('Is editing existing call:', !!editingCall);
+
+    // Preparar payload con mejor manejo de campos opcionales
     const callPayload: any = {
       type: newCall.type,
       date: new Date(newCall.date).toISOString(),
       attended: newCall.attended,
-      link: newCall.link || undefined,
     };
 
-    // Solo agregar duration si tiene valor
+    // Manejar duración (solo incluir si tiene valor)
     if (newCall.duration && newCall.duration.trim() !== '') {
       callPayload.duration = parseInt(newCall.duration) || 0;
+    } else {
+      // Para nuevas llamadas, usar 0 si no hay duración
+      callPayload.duration = 0;
     }
 
+    // Manejar enlace correctamente - CRÍTICO para el fix
+    if (newCall.link && newCall.link.trim() !== '') {
+      callPayload.link = newCall.link.trim();
+      console.log('Including link in payload:', callPayload.link);
+    } else {
+      callPayload.link = null; // Explícitamente null para vacío
+      console.log('Setting link to null (empty)');
+    }
+
+    console.log('Final call payload:', callPayload);
+
     if (editingCall) {
+      console.log('Updating existing call with ID:', editingCall.id);
       updateCall({ id: editingCall.id, updates: callPayload });
     } else {
-      // Para nuevas llamadas, si no hay duración, usar un valor por defecto mínimo
-      if (!callPayload.duration) {
-        callPayload.duration = 0;
-      }
+      console.log('Creating new call for opportunity:', opportunity.id);
       addCall({
         opportunity_id: opportunity.id,
         ...callPayload,
@@ -148,6 +167,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
     handleCancelEdit();
   }, [opportunity, newCall, editingCall, updateCall, addCall]);
 
+  // ... keep existing code (remaining callback functions)
   const handleCancelEdit = useCallback(() => {
     setShowAddCall(false);
     setEditingCall(null);
@@ -178,7 +198,6 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
     });
   }, [opportunity, updateOpportunity]);
 
-  // PASO 1: Verificar que el Sheet está usando correctamente la prop open
   console.log('=== Sheet render with open prop ===');
   console.log('Sheet open prop:', isOpen);
 
