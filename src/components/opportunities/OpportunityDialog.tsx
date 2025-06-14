@@ -61,13 +61,16 @@ export const OpportunityDialog: React.FC<OpportunityDialogProps> = ({
         cash_collected: '',
       });
       
-      // Close dialog immediately
+      // Close dialog first
       onClose();
       
-      // Call the onCreated callback to open the edit sheet
+      // Then immediately open edit sheet with the created opportunity
       if (onCreated && createdOpportunity) {
-        console.log('Llamando onCreated callback...');
-        onCreated(createdOpportunity);
+        console.log('Llamando onCreated callback con:', createdOpportunity);
+        // Use setTimeout to ensure the dialog closes first
+        setTimeout(() => {
+          onCreated(createdOpportunity);
+        }, 100);
       }
     } catch (error) {
       console.error('Error al crear oportunidad:', error);

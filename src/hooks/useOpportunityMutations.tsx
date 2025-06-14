@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -34,7 +33,7 @@ export const useOpportunityMutations = () => {
         throw new Error("Todos los campos son requeridos y deben ser válidos.");
       }
 
-      console.log('Insertando oportunidad en la base de datos...');
+      console.log('Insertando oportunidad en la base de datos...', newOpportunity);
       const { data, error } = await supabase
         .from('opportunities')
         .insert([{
@@ -58,7 +57,7 @@ export const useOpportunityMutations = () => {
         .single();
 
       if (error) {
-        if (import.meta.env.DEV) console.error('Error adding opportunity:', error);
+        console.error('Error adding opportunity:', error);
         throw error;
       }
       
@@ -66,15 +65,20 @@ export const useOpportunityMutations = () => {
       return data as Opportunity;
     },
     onSuccess: (data) => {
-      console.log('Invalidando queries...');
-      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      console.log('Mutation success, invalidating queries and showing toast');
+      // Don't invalidate queries immediately, let the component handle the new data
+      // We'll do a delayed invalidation to refresh the list
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      }, 1000);
+      
       toast({
         title: 'Oportunidad agregada',
         description: 'La oportunidad ha sido agregada exitosamente.',
       });
     },
     onError: (error: any) => {
-      if (import.meta.env.DEV) console.error('Error adding opportunity:', error);
+      console.error('Error adding opportunity:', error);
       toast({
         title: 'Error',
         description: sanitizeError(error),

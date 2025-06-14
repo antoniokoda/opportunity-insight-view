@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useOpportunities } from '@/hooks/useOpportunities';
@@ -35,11 +34,17 @@ export const Opportunities = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleOpportunityCreated = (createdOpportunity: Opportunity) => {
-    console.log('Opportunity created, opening edit sheet:', createdOpportunity);
-    setEditingOpportunity({
+    console.log('handleOpportunityCreated called with:', createdOpportunity);
+    console.log('Setting editing opportunity to:', createdOpportunity);
+    
+    // Ensure the opportunity has the calls array
+    const opportunityWithCalls = {
       ...createdOpportunity,
       calls: createdOpportunity.calls ?? [],
-    });
+    };
+    
+    setEditingOpportunity(opportunityWithCalls);
+    console.log('Edit sheet should now be open with opportunity:', opportunityWithCalls);
   };
 
   useEffect(() => {
