@@ -49,10 +49,11 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
   const [showAddCall, setShowAddCall] = useState(false);
   const [editingCall, setEditingCall] = useState<Call | null>(null);
   
+  // PASO 2: Eliminar tiempo predeterminado - cambiar de '30' a ''
   const initialNewCallState = {
     type: 'Discovery 1' as CallType,
     date: new Date().toISOString().slice(0, 16),
-    duration: '30',
+    duration: '', // Cambio: eliminar valor por defecto de '30'
     attended: false,
     link: '',
   };
@@ -91,7 +92,8 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
         setNewCall({
             type: editingCall.type,
             date: format(new Date(editingCall.date), "yyyy-MM-dd'T'HH:mm"),
-            duration: editingCall.duration.toString(),
+            // PASO 2: Solo mostrar duración si existe, sino cadena vacía
+            duration: editingCall.duration ? editingCall.duration.toString() : '',
             attended: !!editingCall.attended,
             link: editingCall.link || '',
         });
@@ -117,17 +119,26 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
   const handleSaveCall = useCallback(() => {
     if (!opportunity) return;
 
-    const callPayload = {
+    // PASO 3: Solo incluir duración si el usuario realmente ingresó un valor
+    const callPayload: any = {
       type: newCall.type,
       date: new Date(newCall.date).toISOString(),
-      duration: parseInt(newCall.duration) || 30,
       attended: newCall.attended,
       link: newCall.link || undefined,
     };
 
+    // Solo agregar duration si tiene valor
+    if (newCall.duration && newCall.duration.trim() !== '') {
+      callPayload.duration = parseInt(newCall.duration) || 0;
+    }
+
     if (editingCall) {
       updateCall({ id: editingCall.id, updates: callPayload });
     } else {
+      // Para nuevas llamadas, si no hay duración, usar un valor por defecto mínimo
+      if (!callPayload.duration) {
+        callPayload.duration = 0;
+      }
       addCall({
         opportunity_id: opportunity.id,
         ...callPayload,

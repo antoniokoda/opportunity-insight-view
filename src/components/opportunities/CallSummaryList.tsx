@@ -28,6 +28,12 @@ export const CallSummaryList: React.FC<CallSummaryListProps> = ({ calls }) => {
               <Badge variant="outline" className={getCallTypeColor(call.type)}>
                 {call.type}
               </Badge>
+              {/* PASO 4: Solo mostrar duración si existe y es mayor que 0 */}
+              {call.duration && call.duration > 0 && (
+                <Badge variant="outline" className="text-zinc-600">
+                  {call.duration}min
+                </Badge>
+              )}
               {call.attended === false && isCallInThePast(call.date) && (
                 <Badge variant="not-attended">No asistió</Badge>
               )}
