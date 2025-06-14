@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { Opportunity } from './useOpportunities';
 import { Call } from './useCalls';
 
-export const useDashboardKpis = (filteredOpportunities: Opportunity[], calls: Call[]) => {
+export const useDashboardKpis = (filteredOpportunities: Opportunity[], filteredCalls: Call[]) => {
   return useMemo(() => {
     // Facturación REAL: solo oportunidades ganadas (won)
     const wonOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'won');
@@ -13,7 +13,7 @@ export const useDashboardKpis = (filteredOpportunities: Opportunity[], calls: Ca
     const potentialRevenue = filteredOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
 
     const totalCash = filteredOpportunities.reduce((sum, opp) => sum + opp.cash_collected, 0);
-    const totalCalls = calls.length;
+    const totalCalls = filteredCalls.length;
     // Oportunidades activas: solo cantidad, sigue igual
     const activeOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'active').length;
 
@@ -30,18 +30,18 @@ export const useDashboardKpis = (filteredOpportunities: Opportunity[], calls: Ca
     
     const proposalsPitched = filteredOpportunities.filter(opp => opp.proposal_status === 'pitched').length;
 
-    // Usar solo llamadas PASADAS
+    // Usar solo llamadas PASADAS filtradas
     const now = new Date();
-    const pastCalls = calls.filter(call => new Date(call.date) <= now);
+    const pastFilteredCalls = filteredCalls.filter(call => new Date(call.date) <= now);
 
-    // Tasa real de asistencia: (asistidas entre todas las pasadas)
-    const attendedPastCalls = pastCalls.filter(call => call.attended === true).length;
-    const overallShowUpRate = pastCalls.length > 0
-      ? (attendedPastCalls / pastCalls.length) * 100
+    // Tasa real de asistencia: (asistidas entre todas las pasadas filtradas)
+    const attendedPastCalls = pastFilteredCalls.filter(call => call.attended === true).length;
+    const overallShowUpRate = pastFilteredCalls.length > 0
+      ? (attendedPastCalls / pastFilteredCalls.length) * 100
       : 0;
 
-    // First discovery show-up rate: solo para Discovery 1 PASADAS
-    const firstDiscoveryPastCalls = pastCalls.filter(call =>
+    // First discovery show-up rate: solo para Discovery 1 PASADAS filtradas
+    const firstDiscoveryPastCalls = pastFilteredCalls.filter(call =>
       call.type === 'Discovery 1'
     );
     const attendedFirstDiscoveryPast = firstDiscoveryPastCalls.filter(call => call.attended === true).length;
@@ -61,6 +61,5 @@ export const useDashboardKpis = (filteredOpportunities: Opportunity[], calls: Ca
       overallShowUpRate,
       firstDiscoveryShowUpRate,
     };
-  }, [filteredOpportunities, calls]);
+  }, [filteredOpportunities, filteredCalls]);
 };
-

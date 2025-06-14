@@ -77,7 +77,7 @@ export const Dashboard = () => {
   // Nuevo hook para manejar período y rango de fechas
   const { periodType, setPeriodType, dateRange, setDateRange } = usePeriodFilter();
 
-  // Use all calls for filtering but metrics calls for KPI calculations
+  // Use the updated dashboard filters hook that returns both filtered opportunities and calls
   const {
     selectedSalesperson,
     setSelectedSalesperson,
@@ -87,45 +87,28 @@ export const Dashboard = () => {
     setSelectedLeadSource,
     availableMonths,
     filteredOpportunities,
+    filteredCalls, // NEW: Get filtered calls from the hook
   } = useDashboardFilters(opportunities, allCalls);
 
-  // Use metrics calls (excluding future) for KPI calculations
-  const kpis = useDashboardKpis(filteredOpportunities, metricsCall);
+  // Use filtered calls for KPI calculations
+  const kpis = useDashboardKpis(filteredOpportunities, filteredCalls);
   
   // Create custom lead sources from the persistent lead sources for backward compatibility
   const customLeadSources = leadSources.map(ls => ls.name);
   const leadSourceData = useLeadSourceData(filteredOpportunities, customLeadSources);
   
   // Get detailed call metrics for the filtered calls
-  const filteredCalls = metricsCall.filter(call => {
-    // Apply the same filters as opportunities
-    const opportunity = opportunities.find(opp => opp.id === call.opportunity_id);
-    if (!opportunity) return false;
-    
-    if (selectedSalesperson !== 'all' && opportunity.salesperson_id !== parseInt(selectedSalesperson)) {
-      return false;
-    }
-    if (selectedLeadSource !== 'all' && opportunity.lead_source !== selectedLeadSource) {
-      return false;
-    }
-    if (selectedMonth !== 'all') {
-      const callMonth = new Date(call.date).toISOString().slice(0, 7);
-      if (callMonth !== selectedMonth) {
-        return false;
-      }
-    }
-    return true;
-  });
-  
   const detailedCallMetrics = useDetailedCallMetrics(filteredCalls);
 
-  // Add the new KPI changes hook
+  // Updated KPI changes hook with additional filter parameters
   const kpiChanges = useDashboardKpiChanges(
     opportunities, 
     allCalls, 
     filteredOpportunities, 
-    filteredCalls, 
-    selectedMonth
+    filteredCalls,
+    selectedMonth,
+    selectedSalesperson,
+    selectedLeadSource
   );
 
   // Debug logging for filtered data

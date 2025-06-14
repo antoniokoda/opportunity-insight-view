@@ -9,7 +9,9 @@ export const useDashboardKpiChanges = (
   allCalls: Call[], 
   currentFilteredOpportunities: Opportunity[],
   currentFilteredCalls: Call[],
-  selectedMonth: string
+  selectedMonth: string,
+  selectedSalesperson: string,
+  selectedLeadSource: string
 ) => {
   return useMemo(() => {
     if (selectedMonth === 'all') {
@@ -28,29 +30,48 @@ export const useDashboardKpiChanges = (
     const previousDate = subMonths(currentDate, 1);
     const previousMonth = format(previousDate, 'yyyy-MM');
 
+    // Filter previous month opportunities with same filters (except month)
     const previousOpportunities = allOpportunities.filter(opp => {
       const oppMonth = format(new Date(opp.created_at), 'yyyy-MM');
-      return oppMonth === previousMonth;
+      if (oppMonth !== previousMonth) return false;
+      
+      if (selectedSalesperson !== 'all' && opp.salesperson_id !== parseInt(selectedSalesperson)) {
+        return false;
+      }
+      if (selectedLeadSource !== 'all' && opp.lead_source !== selectedLeadSource) {
+        return false;
+      }
+      return true;
     });
 
+    // Filter previous month calls with same filters (except month)
     const previousCalls = allCalls.filter(call => {
       const callMonth = format(new Date(call.date), 'yyyy-MM');
-      return callMonth === previousMonth;
+      if (callMonth !== previousMonth) return false;
+      
+      // Find the opportunity for this call to apply filters
+      const opportunity = allOpportunities.find(opp => opp.id === call.opportunity_id);
+      if (!opportunity) return false;
+      
+      if (selectedSalesperson !== 'all' && opportunity.salesperson_id !== parseInt(selectedSalesperson)) {
+        return false;
+      }
+      if (selectedLeadSource !== 'all' && opportunity.lead_source !== selectedLeadSource) {
+        return false;
+      }
+      return true;
     });
 
-    // --- NUEVO: Filtrar llamadas pasadas en el mes actual y anterior ---
+    // Filter past calls for metrics
     const now = new Date();
-
-    // Calls for the period and current filters (PAST calls only)
     const currentPastCalls = currentFilteredCalls.filter(call => new Date(call.date) <= now);
     const previousPastCalls = previousCalls.filter(call => new Date(call.date) <= now);
 
-    // Métricas actuales
+    // Current metrics
     const currentRevenue = currentFilteredOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
     const currentCash = currentFilteredOpportunities.reduce((sum, opp) => sum + opp.cash_collected, 0);
     const currentCallsCount = currentFilteredCalls.length;
 
-    // Cierre, deal size, etc, igual
     const currentWonOpportunities = currentFilteredOpportunities.filter(opp => opp.opportunity_status === 'won');
     const currentLostOpportunities = currentFilteredOpportunities.filter(opp => opp.opportunity_status === 'lost');
     const currentClosedOpportunities = currentWonOpportunities.length + currentLostOpportunities.length;
@@ -60,20 +81,18 @@ export const useDashboardKpiChanges = (
       ? currentWonOpportunities.reduce((sum, opp) => sum + opp.revenue, 0) / currentWonOpportunities.length
       : 0;
 
-    // ---- Cambiar Show Up Rate ----
     const attendedCurrentPast = currentPastCalls.filter(call => call.attended === true).length;
     const currentShowUpRate = currentPastCalls.length > 0
       ? (attendedCurrentPast / currentPastCalls.length) * 100
       : 0;
 
-    // ---- Cambiar First Discovery Show Up Rate ----
     const currentFirstDiscoveryPast = currentPastCalls.filter(call => call.type === 'Discovery 1');
     const attendedCurrentFirstDiscovery = currentFirstDiscoveryPast.filter(call => call.attended === true).length;
     const currentFirstDiscoveryShowUpRate = currentFirstDiscoveryPast.length > 0
       ? (attendedCurrentFirstDiscovery / currentFirstDiscoveryPast.length) * 100
       : 0;
 
-    // --- Métricas anteriores ---
+    // Previous metrics
     const previousRevenue = previousOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
     const previousCash = previousOpportunities.reduce((sum, opp) => sum + opp.cash_collected, 0);
     const previousCallsCount = previousCalls.length;
@@ -87,7 +106,6 @@ export const useDashboardKpiChanges = (
       ? previousWonOpportunities.reduce((sum, opp) => sum + opp.revenue, 0) / previousWonOpportunities.length
       : 0;
 
-    // --- NUEVO para show up y discovery en mes anterior ---
     const attendedPreviousPast = previousPastCalls.filter(call => call.attended === true).length;
     const previousShowUpRate = previousPastCalls.length > 0
       ? (attendedPreviousPast / previousPastCalls.length) * 100
@@ -99,7 +117,6 @@ export const useDashboardKpiChanges = (
       ? (attendedPreviousFirstDiscovery / previousFirstDiscoveryPast.length) * 100
       : 0;
 
-    // --- Cambios porcentuales (igual) ---
     const calculateChange = (current: number, previous: number) => {
       if (previous === 0) {
         return current > 0 ? 100 : 0;
@@ -116,6 +133,5 @@ export const useDashboardKpiChanges = (
       showUpRateChange: calculateChange(currentShowUpRate, previousShowUpRate),
       firstDiscoveryShowUpRateChange: calculateChange(currentFirstDiscoveryShowUpRate, previousFirstDiscoveryShowUpRate),
     };
-  }, [allOpportunities, allCalls, currentFilteredOpportunities, currentFilteredCalls, selectedMonth]);
+  }, [allOpportunities, allCalls, currentFilteredOpportunities, currentFilteredCalls, selectedMonth, selectedSalesperson, selectedLeadSource]);
 };
-

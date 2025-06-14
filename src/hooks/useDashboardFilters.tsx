@@ -55,6 +55,29 @@ export const useDashboardFilters = (opportunities: Opportunity[], calls: Call[])
     });
   }, [opportunities, selectedSalesperson, selectedLeadSource, selectedMonth]);
 
+  // NEW: Add filtered calls logic
+  const filteredCalls = useMemo(() => {
+    return calls.filter(call => {
+      // Find the opportunity for this call to apply salesperson and lead source filters
+      const opportunity = opportunities.find(opp => opp.id === call.opportunity_id);
+      if (!opportunity) return false;
+      
+      if (selectedSalesperson !== 'all' && opportunity.salesperson_id !== parseInt(selectedSalesperson)) {
+        return false;
+      }
+      if (selectedLeadSource !== 'all' && opportunity.lead_source !== selectedLeadSource) {
+        return false;
+      }
+      if (selectedMonth !== 'all') {
+        const callMonth = format(new Date(call.date), 'yyyy-MM');
+        if (callMonth !== selectedMonth) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [calls, opportunities, selectedSalesperson, selectedLeadSource, selectedMonth]);
+
   return {
     selectedSalesperson,
     setSelectedSalesperson,
@@ -64,5 +87,6 @@ export const useDashboardFilters = (opportunities: Opportunity[], calls: Call[])
     setSelectedLeadSource,
     availableMonths,
     filteredOpportunities,
+    filteredCalls, // NEW: Return filtered calls
   };
 };
