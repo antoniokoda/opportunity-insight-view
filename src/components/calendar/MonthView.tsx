@@ -1,5 +1,4 @@
 
-```tsx
 import React from 'react';
 import { format, isSameMonth, isToday } from 'date-fns';
 import type { Call } from '@/hooks/useCalls';
@@ -78,4 +77,3 @@ export const MonthView: React.FC<MonthViewProps> = ({
     </div>
   );
 };
-```
