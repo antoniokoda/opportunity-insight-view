@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +22,6 @@ export const useLeadSourcesWithPersistence = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      console.log('Fetching lead sources for user:', user.id);
       const { data, error } = await supabase
         .from('lead_sources')
         .select('*')
@@ -34,7 +32,6 @@ export const useLeadSourcesWithPersistence = () => {
         throw error;
       }
 
-      console.log('Fetched lead sources:', data);
       return data as LeadSource[];
     },
     enabled: !!user,
@@ -44,6 +41,9 @@ export const useLeadSourcesWithPersistence = () => {
   const addLeadSource = useMutation({
     mutationFn: async (name: string) => {
       if (!user) throw new Error('User not authenticated');
+      if (!name.trim()) {
+        throw new Error('Lead source name is required.');
+      }
 
       console.log('Adding lead source:', name);
       const { data, error } = await supabase
@@ -74,7 +74,7 @@ export const useLeadSourcesWithPersistence = () => {
       console.error('Error adding lead source:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo agregar la fuente de lead.',
+        description: error.message || 'No se pudo agregar la fuente de lead.',
         variant: 'destructive',
       });
     },
@@ -84,6 +84,9 @@ export const useLeadSourcesWithPersistence = () => {
   const updateLeadSource = useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
       if (!user) throw new Error('User not authenticated');
+      if (!name.trim()) {
+        throw new Error('Lead source name cannot be empty.');
+      }
 
       console.log('Updating lead source:', { id, name });
       const { data, error } = await supabase
@@ -112,7 +115,7 @@ export const useLeadSourcesWithPersistence = () => {
       console.error('Error updating lead source:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo actualizar la fuente de lead.',
+        description: error.message || 'No se pudo actualizar la fuente de lead.',
         variant: 'destructive',
       });
     },
@@ -122,8 +125,6 @@ export const useLeadSourcesWithPersistence = () => {
   const deleteLeadSource = useMutation({
     mutationFn: async (id: string) => {
       if (!user) throw new Error('User not authenticated');
-
-      console.log('Deleting lead source with ID:', id);
       
       // First get the lead source to know its name
       const { data: leadSourceData, error: fetchError } = await supabase
@@ -136,13 +137,11 @@ export const useLeadSourcesWithPersistence = () => {
         console.error('Error fetching lead source:', fetchError);
         throw new Error('No se pudo encontrar la fuente de lead');
       }
-
-      console.log('Lead source found:', leadSourceData);
       
       // Check for opportunities using this lead source
       const { data: opportunities, error: oppError } = await supabase
         .from('opportunities')
-        .select('id, name')
+        .select('id')
         .eq('lead_source', leadSourceData.name);
 
       if (oppError) {
@@ -161,8 +160,6 @@ export const useLeadSourcesWithPersistence = () => {
           console.error('Error updating opportunities:', updateError);
           throw new Error('No se pudieron actualizar las oportunidades asociadas');
         }
-
-        console.log(`Updated ${opportunities.length} opportunities to use generic lead source`);
       }
 
       // Delete the lead source
@@ -176,7 +173,6 @@ export const useLeadSourcesWithPersistence = () => {
         throw error;
       }
 
-      console.log('Successfully deleted lead source:', id);
       return { id, affectedOpportunities: opportunities?.length || 0 };
     },
     onSuccess: ({ id, affectedOpportunities }) => {

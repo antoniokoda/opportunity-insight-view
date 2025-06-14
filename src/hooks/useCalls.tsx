@@ -29,7 +29,6 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
     queryFn: async () => {
       if (!user) return [];
       
-      console.log('Fetching calls for user:', user.id, 'opportunity:', opportunityId, 'excludeFuture:', excludeFutureCalls);
       let query = supabase
         .from('calls')
         .select('*')
@@ -51,7 +50,6 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
         throw error;
       }
 
-      console.log('Fetched calls:', data);
       return data as Call[];
     },
     enabled: !!user,
@@ -68,6 +66,13 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
     }) => {
       if (!user) throw new Error('User not authenticated');
 
+      if (!newCall.type || !newCall.date) {
+        throw new Error("Call type and date are required.");
+      }
+      if (newCall.duration <= 0) {
+        throw new Error("Duration must be a positive number.");
+      }
+
       // Get the next call number for this opportunity
       const { data: existingCalls } = await supabase
         .from('calls')
@@ -80,7 +85,6 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
         ? (existingCalls[0] as any).number + 1 
         : 1;
 
-      console.log('Adding call:', { ...newCall, number: nextNumber });
       const { data, error } = await supabase
         .from('calls')
         .insert([{
@@ -98,7 +102,6 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
         throw error;
       }
 
-      console.log('Added call:', data);
       return data;
     },
     onSuccess: () => {
@@ -113,7 +116,7 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
       console.error('Error adding call:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo agregar la llamada.',
+        description: error.message || 'No se pudo agregar la llamada.',
         variant: 'destructive',
       });
     },

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -26,7 +25,6 @@ export const useOpportunityNotes = (opportunityId: number) => {
     queryFn: async () => {
       if (!user) return [];
       
-      console.log('Fetching notes for opportunity:', opportunityId);
       const { data, error } = await supabase
         .from('opportunity_notes_with_users')
         .select('*')
@@ -38,7 +36,6 @@ export const useOpportunityNotes = (opportunityId: number) => {
         throw error;
       }
 
-      console.log('Fetched opportunity notes:', data);
       return data as OpportunityNote[];
     },
     enabled: !!user && !!opportunityId,
@@ -47,6 +44,9 @@ export const useOpportunityNotes = (opportunityId: number) => {
   const addNote = useMutation({
     mutationFn: async (noteData: { title: string; content: string }) => {
       if (!user) throw new Error('User not authenticated');
+      if (!noteData.title.trim()) {
+        throw new Error("Note title is required.");
+      }
 
       console.log('Adding note:', noteData);
       const { data, error } = await supabase
@@ -79,7 +79,7 @@ export const useOpportunityNotes = (opportunityId: number) => {
       console.error('Error adding note:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo enviar el mensaje.',
+        description: error.message || 'No se pudo enviar el mensaje.',
         variant: 'destructive',
       });
     },
@@ -88,6 +88,9 @@ export const useOpportunityNotes = (opportunityId: number) => {
   const updateNote = useMutation({
     mutationFn: async (noteData: { id: string; title: string; content: string }) => {
       if (!user) throw new Error('User not authenticated');
+      if (!noteData.title.trim()) {
+        throw new Error("Note title cannot be empty.");
+      }
 
       console.log('Updating note:', noteData);
       const { data, error } = await supabase
@@ -121,7 +124,7 @@ export const useOpportunityNotes = (opportunityId: number) => {
       console.error('Error updating note:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo actualizar el mensaje.',
+        description: error.message || 'No se pudo actualizar el mensaje.',
         variant: 'destructive',
       });
     },
@@ -142,8 +145,6 @@ export const useOpportunityNotes = (opportunityId: number) => {
         console.error('Error deleting note:', error);
         throw error;
       }
-
-      console.log('Note deleted successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunity-notes', opportunityId] });

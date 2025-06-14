@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,8 +42,13 @@ export const useSalespeople = () => {
   const addSalesperson = useMutation({
     mutationFn: async (newSalesperson: { name: string; email: string }) => {
       if (!user) throw new Error('User not authenticated');
+      if (!newSalesperson.name.trim() || !newSalesperson.email.trim()) {
+        throw new Error('Name and email are required.');
+      }
+      if (!/^\S+@\S+\.\S+$/.test(newSalesperson.email)) {
+        throw new Error('Invalid email format.');
+      }
 
-      console.log('Adding salesperson:', newSalesperson);
       const { data, error } = await supabase
         .from('salespeople')
         .insert([{
@@ -73,7 +77,7 @@ export const useSalespeople = () => {
       console.error('Error adding salesperson:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo agregar el vendedor.',
+        description: error.message || 'No se pudo agregar el vendedor.',
         variant: 'destructive',
       });
     },
@@ -82,8 +86,13 @@ export const useSalespeople = () => {
   const updateSalesperson = useMutation({
     mutationFn: async ({ id, name, email }: { id: number; name: string; email: string }) => {
       if (!user) throw new Error('User not authenticated');
+      if (!name.trim() || !email.trim()) {
+        throw new Error('Name and email cannot be empty.');
+      }
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        throw new Error('Invalid email format.');
+      }
 
-      console.log('Updating salesperson:', { id, name, email });
       const { data, error } = await supabase
         .from('salespeople')
         .update({ name, email })
@@ -110,7 +119,7 @@ export const useSalespeople = () => {
       console.error('Error updating salesperson:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo actualizar el vendedor.',
+        description: error.message || 'No se pudo actualizar el vendedor.',
         variant: 'destructive',
       });
     },
@@ -119,8 +128,6 @@ export const useSalespeople = () => {
   const deleteSalesperson = useMutation({
     mutationFn: async (id: number) => {
       if (!user) throw new Error('User not authenticated');
-
-      console.log('Deleting salesperson with ID:', id);
       
       try {
         // Check for opportunities assigned to this salesperson

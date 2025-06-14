@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -29,7 +28,6 @@ export const useOpportunities = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      console.log('Fetching opportunities for user:', user.id);
       const { data, error } = await supabase
         .from('opportunities')
         .select(`
@@ -53,7 +51,6 @@ export const useOpportunities = () => {
         throw error;
       }
 
-      console.log('Fetched opportunities:', data);
       return data as Opportunity[];
     },
     enabled: !!user,
@@ -69,7 +66,10 @@ export const useOpportunities = () => {
     }) => {
       if (!user) throw new Error('User not authenticated');
 
-      console.log('Adding opportunity:', newOpportunity);
+      if (!newOpportunity.name.trim() || !newOpportunity.lead_source.trim()) {
+        throw new Error("Opportunity name and lead source are required.");
+      }
+
       const { data, error } = await supabase
         .from('opportunities')
         .insert([{
@@ -84,7 +84,6 @@ export const useOpportunities = () => {
         throw error;
       }
 
-      console.log('Added opportunity:', data);
       return data;
     },
     onSuccess: () => {
@@ -98,7 +97,7 @@ export const useOpportunities = () => {
       console.error('Error adding opportunity:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo agregar la oportunidad.',
+        description: error.message || 'No se pudo agregar la oportunidad.',
         variant: 'destructive',
       });
     },
@@ -109,7 +108,13 @@ export const useOpportunities = () => {
       id: number; 
       updates: Partial<Omit<Opportunity, 'id' | 'user_id' | 'created_at' | 'calls'>>
     }) => {
-      console.log('Updating opportunity:', id, updates);
+      if (updates.name !== undefined && !updates.name.trim()) {
+        throw new Error("Opportunity name cannot be empty.");
+      }
+      if (updates.lead_source !== undefined && !updates.lead_source.trim()) {
+        throw new Error("Lead source cannot be empty.");
+      }
+
       const { data, error } = await supabase
         .from('opportunities')
         .update(updates)
@@ -122,7 +127,6 @@ export const useOpportunities = () => {
         throw error;
       }
 
-      console.log('Updated opportunity:', data);
       return data;
     },
     onSuccess: () => {
@@ -136,7 +140,7 @@ export const useOpportunities = () => {
       console.error('Error updating opportunity:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo actualizar la oportunidad.',
+        description: error.message || 'No se pudo actualizar la oportunidad.',
         variant: 'destructive',
       });
     },
@@ -144,7 +148,6 @@ export const useOpportunities = () => {
 
   const deleteOpportunity = useMutation({
     mutationFn: async (id: number) => {
-      console.log('Deleting opportunity:', id);
       const { error } = await supabase
         .from('opportunities')
         .delete()
@@ -154,8 +157,6 @@ export const useOpportunities = () => {
         console.error('Error deleting opportunity:', error);
         throw error;
       }
-
-      console.log('Deleted opportunity:', id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
