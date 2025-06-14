@@ -5,15 +5,21 @@ import { Call } from './useCalls';
 
 export const useDashboardKpis = (filteredOpportunities: Opportunity[], calls: Call[]) => {
   return useMemo(() => {
-    const totalRevenue = filteredOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
+    // Facturación REAL: solo oportunidades ganadas (won)
+    const wonOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'won');
+    const totalRevenue = wonOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
+
+    // Facturación potencial: oportunidades activas o en curso (sin cerrar como "lost" o "won")
+    const potentialOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'active');
+    const potentialRevenue = potentialOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
+
     const totalCash = filteredOpportunities.reduce((sum, opp) => sum + opp.cash_collected, 0);
     const totalCalls = calls.length;
-    const activeOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'active').length;
-    
-    const wonOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'won');
+    const activeOpportunities = potentialOpportunities.length;
+
     const lostOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'lost');
     const closedOpportunities = wonOpportunities.length + lostOpportunities.length;
-    
+
     const averageDealSize = wonOpportunities.length > 0 
       ? wonOpportunities.reduce((sum, opp) => sum + opp.revenue, 0) / wonOpportunities.length
       : 0;
@@ -45,6 +51,7 @@ export const useDashboardKpis = (filteredOpportunities: Opportunity[], calls: Ca
 
     return {
       totalRevenue,
+      potentialRevenue,
       totalCash,
       totalCalls,
       activeOpportunities,
@@ -56,3 +63,4 @@ export const useDashboardKpis = (filteredOpportunities: Opportunity[], calls: Ca
     };
   }, [filteredOpportunities, calls]);
 };
+
