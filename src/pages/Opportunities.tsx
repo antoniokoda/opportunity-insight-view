@@ -57,33 +57,58 @@ export const Opportunities = () => {
     }
   }, [opportunities, editingOpportunity]);
 
+  // Nueva función: obtiene la fecha de la última llamada de una oportunidad o undefined si no tiene
+  const getLastCallDate = (opportunity) => {
+    if (opportunity.calls && opportunity.calls.length > 0) {
+      // ordenamos las llamadas en orden descendente y tomamos la fecha más reciente
+      const lastCall = [...opportunity.calls].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+      return lastCall.date;
+    }
+    return undefined;
+  };
+
+  // Ahora agrupamos por la fecha de la última llamada (o grupo especial si no hay llamadas)
   const filteredOpportunities = opportunities.filter(opportunity => {
     const matchesSearch = opportunity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          getSalespersonName(opportunity.salesperson_id).toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || opportunity.opportunity_status === statusFilter;
     const matchesSource = sourceFilter === 'all' || opportunity.lead_source === sourceFilter;
-    
     return matchesSearch && matchesStatus && matchesSource;
   });
 
-  // Group opportunities by month
+  // Agrupar por fecha de última llamada, formato MES/AÑO
   const groupedOpportunities = filteredOpportunities.reduce((groups, opportunity) => {
-    const monthKey = format(new Date(opportunity.created_at), 'yyyy-MM', { locale: es });
-    const monthLabel = format(new Date(opportunity.created_at), 'MMMM yyyy', { locale: es });
-    
+    const lastCallDate = getLastCallDate(opportunity);
+    if (!lastCallDate) {
+      // Grupo especial: "Sin llamadas"
+      if (!groups['no_calls']) {
+        groups['no_calls'] = {
+          label: 'Sin llamadas',
+          opportunities: []
+        };
+      }
+      groups['no_calls'].opportunities.push(opportunity);
+      return groups;
+    }
+    const monthKey = format(new Date(lastCallDate), 'yyyy-MM', { locale: es });
+    const monthLabel = format(new Date(lastCallDate), 'MMMM yyyy', { locale: es });
     if (!groups[monthKey]) {
       groups[monthKey] = {
         label: monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1),
         opportunities: []
       };
     }
-    
     groups[monthKey].opportunities.push(opportunity);
     return groups;
   }, {} as Record<string, { label: string; opportunities: Opportunity[] }>);
 
-  // Sort months in descending order (newest first)
-  const sortedMonthKeys = Object.keys(groupedOpportunities).sort((a, b) => b.localeCompare(a));
+  // Ordenar: primero los meses, luego (si existe) el grupo "Sin llamadas" al final
+  const sortedMonthKeys = Object.keys(groupedOpportunities)
+    .filter(key => key !== 'no_calls')
+    .sort((a, b) => b.localeCompare(a));
+  if (groupedOpportunities['no_calls']) {
+    sortedMonthKeys.push('no_calls');
+  }
 
   const getSalespersonName = (id: number) => {
     const salesperson = salespeople.find(s => s.id === id);
