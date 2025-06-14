@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -141,7 +142,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto bg-white">
         <SheetHeader>
           <SheetTitle>Editar Oportunidad</SheetTitle>
         </SheetHeader>
@@ -267,7 +268,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
 
             {/* Add Call Form */}
             {showAddCall && (
-              <div className="p-4 border rounded-lg bg-muted/50">
+              <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-medium">Nueva Llamada</h4>
                   <Button variant="ghost" size="sm" onClick={() => setShowAddCall(false)}>
@@ -358,7 +359,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
             {opportunityCalls.length > 0 ? (
               <div className="space-y-2">
                 {opportunityCalls.map(call => (
-                  <div key={call.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div key={call.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <Badge className={getCallTypeColor(call.type)}>
                         {call.type} #{call.number}
