@@ -10,14 +10,14 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+          "border-transparent bg-blue-500 text-white hover:bg-blue-700",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "border-transparent bg-gray-light text-black hover:bg-gray-dark",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
-        attended: "border-transparent bg-green-700 text-white hover:bg-green-800",
-        "not-attended": "border-transparent bg-red-400 text-white hover:bg-red-500",
+          "border-transparent bg-gray-dark text-white hover:bg-gray DEFAULT",
+        outline: "text-black border border-gray-dark",
+        attended: "border-transparent bg-blue-500 text-white hover:bg-blue-700", // success now blue
+        "not-attended": "border-transparent bg-gray-dark text-white hover:bg-gray DEFAULT",
       },
     },
     defaultVariants: {

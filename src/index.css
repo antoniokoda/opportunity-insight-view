@@ -5,48 +5,48 @@
 
 @layer base {
   :root {
-    --background: 249 250 251;
-    --foreground: 17 24 39;
+    --background: 255 255 255;      /* white */
+    --foreground: 0 0 0;            /* black */
     --card: 255 255 255;
-    --card-foreground: 17 24 39;
+    --card-foreground: 0 0 0;
     --popover: 255 255 255;
-    --popover-foreground: 17 24 39;
-    --primary: 0 122 255;
+    --popover-foreground: 0 0 0;
+    --primary: 0 0 255;              /* blue */
     --primary-foreground: 255 255 255;
-    --secondary: 243 244 246;
-    --secondary-foreground: 75 85 99;
-    --muted: 243 244 246;
-    --muted-foreground: 107 114 128;
-    --accent: 243 244 246;
-    --accent-foreground: 17 24 39;
-    --destructive: 239 68 68;
+    --secondary: 240 240 240;        /* light gray */
+    --secondary-foreground: 64 64 64;/* dark gray text on light bg */
+    --muted: 240 240 240;
+    --muted-foreground: 128 128 128;
+    --accent: 240 240 240;
+    --accent-foreground: 0 0 0;
+    --destructive: 128 128 128;      /* gray (no red) */
     --destructive-foreground: 255 255 255;
-    --border: 229 231 235;
-    --input: 243 244 246;
-    --ring: 0 122 255;
+    --border: 128 128 128;           /* gray */
+    --input: 240 240 240;
+    --ring: 0 0 255;                 /* blue */
     --radius: 0.75rem;
   }
 
   .dark {
-    --background: 17 24 39;
-    --foreground: 249 250 251;
-    --card: 31 41 55;
-    --card-foreground: 249 250 251;
-    --popover: 31 41 55;
-    --popover-foreground: 249 250 251;
-    --primary: 0 122 255;
+    --background: 0 0 0;           /* black */
+    --foreground: 255 255 255;     /* white */
+    --card: 64 64 64;              /* dark gray card */
+    --card-foreground: 255 255 255;
+    --popover: 64 64 64;
+    --popover-foreground: 255 255 255;
+    --primary: 0 0 255;
     --primary-foreground: 255 255 255;
-    --secondary: 55 65 81;
-    --secondary-foreground: 209 213 219;
-    --muted: 55 65 81;
-    --muted-foreground: 156 163 175;
-    --accent: 55 65 81;
-    --accent-foreground: 249 250 251;
-    --destructive: 220 38 38;
+    --secondary: 128 128 128;
+    --secondary-foreground: 255 255 255;
+    --muted: 128 128 128;
+    --muted-foreground: 240 240 240;
+    --accent: 128 128 128;
+    --accent-foreground: 255 255 255;
+    --destructive: 128 128 128;
     --destructive-foreground: 255 255 255;
-    --border: 55 65 81;
-    --input: 55 65 81;
-    --ring: 0 122 255;
+    --border: 128 128 128;
+    --input: 128 128 128;
+    --ring: 0 0 255;
   }
 }
 
@@ -54,52 +54,37 @@
   * {
     @apply border-border;
   }
-
   body {
-    /* Fondo global gris claro para que las tarjetas blancas resalten - Tarea 2.1 */
-    @apply bg-zinc-50 text-zinc-900 font-sf;
+    @apply bg-white text-black font-sf;
     letter-spacing: -0.01em;
   }
-  
-  /* Apple-style typography */
   h1, h2, h3, h4, h5, h6 {
     letter-spacing: -0.02em;
+    color: #000000;
   }
-  
-  /* Enhanced focus styles */
   .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-zinc-50;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white;
   }
-  
-  /* Frosted glass effect */
   .glass {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
-  
-  /* Smooth transitions */
   .transition-apple {
     transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
   }
 }
 
 @layer components {
-  /* Apple-style buttons */
   .btn-apple-primary {
-    @apply bg-blue-500 text-white font-medium py-2.5 px-6 rounded-xl transition-apple hover:bg-blue-600 focus-ring;
+    @apply bg-blue-500 text-white font-medium py-2.5 px-6 rounded-xl transition-apple hover:bg-blue-700 focus-ring;
   }
-  
   .btn-apple-secondary {
-    @apply bg-zinc-200 text-zinc-700 font-medium py-2.5 px-6 rounded-xl transition-apple hover:bg-zinc-300 focus-ring;
+    @apply bg-gray-light text-black font-medium py-2.5 px-6 rounded-xl transition-apple hover:bg-gray-dark focus-ring;
   }
-  
-  /* Apple-style cards - Tarea 2.3 */
   .card-apple {
-    @apply bg-white backdrop-blur-md rounded-2xl shadow-sm border border-zinc-200/50 transition-apple hover:shadow-md;
+    @apply bg-white backdrop-blur-md rounded-2xl shadow-sm border border-gray-light transition-apple hover:shadow-md;
   }
-  
-  /* Apple-style inputs - Tarea 3.1 */
   .input-apple {
-    @apply bg-zinc-100 border-none rounded-lg py-3 px-4 text-zinc-900 placeholder-zinc-500 focus:bg-zinc-100 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-apple;
+    @apply bg-gray-light border-none rounded-lg py-3 px-4 text-black placeholder-gray-dark focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition-apple;
   }
 }
