@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Separator } from '@/components/ui/separator';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
+import { useLeadSourcesWithPersistence } from '@/hooks/useLeadSourcesWithPersistence';
 import { OpportunityDialog } from '@/components/opportunities/OpportunityDialog';
 import { OpportunityEditSheet } from '@/components/opportunities/OpportunityEditSheet';
 import { OpportunityFilesDialog } from '@/components/opportunities/OpportunityFilesDialog';
@@ -22,6 +23,7 @@ import type { Opportunity } from '@/hooks/useOpportunities';
 export const Opportunities = () => {
   const { opportunities, isLoading, deleteOpportunity } = useOpportunities();
   const { salespeople } = useSalespeople();
+  const { leadSources } = useLeadSourcesWithPersistence();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOpportunity, setEditingOpportunity] = useState<Opportunity | null>(null);
@@ -157,9 +159,11 @@ export const Opportunities = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas las fuentes</SelectItem>
-              <SelectItem value="Website">Website</SelectItem>
-              <SelectItem value="Referral">Referencia</SelectItem>
-              <SelectItem value="Cold Outreach">Prospección</SelectItem>
+              {leadSources.map(source => (
+                <SelectItem key={source.id} value={source.name}>
+                  {source.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { Opportunity } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useCalls, CallType } from '@/hooks/useCalls';
+import { useLeadSourcesWithPersistence } from '@/hooks/useLeadSourcesWithPersistence';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { formatCurrency } from '@/config/currency';
@@ -29,6 +29,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
   const { salespeople } = useSalespeople();
   const { updateOpportunity } = useOpportunities();
   const { addCall, isAdding } = useCalls();
+  const { leadSources } = useLeadSourcesWithPersistence();
   
   const [editData, setEditData] = useState({
     name: opportunity?.name || '',
@@ -184,9 +185,11 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                   <SelectValue placeholder="Seleccionar fuente" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Website">Website</SelectItem>
-                  <SelectItem value="Referral">Referencia</SelectItem>
-                  <SelectItem value="Cold Outreach">Prospección</SelectItem>
+                  {leadSources.map(source => (
+                    <SelectItem key={source.id} value={source.name}>
+                      {source.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

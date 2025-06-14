@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -120,14 +119,6 @@ export const OpportunityDialog: React.FC<OpportunityDialogProps> = ({
                     {source.name}
                   </SelectItem>
                 ))}
-                {/* Fallback options if no custom lead sources exist */}
-                {leadSources.length === 0 && (
-                  <>
-                    <SelectItem value="Website">Website</SelectItem>
-                    <SelectItem value="Referral">Referencia</SelectItem>
-                    <SelectItem value="Cold Outreach">Prospección</SelectItem>
-                  </>
-                )}
               </SelectContent>
             </Select>
           </div>
