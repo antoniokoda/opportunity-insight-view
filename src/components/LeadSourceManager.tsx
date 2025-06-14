@@ -138,12 +138,12 @@ export const LeadSourceManager: React.FC = () => {
         // View Mode
         <>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm bg-zinc-950">
                       {source.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <p className="font-medium">{source.name}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-zinc-950">
                         Creada: {new Date(source.created_at).toLocaleDateString()}
                       </p>
                     </div>
