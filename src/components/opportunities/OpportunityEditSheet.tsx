@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useCallback } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,13 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
   isOpen,
   onClose,
 }) => {
+  // PASO 1: Logging detallado de props recibidas
+  console.log('=== OpportunityEditSheet RENDER ===');
+  console.log('isOpen:', isOpen);
+  console.log('opportunity:', opportunity);
+  console.log('opportunity?.id:', opportunity?.id);
+  console.log('timestamp:', new Date().toISOString());
+
   const { salespeople } = useSalespeople();
   const { updateOpportunity } = useOpportunities();
   const { addCall, isAdding, updateCall, isUpdating, deleteCall, isDeleting } = useCalls();
@@ -50,8 +58,17 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
   };
   const [newCall, setNewCall] = useState(initialNewCallState);
 
+  // PASO 1: useEffect para monitorear cambios en props críticas
+  React.useEffect(() => {
+    console.log('=== OpportunityEditSheet PROPS CHANGE ===');
+    console.log('isOpen changed to:', isOpen);
+    console.log('opportunity changed to:', opportunity);
+    console.log('opportunity?.id changed to:', opportunity?.id);
+  }, [isOpen, opportunity?.id]);
+
   React.useEffect(() => {
     if (opportunity) {
+      console.log('=== Setting edit data for opportunity ===');
       console.log('Abriendo oportunidad para edición:', opportunity);
       setEditData({
         name: opportunity.name,
@@ -62,6 +79,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
       });
     }
     if (!isOpen) {
+      console.log('=== Sheet is closing, resetting form states ===');
       setShowAddCall(false);
       setEditingCall(null);
       setNewCall(initialNewCallState);
@@ -81,7 +99,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
     }
   }, [editingCall]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (!opportunity) return;
     
     updateOpportunity({
@@ -94,9 +112,9 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
         cash_collected: parseFloat(editData.cash_collected) || 0,
       },
     });
-  };
+  }, [opportunity, editData, updateOpportunity]);
 
-  const handleSaveCall = () => {
+  const handleSaveCall = useCallback(() => {
     if (!opportunity) return;
 
     const callPayload = {
@@ -117,64 +135,58 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
     }
 
     handleCancelEdit();
-  };
+  }, [opportunity, newCall, editingCall, updateCall, addCall]);
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = useCallback(() => {
     setShowAddCall(false);
     setEditingCall(null);
     setNewCall(initialNewCallState);
-  };
+  }, []);
   
-  const handleAddNewCallClick = () => {
+  const handleAddNewCallClick = useCallback(() => {
     setEditingCall(null);
     setNewCall(initialNewCallState);
     setShowAddCall(true);
-  };
+  }, []);
 
-  const handleEditCallClick = (call: Call) => {
+  const handleEditCallClick = useCallback((call: Call) => {
     setEditingCall(call);
-  };
+  }, []);
 
-  const handleDeleteCall = (callId: number) => {
+  const handleDeleteCall = useCallback((callId: number) => {
     const confirmed = window.confirm('¿Estás seguro de que quieres eliminar esta llamada? Esta acción no se puede deshacer.');
     if (!confirmed) return;
     deleteCall(callId);
-  };
+  }, [deleteCall]);
 
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      active: 'bg-blue-100 text-blue-800',
-      won: 'bg-success-50 text-success-600',
-      lost: 'bg-red-100 text-red-800',
-      created: 'bg-gray-100 text-gray-800',
-      pitched: 'bg-yellow-100 text-yellow-800',
-    };
-    return variants[status as keyof typeof variants] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getCallTypeColor = (type: string) => {
-    if (type.startsWith('Discovery')) {
-      return 'bg-blue-100 text-blue-800';
-    } else if (type.startsWith('Closing')) {
-      return 'bg-success-50 text-success-600';
-    }
-    return 'bg-gray-100 text-gray-800';
-  };
-
-  const updateOpportunityStatus = (field: 'opportunity_status' | 'proposal_status', value: string) => {
+  const updateOpportunityStatus = useCallback((field: 'opportunity_status' | 'proposal_status', value: string) => {
     if (!opportunity) return;
     updateOpportunity({
       id: opportunity.id,
       updates: { [field]: value }
     });
-  };
+  }, [opportunity, updateOpportunity]);
 
-  if (!opportunity) return null;
+  // PASO 1: Verificar que el Sheet está usando correctamente la prop open
+  console.log('=== Sheet render with open prop ===');
+  console.log('Sheet open prop:', isOpen);
+
+  if (!opportunity) {
+    console.log('=== No opportunity provided, not rendering sheet ===');
+    return null;
+  }
 
   const opportunityCalls = (opportunity.calls || []) as Call[];
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={isOpen} onOpenChange={(open) => {
+      console.log('=== Sheet onOpenChange called ===');
+      console.log('Sheet open state changing to:', open);
+      if (!open) {
+        console.log('Sheet is closing, calling onClose');
+        onClose();
+      }
+    }}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto bg-white">
         <SheetHeader>
           <SheetTitle>Editar Oportunidad</SheetTitle>

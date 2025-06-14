@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
@@ -24,6 +25,10 @@ export const Opportunities = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOpportunity, setEditingOpportunity] = useState<Opportunity | null>(null);
+  
+  // PASO 2: Sistema de estado intermedio para manejar timing
+  const [pendingEditOpportunity, setPendingEditOpportunity] = useState<number | null>(null);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
@@ -33,19 +38,62 @@ export const Opportunities = () => {
   const [opportunityToDelete, setOpportunityToDelete] = useState<Opportunity | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const handleOpportunityCreated = (createdOpportunity: Opportunity) => {
-    console.log('handleOpportunityCreated called with:', createdOpportunity);
-    console.log('Setting editing opportunity to:', createdOpportunity);
+  // PASO 3: Refactorizar el callback de creación usando useCallback
+  const handleOpportunityCreated = useCallback((createdOpportunity: Opportunity) => {
+    console.log('=== PASO 3: handleOpportunityCreated EJECUTADO ===');
+    console.log('createdOpportunity recibida:', createdOpportunity);
+    console.log('createdOpportunity.id:', createdOpportunity.id);
     
-    // Ensure the opportunity has the calls array
-    const opportunityWithCalls = {
-      ...createdOpportunity,
-      calls: createdOpportunity.calls ?? [],
-    };
+    // En lugar de abrir directamente, establecer pendingEditOpportunity
+    console.log('Estableciendo pendingEditOpportunity a:', createdOpportunity.id);
+    setPendingEditOpportunity(createdOpportunity.id);
     
-    setEditingOpportunity(opportunityWithCalls);
-    console.log('Edit sheet should now be open with opportunity:', opportunityWithCalls);
-  };
+    // Cerrar el diálogo inmediatamente
+    console.log('Cerrando diálogo...');
+    setIsDialogOpen(false);
+  }, []);
+
+  // PASO 2: useEffect para manejar la apertura del sheet cuando el diálogo esté cerrado
+  useEffect(() => {
+    console.log('=== PASO 2: useEffect TIMING CONTROL ===');
+    console.log('pendingEditOpportunity:', pendingEditOpportunity);
+    console.log('isDialogOpen:', isDialogOpen);
+    console.log('opportunities.length:', opportunities.length);
+    
+    // Solo proceder si hay una oportunidad pendiente y el diálogo está cerrado
+    if (pendingEditOpportunity && !isDialogOpen) {
+      console.log('Condiciones cumplidas, buscando oportunidad...');
+      
+      // Usar requestAnimationFrame para mejor sincronización con React
+      requestAnimationFrame(() => {
+        console.log('RequestAnimationFrame ejecutado, buscando oportunidad ID:', pendingEditOpportunity);
+        
+        const foundOpportunity = opportunities.find(o => o.id === pendingEditOpportunity);
+        console.log('Oportunidad encontrada:', foundOpportunity);
+        
+        if (foundOpportunity) {
+          console.log('=== ABRIENDO EDIT SHEET ===');
+          
+          // Asegurar que la oportunidad tiene el array de calls
+          const opportunityWithCalls = {
+            ...foundOpportunity,
+            calls: foundOpportunity.calls ?? [],
+          };
+          
+          console.log('Setting editingOpportunity to:', opportunityWithCalls);
+          setEditingOpportunity(opportunityWithCalls);
+          
+          // Limpiar el estado pendiente
+          console.log('Limpiando pendingEditOpportunity...');
+          setPendingEditOpportunity(null);
+        } else {
+          console.log('Oportunidad no encontrada aún, esperando...');
+          // Si no se encuentra, podemos intentar de nuevo en el próximo render
+          // o implementar un timeout para evitar bucles infinitos
+        }
+      });
+    }
+  }, [pendingEditOpportunity, isDialogOpen, opportunities]);
 
   useEffect(() => {
     if (editingOpportunity) {
@@ -130,13 +178,19 @@ export const Opportunities = () => {
 
         <OpportunityDialog
           isOpen={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
+          onClose={() => {
+            console.log('=== OpportunityDialog onClose ===');
+            setIsDialogOpen(false);
+          }}
           onCreated={handleOpportunityCreated}
         />
         <OpportunityEditSheet
           opportunity={editingOpportunity}
           isOpen={!!editingOpportunity}
-          onClose={() => setEditingOpportunity(null)}
+          onClose={() => {
+            console.log('=== OpportunityEditSheet onClose ===');
+            setEditingOpportunity(null);
+          }}
         />
 
         {filesDialogOpportunity && (

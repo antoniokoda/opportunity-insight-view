@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -33,6 +34,7 @@ export const useOpportunityMutations = () => {
         throw new Error("Todos los campos son requeridos y deben ser válidos.");
       }
 
+      console.log('=== PASO 4: INSERTING OPPORTUNITY ===');
       console.log('Insertando oportunidad en la base de datos...', newOpportunity);
       const { data, error } = await supabase
         .from('opportunities')
@@ -61,21 +63,26 @@ export const useOpportunityMutations = () => {
         throw error;
       }
       
+      console.log('=== OPPORTUNITY CREATED SUCCESSFULLY ===');
       console.log('Oportunidad insertada exitosamente:', data);
       return data as Opportunity;
     },
     onSuccess: (data) => {
-      console.log('Mutation success, invalidating queries and showing toast');
-      // Don't invalidate queries immediately, let the component handle the new data
-      // We'll do a delayed invalidation to refresh the list
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['opportunities'] });
-      }, 1000);
+      console.log('=== PASO 4: MUTATION SUCCESS ===');
+      console.log('Data received in onSuccess:', data);
       
-      toast({
-        title: 'Oportunidad agregada',
-        description: 'La oportunidad ha sido agregada exitosamente.',
-      });
+      // PASO 4: Primero invalidar queries, luego ejecutar callback con delay
+      console.log('Invalidating queries first...');
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      
+      // Pequeño delay para asegurar que la lista esté actualizada
+      setTimeout(() => {
+        console.log('=== EXECUTING SUCCESS CALLBACK ===');
+        toast({
+          title: 'Oportunidad agregada',
+          description: 'La oportunidad ha sido agregada exitosamente.',
+        });
+      }, 100);
     },
     onError: (error: any) => {
       console.error('Error adding opportunity:', error);
