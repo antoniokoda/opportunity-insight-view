@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Plus, Phone, Edit, Trash2, Search, Filter, Folder, StickyNote, Users, ExternalLink } from 'lucide-react';
+import { Plus, Phone, Edit, Trash2, Search, Filter, Folder, StickyNote, Users, ExternalLink, Link as LinkIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -346,16 +345,37 @@ export const Opportunities = () => {
                                     </Badge>
                                   )}
                                   {call.link && (
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <a href={call.link} target="_blank" rel="noopener noreferrer" className="flex items-center">
-                                          <ExternalLink className="w-3 h-3 text-zinc-500 hover:text-zinc-800" />
-                                        </a>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Abrir enlace</p>
-                                      </TooltipContent>
-                                    </Tooltip>
+                                    <>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <a href={call.link} target="_blank" rel="noopener noreferrer" className="flex items-center">
+                                            <ExternalLink className="w-3 h-3 text-zinc-500 hover:text-zinc-800" />
+                                          </a>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Abrir enlace</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="w-6 h-6 p-0"
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              window.open(call.link!, "_blank", "noopener,noreferrer");
+                                            }}
+                                            aria-label="Ir al enlace de la reunión"
+                                          >
+                                            <LinkIcon className="w-4 h-4 text-blue-500" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Ir a la reunión</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </>
                                   )}
                                 </div>
                                 <span className="text-muted-foreground">
