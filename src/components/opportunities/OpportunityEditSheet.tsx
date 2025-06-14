@@ -5,11 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Phone, Plus, Loader2, X, ExternalLink } from 'lucide-react';
+import { Phone, Plus, Loader2, X, ExternalLink, Edit } from 'lucide-react';
 import { Opportunity } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useOpportunities } from '@/hooks/useOpportunities';
-import { useCalls, CallType } from '@/hooks/useCalls';
+import { useCalls, CallType, Call } from '@/hooks/useCalls';
 import { useLeadSourcesWithPersistence } from '@/hooks/useLeadSourcesWithPersistence';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -28,7 +28,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
 }) => {
   const { salespeople } = useSalespeople();
   const { updateOpportunity } = useOpportunities();
-  const { addCall, isAdding } = useCalls();
+  const { addCall, isAdding, updateCall, isUpdating } = useCalls();
   const { leadSources } = useLeadSourcesWithPersistence();
   
   const [editData, setEditData] = useState({
@@ -40,13 +40,16 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
   });
 
   const [showAddCall, setShowAddCall] = useState(false);
-  const [newCall, setNewCall] = useState({
+  const [editingCall, setEditingCall] = useState<Call | null>(null);
+  
+  const initialNewCallState = {
     type: 'Discovery 1' as CallType,
     date: new Date().toISOString().slice(0, 16),
     duration: '30',
     attended: false,
     link: '',
-  });
+  };
+  const [newCall, setNewCall] = useState(initialNewCallState);
 
   React.useEffect(() => {
     if (opportunity) {
@@ -58,7 +61,25 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
         cash_collected: opportunity.cash_collected.toString(),
       });
     }
-  }, [opportunity]);
+    if (!isOpen) {
+      setShowAddCall(false);
+      setEditingCall(null);
+      setNewCall(initialNewCallState);
+    }
+  }, [opportunity, isOpen]);
+
+  React.useEffect(() => {
+    if (editingCall) {
+        setNewCall({
+            type: editingCall.type,
+            date: format(new Date(editingCall.date), "yyyy-MM-dd'T'HH:mm"),
+            duration: editingCall.duration.toString(),
+            attended: !!editingCall.attended,
+            link: editingCall.link || '',
+        });
+        setShowAddCall(true);
+    }
+  }, [editingCall]);
 
   const handleSave = () => {
     if (!opportunity) return;
@@ -75,38 +96,43 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
     });
   };
 
-  const handleAddCall = () => {
-    if (!opportunity) {
-      console.log('Cannot add call: missing opportunity');
-      return;
+  const handleSaveCall = () => {
+    if (!opportunity) return;
+
+    const callPayload = {
+      type: newCall.type,
+      date: new Date(newCall.date).toISOString(),
+      duration: parseInt(newCall.duration) || 30,
+      attended: newCall.attended,
+      link: newCall.link || undefined,
+    };
+
+    if (editingCall) {
+      updateCall({ id: editingCall.id, updates: callPayload });
+    } else {
+      addCall({
+        opportunity_id: opportunity.id,
+        ...callPayload,
+      });
     }
 
-    console.log('Adding call with data:', {
-      opportunity_id: opportunity.id,
-      type: newCall.type,
-      date: new Date(newCall.date).toISOString(),
-      duration: parseInt(newCall.duration) || 30,
-      attended: newCall.attended,
-      link: newCall.link || undefined,
-    });
+    handleCancelEdit();
+  };
 
-    addCall({
-      opportunity_id: opportunity.id,
-      type: newCall.type,
-      date: new Date(newCall.date).toISOString(),
-      duration: parseInt(newCall.duration) || 30,
-      attended: newCall.attended,
-      link: newCall.link || undefined,
-    });
-
-    setNewCall({
-      type: 'Discovery 1',
-      date: new Date().toISOString().slice(0, 16),
-      duration: '30',
-      attended: false,
-      link: '',
-    });
+  const handleCancelEdit = () => {
     setShowAddCall(false);
+    setEditingCall(null);
+    setNewCall(initialNewCallState);
+  };
+  
+  const handleAddNewCallClick = () => {
+    setEditingCall(null);
+    setNewCall(initialNewCallState);
+    setShowAddCall(true);
+  };
+
+  const handleEditCallClick = (call: Call) => {
+    setEditingCall(call);
   };
 
   const getStatusBadge = (status: string) => {
@@ -139,7 +165,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
 
   if (!opportunity) return null;
 
-  const opportunityCalls = opportunity.calls || [];
+  const opportunityCalls = (opportunity.calls || []) as Call[];
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -264,7 +290,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                 <Phone size={20} />
                 Llamadas ({opportunityCalls.length})
               </h3>
-              <Button onClick={() => setShowAddCall(true)} size="sm">
+              <Button onClick={handleAddNewCallClick} size="sm">
                 <Plus size={16} className="mr-2" />
                 Añadir Llamada
               </Button>
@@ -274,8 +300,8 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
             {showAddCall && (
               <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-medium">Nueva Llamada</h4>
-                  <Button variant="ghost" size="sm" onClick={() => setShowAddCall(false)}>
+                  <h4 className="font-medium">{editingCall ? 'Editar Llamada' : 'Nueva Llamada'}</h4>
+                  <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
                     <X size={16} />
                   </Button>
                 </div>
@@ -345,14 +371,14 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                 
                 <div className="flex gap-2 mt-4">
                   <Button 
-                    onClick={handleAddCall} 
+                    onClick={handleSaveCall} 
                     size="sm" 
-                    disabled={isAdding}
+                    disabled={isAdding || isUpdating}
                   >
-                    {isAdding && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Añadir Llamada
+                    {(isAdding || isUpdating) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    {editingCall ? 'Guardar Cambios' : 'Añadir Llamada'}
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => setShowAddCall(false)}>
+                  <Button variant="outline" size="sm" onClick={handleCancelEdit}>
                     Cancelar
                   </Button>
                 </div>
@@ -364,7 +390,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
               <div className="space-y-2">
                 {opportunityCalls.map(call => (
                   <div key={call.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <Badge variant="outline" className={getCallTypeColor(call.type)}>
                         {call.type} #{call.number}
                       </Badge>
@@ -377,18 +403,22 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                         </Badge>
                       )}
                       {call.link && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.open(call.link, '_blank')}
-                          className="h-6 w-6 p-0"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                        </Button>
+                        <a href={call.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-blue-600 hover:underline">
+                          <ExternalLink size={14} />
+                          <span>Enlace</span>
+                        </a>
                       )}
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {call.duration} min
+                    <div className="flex items-center gap-2">
+                      <Badge>{call.duration} min</Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditCallClick(call)}
+                        className="h-8 w-8 p-0"
+                      >
+                          <Edit className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}

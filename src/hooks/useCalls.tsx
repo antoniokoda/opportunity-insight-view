@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -122,11 +121,58 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
     },
   });
 
+  const updateCall = useMutation({
+    mutationFn: async (callData: {
+      id: number;
+      updates: {
+        type?: CallType;
+        date?: string;
+        duration?: number;
+        attended?: boolean | null;
+        link?: string | null;
+      };
+    }) => {
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('calls')
+        .update(callData.updates)
+        .eq('id', callData.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating call:', error);
+        throw error;
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calls'] });
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      toast({
+        title: 'Llamada actualizada',
+        description: 'La llamada ha sido actualizada exitosamente.',
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating call:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'No se pudo actualizar la llamada.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   return {
     calls,
     isLoading,
     error,
     addCall: addCall.mutate,
     isAdding: addCall.isPending,
+    updateCall: updateCall.mutate,
+    isUpdating: updateCall.isPending,
   };
 };
