@@ -26,6 +26,7 @@ export const useOpportunityQueries = () => {
       console.log('🔍 OPPORTUNITIES DEBUG: Fetching opportunities for user:', user.id);
 
       try {
+        // Fetch all opportunities that belong to the current user
         const { data, error } = await supabase
           .from('opportunities')
           .select(`
@@ -42,6 +43,7 @@ export const useOpportunityQueries = () => {
               created_at
             )
           `)
+          .eq('user_id', user.id) // Filter by user_id to only get user's own opportunities
           .order('created_at', { ascending: false });
 
         if (error) {

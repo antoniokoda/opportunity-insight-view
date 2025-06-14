@@ -62,6 +62,7 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
         let query = supabase
           .from('calls')
           .select('*')
+          .eq('user_id', user.id) // Filter by user_id to only get user's own calls
           .order('date', { ascending: false });
 
         if (opportunityId) {
