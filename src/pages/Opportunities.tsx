@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Plus, Phone, Edit, Trash2, Search, Filter, Folder, StickyNote, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,6 +34,21 @@ export const Opportunities = () => {
   const [filesDialogOpportunity, setFilesDialogOpportunity] = useState<Opportunity | null>(null);
   const [notesDialogOpportunity, setNotesDialogOpportunity] = useState<Opportunity | null>(null);
   const [contactsDialogOpportunity, setContactsDialogOpportunity] = useState<Opportunity | null>(null);
+
+  useEffect(() => {
+    if (editingOpportunity) {
+      const updatedOpportunity = opportunities.find(o => o.id === editingOpportunity.id);
+      if (updatedOpportunity) {
+        // Compare to prevent re-render loops
+        if (JSON.stringify(updatedOpportunity) !== JSON.stringify(editingOpportunity)) {
+          setEditingOpportunity(updatedOpportunity);
+        }
+      } else {
+        // Opportunity was deleted, so close the sheet
+        setEditingOpportunity(null);
+      }
+    }
+  }, [opportunities, editingOpportunity]);
 
   const filteredOpportunities = opportunities.filter(opportunity => {
     const matchesSearch = opportunity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
