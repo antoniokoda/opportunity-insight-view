@@ -33,45 +33,46 @@ export const OpportunityDialog: React.FC<OpportunityDialogProps> = ({
     cash_collected: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.salesperson_id || !formData.lead_source) {
       return;
     }
 
-    addOpportunity(
-      {
+    try {
+      console.log('Creando oportunidad...');
+      const createdOpportunity = await addOpportunity({
         name: formData.name,
         salesperson_id: parseInt(formData.salesperson_id),
         lead_source: formData.lead_source,
         revenue: parseFloat(formData.revenue) || 0,
         cash_collected: parseFloat(formData.cash_collected) || 0,
-      },
-      {
-        onSuccess: (created: Opportunity) => {
-          // Reset form
-          setFormData({
-            name: '',
-            salesperson_id: '',
-            lead_source: '',
-            revenue: '',
-            cash_collected: '',
-          });
-          
-          // Close dialog immediately
-          onClose();
-          
-          // Call the onCreated callback to open the edit sheet
-          if (onCreated) {
-            onCreated(created);
-          }
-        },
-        onError: () => {
-          // Error handling is already done in useOpportunities hook
-        },
+      });
+
+      console.log('Oportunidad creada exitosamente:', createdOpportunity);
+
+      // Reset form
+      setFormData({
+        name: '',
+        salesperson_id: '',
+        lead_source: '',
+        revenue: '',
+        cash_collected: '',
+      });
+      
+      // Close dialog immediately
+      onClose();
+      
+      // Call the onCreated callback to open the edit sheet
+      if (onCreated && createdOpportunity) {
+        console.log('Llamando onCreated callback...');
+        onCreated(createdOpportunity);
       }
-    );
+    } catch (error) {
+      console.error('Error al crear oportunidad:', error);
+      // Error handling is already done in useOpportunities hook
+    }
   };
 
   const handleClose = () => {

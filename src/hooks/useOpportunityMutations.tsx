@@ -137,34 +137,8 @@ export const useOpportunityMutations = () => {
     },
   });
 
-  // Modified addOpportunity function to accept custom callbacks
-  const addOpportunityWithCallbacks = (
-    newOpportunity: {
-      name: string;
-      salesperson_id: number;
-      lead_source: string;
-      revenue: number;
-      cash_collected: number;
-    },
-    callbacks?: {
-      onSuccess?: (opportunity: Opportunity) => void;
-      onError?: (error: any) => void;
-    }
-  ) => {
-    return addOpportunity.mutate(newOpportunity, {
-      onSuccess: (data) => {
-        // Call the custom callback if provided
-        callbacks?.onSuccess?.(data);
-      },
-      onError: (error) => {
-        // Call the custom callback if provided
-        callbacks?.onError?.(error);
-      }
-    });
-  };
-
   return {
-    addOpportunity: addOpportunityWithCallbacks,
+    addOpportunity: addOpportunity.mutateAsync,
     updateOpportunity: updateOpportunity.mutate,
     deleteOpportunity: deleteOpportunity.mutate,
     isAdding: addOpportunity.isPending,
