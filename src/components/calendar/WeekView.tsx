@@ -21,6 +21,7 @@ export const WeekView: React.FC<WeekViewProps> = ({
     if (type.startsWith('Discovery')) {
       return 'bg-blue-500 hover:bg-blue-600 text-white';
     } else if (type.startsWith('Closing')) {
+      // Cambiamos a verde explícito para "Closing"
       return 'bg-green-500 hover:bg-green-600 text-white';
     }
     return 'bg-gray-500 hover:bg-gray-600 text-white';
