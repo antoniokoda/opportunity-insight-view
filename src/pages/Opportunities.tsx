@@ -103,6 +103,11 @@ export const Opportunities = () => {
     return 'bg-gray-100 text-gray-800';
   };
 
+  // Añadimos esta función para saber si una llamada es pasada
+  const isCallInThePast = (callDate: string) => {
+    return new Date(callDate) < new Date(); // compara con la fecha actual
+  };
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -337,14 +342,22 @@ export const Opportunities = () => {
                                   <Badge variant="outline" className={getCallTypeColor(call.type)}>
                                     {call.type} #{call.number}
                                   </Badge>
-                                  {call.attended !== null && (
-                                    <Badge 
-                                      variant={call.attended ? "attended" : "not-attended"}
-                                    >
-                                      {call.attended ? "Asistió" : "No asistió"}
+                                  
+                                  {/* Solo mostramos el badge "No asistió" si la llamada es del pasado y no asistió */}
+                                  {call.attended === false && isCallInThePast(call.date) && (
+                                    <Badge variant="not-attended">
+                                      No asistió
                                     </Badge>
                                   )}
-                                  {call.link && (
+                                  {/* Mostramos badge de asistencia positiva (asistió) si corresponde */}
+                                  {call.attended === true && (
+                                    <Badge variant="attended">
+                                      Asistió
+                                    </Badge>
+                                  )}
+
+                                  {/* Si hay link, mostramos iconos de acceso a la reunión */}
+                                  {call.link && !!call.link.trim() && (
                                     <>
                                       <Tooltip>
                                         <TooltipTrigger asChild>
