@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -371,7 +372,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                         {format(new Date(call.date), 'dd/MM/yyyy HH:mm', { locale: es })}
                       </span>
                       {call.attended !== null && (
-                        <Badge variant={call.attended ? "default" : "destructive"}>
+                        <Badge variant={call.attended ? "attended" : "not-attended"}>
                           {call.attended ? "Asistió" : "No asistió"}
                         </Badge>
                       )}

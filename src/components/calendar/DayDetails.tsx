@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock } from 'lucide-react';
+import { Clock, ExternalLink } from 'lucide-react';
 
 interface DayDetailsProps {
   selectedDate: Date;
@@ -34,7 +34,7 @@ export const DayDetails: React.FC<DayDetailsProps> = ({
                 <div className="text-sm text-muted-foreground flex items-center gap-2">
                   <span>{call.duration}min</span>
                   {call.attended !== null && (
-                    <Badge variant={call.attended ? "default" : "destructive"}>
+                    <Badge variant={call.attended ? "attended" : "not-attended"}>
                       {call.attended ? "Asistió" : "No asistió"}
                     </Badge>
                   )}
@@ -53,6 +53,12 @@ export const DayDetails: React.FC<DayDetailsProps> = ({
                   <Clock size={14} />
                   {format(new Date(call.date), 'HH:mm')}
                 </div>
+                {call.link && (
+                  <a href={call.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary">
+                    <ExternalLink size={14} />
+                    <span>Ver enlace</span>
+                  </a>
+                )}
               </div>
             </div>
           ))}

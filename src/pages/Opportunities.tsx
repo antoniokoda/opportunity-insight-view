@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Phone, Edit, Trash2, Search, Filter, Folder, StickyNote, Users } from 'lucide-react';
+import { Plus, Phone, Edit, Trash2, Search, Filter, Folder, StickyNote, Users, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -338,10 +338,22 @@ export const Opportunities = () => {
                                   </Badge>
                                   {call.attended !== null && (
                                     <Badge 
-                                      variant={call.attended ? "default" : "destructive"}
+                                      variant={call.attended ? "attended" : "not-attended"}
                                     >
-                                      {call.attended ? "✓" : "✗"}
+                                      {call.attended ? "Asistió" : "No asistió"}
                                     </Badge>
+                                  )}
+                                  {call.link && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <a href={call.link} target="_blank" rel="noopener noreferrer" className="flex items-center">
+                                          <ExternalLink className="w-3 h-3 text-zinc-500 hover:text-zinc-800" />
+                                        </a>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Abrir enlace</p>
+                                      </TooltipContent>
+                                    </Tooltip>
                                   )}
                                 </div>
                                 <span className="text-muted-foreground">
