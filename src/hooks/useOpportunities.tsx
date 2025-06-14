@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -202,11 +203,41 @@ export const useOpportunities = () => {
     },
   });
 
+  // Modified addOpportunity function to accept custom callbacks
+  const addOpportunityWithCallbacks = (
+    newOpportunity: {
+      name: string;
+      salesperson_id: number;
+      lead_source: string;
+      revenue: number;
+      cash_collected: number;
+    },
+    callbacks?: {
+      onSuccess?: (opportunity: Opportunity) => void;
+      onError?: (error: any) => void;
+    }
+  ) => {
+    return addOpportunity.mutate(newOpportunity, {
+      onSuccess: (data) => {
+        // Call the default success handler first
+        addOpportunity.options?.onSuccess?.(data, newOpportunity, undefined);
+        // Then call the custom callback if provided
+        callbacks?.onSuccess?.(data);
+      },
+      onError: (error) => {
+        // Call the default error handler first
+        addOpportunity.options?.onError?.(error, newOpportunity, undefined);
+        // Then call the custom callback if provided
+        callbacks?.onError?.(error);
+      }
+    });
+  };
+
   return {
     opportunities,
     isLoading,
     error,
-    addOpportunity: addOpportunity.mutate,
+    addOpportunity: addOpportunityWithCallbacks,
     updateOpportunity: updateOpportunity.mutate,
     deleteOpportunity: deleteOpportunity.mutate,
     isAdding: addOpportunity.isPending,

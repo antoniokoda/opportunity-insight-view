@@ -13,7 +13,7 @@ import type { Opportunity } from '@/hooks/useOpportunities';
 interface OpportunityDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreated?: (opportunity: Opportunity) => void; // NUEVA prop para manejar la oportunidad creada
+  onCreated?: (opportunity: Opportunity) => void;
 }
 
 export const OpportunityDialog: React.FC<OpportunityDialogProps> = ({
@@ -50,9 +50,7 @@ export const OpportunityDialog: React.FC<OpportunityDialogProps> = ({
       },
       {
         onSuccess: (created: Opportunity) => {
-          if (onCreated) {
-            onCreated(created);
-          }
+          // Reset form
           setFormData({
             name: '',
             salesperson_id: '',
@@ -60,11 +58,17 @@ export const OpportunityDialog: React.FC<OpportunityDialogProps> = ({
             revenue: '',
             cash_collected: '',
           });
-          // ¡Forzar cierre inmediato del dialog aquí para evitar dobles renders!
+          
+          // Close dialog immediately
           onClose();
+          
+          // Call the onCreated callback to open the edit sheet
+          if (onCreated) {
+            onCreated(created);
+          }
         },
         onError: () => {
-          // error toast already handled in useOpportunities
+          // Error handling is already done in useOpportunities hook
         },
       }
     );
