@@ -33,22 +33,32 @@ export const MonthView: React.FC<MonthViewProps> = ({
           const calls = getCallsForDay(day);
           const isCurrentMonth = isSameMonth(day, currentDate);
           const isDayToday = isToday(day);
-          
+
+          // Decide base styles (no yellow, gray as default, white-on-hover)
+          let baseBg = 'bg-zinc-100'; // very light gray base
+          let border = 'border-zinc-200'; // light gray border
+          let textColor = isDayToday
+            ? 'text-primary'
+            : isCurrentMonth
+              ? 'text-foreground'
+              : 'text-muted-foreground';
+          if (!isCurrentMonth) {
+            baseBg = 'bg-muted/30'; // slightly muted for days outside month
+            textColor = 'text-muted-foreground';
+          }
+
           return (
             <div
               key={day.toString()}
-              className={`min-h-[70px] p-1.5 border rounded-lg cursor-pointer transition-colors hover:bg-white ${
-                isDayToday ? 'bg-accent border-border' : 
-                isCurrentMonth ? 'bg-accent border-border' : 
-                'bg-muted/30 border-border'
-              }`}
+              className={
+                `min-h-[70px] p-1.5 border rounded-lg cursor-pointer transition-colors 
+                ${baseBg} ${border} 
+                hover:bg-white hover:border-zinc-200
+                `
+              }
               onClick={() => onDateSelect(day)}
             >
-              <div className={`text-xs font-medium mb-1 ${
-                isDayToday ? 'text-primary' : 
-                isCurrentMonth ? 'text-foreground' : 
-                'text-muted-foreground'
-              }`}>
+              <div className={`text-xs font-medium mb-1 ${textColor}`}>
                 {format(day, 'd')}
               </div>
               
