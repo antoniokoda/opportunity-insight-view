@@ -3,7 +3,6 @@ import { defineConfig, type ViteDevServer } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import type { NextHandleFunction } from "vite";
 import type { IncomingMessage, ServerResponse } from "http";
 
 // Custom Vite plugin for security headers (for server deploys)
@@ -13,7 +12,7 @@ const securityHeadersPlugin = () => ({
     server.middlewares.use((
       _req: IncomingMessage,
       res: ServerResponse,
-      next: NextHandleFunction
+      next: (err?: any) => void
     ) => {
       res.setHeader("X-Frame-Options", "SAMEORIGIN");
       res.setHeader("X-Content-Type-Options", "nosniff");
