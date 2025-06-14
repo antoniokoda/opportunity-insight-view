@@ -3,17 +3,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Phone, Plus, Loader2, X, ExternalLink, Edit, Trash } from 'lucide-react';
+import { Phone, Plus } from 'lucide-react';
 import { Opportunity } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useCalls, CallType, Call } from '@/hooks/useCalls';
 import { useLeadSourcesWithPersistence } from '@/hooks/useLeadSourcesWithPersistence';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { formatCurrency } from '@/config/currency';
 import { CallForm } from "./CallForm";
 import { CallList } from "./CallList";
 import { getStatusBadge, getCallTypeColor } from "./opportunityHelpers";
@@ -56,6 +52,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
 
   React.useEffect(() => {
     if (opportunity) {
+      console.log('Abriendo oportunidad para edición:', opportunity);
       setEditData({
         name: opportunity.name,
         salesperson_id: opportunity.salesperson_id.toString(),

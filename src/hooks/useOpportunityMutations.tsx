@@ -34,22 +34,39 @@ export const useOpportunityMutations = () => {
         throw new Error("Todos los campos son requeridos y deben ser válidos.");
       }
 
+      console.log('Insertando oportunidad en la base de datos...');
       const { data, error } = await supabase
         .from('opportunities')
         .insert([{
           ...newOpportunity,
           user_id: user.id
         }])
-        .select()
+        .select(`
+          *,
+          calls (
+            id,
+            opportunity_id,
+            type,
+            number,
+            date,
+            duration,
+            attended,
+            user_id,
+            created_at
+          )
+        `)
         .single();
 
       if (error) {
         if (import.meta.env.DEV) console.error('Error adding opportunity:', error);
         throw error;
       }
-      return data;
+      
+      console.log('Oportunidad insertada exitosamente:', data);
+      return data as Opportunity;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Invalidando queries...');
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
       toast({
         title: 'Oportunidad agregada',

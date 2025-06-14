@@ -35,6 +35,7 @@ export const Opportunities = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleOpportunityCreated = (createdOpportunity: Opportunity) => {
+    console.log('Opportunity created, opening edit sheet:', createdOpportunity);
     setEditingOpportunity({
       ...createdOpportunity,
       calls: createdOpportunity.calls ?? [],
