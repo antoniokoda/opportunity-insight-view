@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import { Opportunity } from './useOpportunities';
 import { Call } from './useCalls';
@@ -23,7 +24,7 @@ export const useDashboardKpis = (filteredOpportunities: Opportunity[], calls: Ca
     
     const proposalsPitched = filteredOpportunities.filter(opp => opp.proposal_status === 'pitched').length;
 
-    // Llamadas pasadas
+    // Usar solo llamadas PASADAS
     const now = new Date();
     const pastCalls = calls.filter(call => new Date(call.date) <= now);
 
@@ -33,7 +34,7 @@ export const useDashboardKpis = (filteredOpportunities: Opportunity[], calls: Ca
       ? (attendedPastCalls / pastCalls.length) * 100
       : 0;
 
-    // First discovery show-up rate: solo para Discovery 1 pasadas
+    // First discovery show-up rate: solo para Discovery 1 PASADAS
     const firstDiscoveryPastCalls = pastCalls.filter(call =>
       call.type === 'Discovery 1'
     );

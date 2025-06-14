@@ -4,56 +4,78 @@ import { Call } from './useCalls';
 
 export const useDetailedCallMetrics = (calls: Call[]) => {
   return useMemo(() => {
-    // Helper function to get calls by type
-    const getCallsByType = (type: string) => calls.filter(call => call.type === type);
-    
-    // Helper function to calculate average duration
+    // Helper to get past calls by type
+    const getPastCallsByType = (type: string) => {
+      const now = new Date();
+      return calls.filter(call => call.type === type && new Date(call.date) <= now);
+    };
+
+    // Helper to calculate avg duration
     const getAverageDuration = (callsOfType: Call[]) => {
       if (callsOfType.length === 0) return 0;
       const totalDuration = callsOfType.reduce((sum, call) => sum + call.duration, 0);
       return Math.round(totalDuration / callsOfType.length);
     };
-    
-    // Helper function to calculate show-up rate
-    const getShowUpRate = (callsOfType: Call[]) => {
-      const callsWithAttendance = callsOfType.filter(call => call.attended !== null);
-      if (callsWithAttendance.length === 0) return 0;
-      const attendedCalls = callsWithAttendance.filter(call => call.attended === true);
-      return (attendedCalls.length / callsWithAttendance.length) * 100;
+
+    // Tasa de asistencia real sobre llamadas PASADAS (de cada tipo)
+    const getShowUpRate = (pastCallsOfType: Call[]) => {
+      if (pastCallsOfType.length === 0) return 0;
+      const attended = pastCallsOfType.filter(call => call.attended === true).length;
+      return (attended / pastCallsOfType.length) * 100;
     };
 
-    // Get calls by type
-    const discovery1Calls = getCallsByType('Discovery 1');
-    const discovery2Calls = getCallsByType('Discovery 2');
-    const discovery3Calls = getCallsByType('Discovery 3');
-    const closing1Calls = getCallsByType('Closing 1');
-    const closing2Calls = getCallsByType('Closing 2');
-    const closing3Calls = getCallsByType('Closing 3');
+    const types = [
+      'Discovery 1',
+      'Discovery 2',
+      'Discovery 3',
+      'Closing 1',
+      'Closing 2',
+      'Closing 3',
+    ] as const;
 
+    // Collect metrics por tipo usando SOLO llamadas pasadas
+    const callCounts: Record<string, number> = {};
+    const averageDurations: Record<string, number> = {};
+    const showUpRates: Record<string, number> = {};
+
+    types.forEach(type => {
+      const pastCalls = getPastCallsByType(type);
+      callCounts[
+        type.toLowerCase().replace(' ', '')
+      ] = pastCalls.length;
+      averageDurations[
+        type.toLowerCase().replace(' ', '')
+      ] = getAverageDuration(pastCalls);
+      showUpRates[
+        type.toLowerCase().replace(' ', '')
+      ] = getShowUpRate(pastCalls);
+    });
+
+    // Renombrar las keys para mantener la compatibilidad con el resto del dashboard
     return {
       callCounts: {
-        discovery1: discovery1Calls.length,
-        discovery2: discovery2Calls.length,
-        discovery3: discovery3Calls.length,
-        closing1: closing1Calls.length,
-        closing2: closing2Calls.length,
-        closing3: closing3Calls.length,
+        discovery1: callCounts['discovery1'] || 0,
+        discovery2: callCounts['discovery2'] || 0,
+        discovery3: callCounts['discovery3'] || 0,
+        closing1: callCounts['closing1'] || 0,
+        closing2: callCounts['closing2'] || 0,
+        closing3: callCounts['closing3'] || 0,
       },
       averageDurations: {
-        discovery1: getAverageDuration(discovery1Calls),
-        discovery2: getAverageDuration(discovery2Calls),
-        discovery3: getAverageDuration(discovery3Calls),
-        closing1: getAverageDuration(closing1Calls),
-        closing2: getAverageDuration(closing2Calls),
-        closing3: getAverageDuration(closing3Calls),
+        discovery1: averageDurations['discovery1'] || 0,
+        discovery2: averageDurations['discovery2'] || 0,
+        discovery3: averageDurations['discovery3'] || 0,
+        closing1: averageDurations['closing1'] || 0,
+        closing2: averageDurations['closing2'] || 0,
+        closing3: averageDurations['closing3'] || 0,
       },
       showUpRates: {
-        discovery1: getShowUpRate(discovery1Calls),
-        discovery2: getShowUpRate(discovery2Calls),
-        discovery3: getShowUpRate(discovery3Calls),
-        closing1: getShowUpRate(closing1Calls),
-        closing2: getShowUpRate(closing2Calls),
-        closing3: getShowUpRate(closing3Calls),
+        discovery1: showUpRates['discovery1'] || 0,
+        discovery2: showUpRates['discovery2'] || 0,
+        discovery3: showUpRates['discovery3'] || 0,
+        closing1: showUpRates['closing1'] || 0,
+        closing2: showUpRates['closing2'] || 0,
+        closing3: showUpRates['closing3'] || 0,
       }
     };
   }, [calls]);
