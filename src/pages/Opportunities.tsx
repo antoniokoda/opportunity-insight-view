@@ -57,21 +57,14 @@ export const Opportunities = () => {
 
   // Manejar apertura automática de la edición después de crear una nueva oportunidad
   const handleOpportunityCreated = (createdOpportunity: Opportunity) => {
-    // Cierra el diálogo inmediatamente
-    setIsDialogOpen(false);
-
-    // Abre el edit sheet inmediatamente con el objeto recien creado.
-    // No depende de "opportunities" para evitar retrasos de react-query.
+    // El diálogo de creación se encarga de cerrarse a sí mismo.
+    // Aquí, solo nos preocupamos de abrir el panel de edición con la oportunidad recién creada.
     setEditingOpportunity({
       ...createdOpportunity,
-      // Si la mutación aún no retorna "calls", inicialízalo como []
+      // La mutación de creación no devuelve las llamadas asociadas,
+      // así que las inicializamos como un array vacío para el panel de edición.
       calls: createdOpportunity.calls ?? [],
     });
-
-    // DEBUG: Ver en consola si everthing va bien
-    console.log('handleOpportunityCreated', createdOpportunity);
-    // Opcional: abrir el edit sheet tras un pequeño delay para asegurar cierre de dialog antes de abrir edit sheet
-    // setTimeout(() => setEditingOpportunity({...createdOpportunity, calls: createdOpportunity.calls ?? []}), 100);
   };
 
   // Para manejo individual de eliminación de llamadas
