@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
-import { Call, CallType } from './useCalls';
+import { Call } from './useCalls';
 
 export interface Opportunity {
   id: number;
@@ -18,6 +18,24 @@ export interface Opportunity {
   calls?: Call[];
 }
 
+const sanitizeError = (error: any) => {
+  // If error is user-facing, return only safe info
+  if (error && (error.message || typeof error === "string")) {
+    // Avoid leaking error.stack, sql, details etc.
+    if (
+      String(error.message).toLowerCase().includes("supabase") ||
+      String(error.message).toLowerCase().includes("sql") ||
+      String(error.message).toLowerCase().includes("stack") ||
+      String(error.message).toLowerCase().includes("column") ||
+      String(error.message).toLowerCase().includes("trace")
+    ) {
+      return "Ocurrió un error inesperado. Por favor intenta de nuevo.";
+    }
+    return error.message || String(error);
+  }
+  return "Ocurrió un error inesperado. Por favor intenta de nuevo.";
+};
+
 export const useOpportunities = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -27,7 +45,6 @@ export const useOpportunities = () => {
     queryKey: ['opportunities', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      
       const { data, error } = await supabase
         .from('opportunities')
         .select(`
@@ -45,15 +62,18 @@ export const useOpportunities = () => {
           )
         `)
         .order('created_at', { ascending: false });
-
       if (error) {
-        console.error('Error fetching opportunities:', error);
+        if (import.meta.env.DEV) console.error('Error fetching opportunities:', error);
         throw error;
       }
-
       return data as Opportunity[];
     },
     enabled: !!user,
+    meta: {
+      onError: (error: any) => {
+        if (import.meta.env.DEV) console.error('Error fetching opportunities:', error);
+      }
+    }
   });
 
   const addOpportunity = useMutation({
@@ -64,10 +84,19 @@ export const useOpportunities = () => {
       revenue: number;
       cash_collected: number;
     }) => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error('Usuario no autenticado');
 
-      if (!newOpportunity.name.trim() || !newOpportunity.lead_source.trim()) {
-        throw new Error("Opportunity name and lead source are required.");
+      // Sanitize and strengthen validation
+      if (
+        typeof newOpportunity.name !== "string" ||
+        !newOpportunity.name.trim() ||
+        typeof newOpportunity.lead_source !== "string" ||
+        !newOpportunity.lead_source.trim() ||
+        isNaN(Number(newOpportunity.salesperson_id)) ||
+        isNaN(Number(newOpportunity.revenue)) ||
+        isNaN(Number(newOpportunity.cash_collected))
+      ) {
+        throw new Error("Todos los campos son requeridos y deben ser válidos.");
       }
 
       const { data, error } = await supabase
@@ -80,10 +109,9 @@ export const useOpportunities = () => {
         .single();
 
       if (error) {
-        console.error('Error adding opportunity:', error);
+        if (import.meta.env.DEV) console.error('Error adding opportunity:', error);
         throw error;
       }
-
       return data;
     },
     onSuccess: () => {
@@ -93,11 +121,11 @@ export const useOpportunities = () => {
         description: 'La oportunidad ha sido agregada exitosamente.',
       });
     },
-    onError: (error) => {
-      console.error('Error adding opportunity:', error);
+    onError: (error: any) => {
+      if (import.meta.env.DEV) console.error('Error adding opportunity:', error);
       toast({
         title: 'Error',
-        description: error.message || 'No se pudo agregar la oportunidad.',
+        description: sanitizeError(error),
         variant: 'destructive',
       });
     },
@@ -108,11 +136,11 @@ export const useOpportunities = () => {
       id: number; 
       updates: Partial<Omit<Opportunity, 'id' | 'user_id' | 'created_at' | 'calls'>>
     }) => {
-      if (updates.name !== undefined && !updates.name.trim()) {
-        throw new Error("Opportunity name cannot be empty.");
+      if (updates.name !== undefined && (!updates.name || !String(updates.name).trim())) {
+        throw new Error("El nombre de la oportunidad no puede estar vacío.");
       }
-      if (updates.lead_source !== undefined && !updates.lead_source.trim()) {
-        throw new Error("Lead source cannot be empty.");
+      if (updates.lead_source !== undefined && (!updates.lead_source || !String(updates.lead_source).trim())) {
+        throw new Error("La fuente de lead no puede estar vacía.");
       }
 
       const { data, error } = await supabase
@@ -123,10 +151,9 @@ export const useOpportunities = () => {
         .single();
 
       if (error) {
-        console.error('Error updating opportunity:', error);
+        if (import.meta.env.DEV) console.error('Error updating opportunity:', error);
         throw error;
       }
-
       return data;
     },
     onSuccess: () => {
@@ -136,11 +163,11 @@ export const useOpportunities = () => {
         description: 'La oportunidad ha sido actualizada exitosamente.',
       });
     },
-    onError: (error) => {
-      console.error('Error updating opportunity:', error);
+    onError: (error: any) => {
+      if (import.meta.env.DEV) console.error('Error updating opportunity:', error);
       toast({
         title: 'Error',
-        description: error.message || 'No se pudo actualizar la oportunidad.',
+        description: sanitizeError(error),
         variant: 'destructive',
       });
     },
@@ -154,7 +181,7 @@ export const useOpportunities = () => {
         .eq('id', id);
 
       if (error) {
-        console.error('Error deleting opportunity:', error);
+        if (import.meta.env.DEV) console.error('Error deleting opportunity:', error);
         throw error;
       }
     },
@@ -165,11 +192,11 @@ export const useOpportunities = () => {
         description: 'La oportunidad ha sido eliminada exitosamente.',
       });
     },
-    onError: (error) => {
-      console.error('Error deleting opportunity:', error);
+    onError: (error: any) => {
+      if (import.meta.env.DEV) console.error('Error deleting opportunity:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo eliminar la oportunidad.',
+        description: sanitizeError(error),
         variant: 'destructive',
       });
     },

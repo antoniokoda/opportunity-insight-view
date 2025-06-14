@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -19,6 +18,22 @@ export interface Call {
   created_at: string;
 }
 
+const sanitizeError = (error: any) => {
+  if (error && (error.message || typeof error === "string")) {
+    if (
+      String(error.message).toLowerCase().includes("supabase") ||
+      String(error.message).toLowerCase().includes("sql") ||
+      String(error.message).toLowerCase().includes("stack") ||
+      String(error.message).toLowerCase().includes("column") ||
+      String(error.message).toLowerCase().includes("trace")
+    ) {
+      return "Ocurrió un error inesperado. Por favor intenta de nuevo.";
+    }
+    return error.message || String(error);
+  }
+  return "Ocurrió un error inesperado. Por favor intenta de nuevo.";
+};
+
 export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = false) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -28,7 +43,6 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
     queryKey: ['calls', user?.id, opportunityId, excludeFutureCalls],
     queryFn: async () => {
       if (!user) return [];
-      
       let query = supabase
         .from('calls')
         .select('*')
@@ -37,22 +51,22 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
       if (opportunityId) {
         query = query.eq('opportunity_id', opportunityId);
       }
-
-      // Add filter to exclude future calls when calculating metrics
       if (excludeFutureCalls) {
         query = query.lte('date', new Date().toISOString());
       }
-
       const { data, error } = await query;
-
       if (error) {
-        console.error('Error fetching calls:', error);
+        if (import.meta.env.DEV) console.error('Error fetching calls:', error);
         throw error;
       }
-
       return data as Call[];
     },
     enabled: !!user,
+    meta: {
+      onError: (error: any) => {
+        if (import.meta.env.DEV) console.error('Error fetching calls:', error);
+      }
+    }
   });
 
   const addCall = useMutation({
@@ -64,13 +78,15 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
       attended?: boolean | null;
       link?: string;
     }) => {
-      if (!user) throw new Error('User not authenticated');
-
-      if (!newCall.type || !newCall.date) {
-        throw new Error("Call type and date are required.");
-      }
-      if (newCall.duration <= 0) {
-        throw new Error("Duration must be a positive number.");
+      if (!user) throw new Error('Usuario no autenticado');
+      // Input validation
+      if (
+        !newCall.type ||
+        !newCall.date ||
+        isNaN(Number(newCall.duration)) ||
+        newCall.duration <= 0
+      ) {
+        throw new Error("Todos los campos de la llamada deben ser válidos.");
       }
 
       // Get the next call number for this opportunity
@@ -91,14 +107,14 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
           ...newCall,
           number: nextNumber,
           user_id: user.id,
-          attended: newCall.attended || null,
-          link: newCall.link || null,
+          attended: newCall.attended ?? null,
+          link: newCall.link ?? null,
         }])
         .select()
         .single();
 
       if (error) {
-        console.error('Error adding call:', error);
+        if (import.meta.env.DEV) console.error('Error adding call:', error);
         throw error;
       }
 
@@ -112,11 +128,11 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
         description: 'La llamada ha sido agregada exitosamente.',
       });
     },
-    onError: (error) => {
-      console.error('Error adding call:', error);
+    onError: (error: any) => {
+      if (import.meta.env.DEV) console.error('Error adding call:', error);
       toast({
         title: 'Error',
-        description: error.message || 'No se pudo agregar la llamada.',
+        description: sanitizeError(error),
         variant: 'destructive',
       });
     },
@@ -133,7 +149,7 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
         link?: string | null;
       };
     }) => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error('Usuario no autenticado');
 
       const { data, error } = await supabase
         .from('calls')
@@ -143,7 +159,7 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
         .single();
 
       if (error) {
-        console.error('Error updating call:', error);
+        if (import.meta.env.DEV) console.error('Error updating call:', error);
         throw error;
       }
 
@@ -157,27 +173,26 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
         description: 'La llamada ha sido actualizada exitosamente.',
       });
     },
-    onError: (error) => {
-      console.error('Error updating call:', error);
+    onError: (error: any) => {
+      if (import.meta.env.DEV) console.error('Error updating call:', error);
       toast({
         title: 'Error',
-        description: error.message || 'No se pudo actualizar la llamada.',
+        description: sanitizeError(error),
         variant: 'destructive',
       });
     },
   });
 
-  // Nueva mutación para eliminar llamadas
   const deleteCall = useMutation({
     mutationFn: async (id: number) => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error('Usuario no autenticado');
       const { error } = await supabase
         .from('calls')
         .delete()
         .eq('id', id);
 
       if (error) {
-        console.error('Error deleting call:', error);
+        if (import.meta.env.DEV) console.error('Error deleting call:', error);
         throw error;
       }
     },
@@ -189,11 +204,11 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
         description: 'La llamada ha sido eliminada exitosamente.',
       });
     },
-    onError: (error) => {
-      console.error('Error deleting call:', error);
+    onError: (error: any) => {
+      if (import.meta.env.DEV) console.error('Error deleting call:', error);
       toast({
         title: 'Error',
-        description: error.message || 'No se pudo eliminar la llamada.',
+        description: sanitizeError(error),
         variant: 'destructive',
       });
     },
@@ -211,4 +226,3 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
     isDeleting: deleteCall.isPending,
   };
 };
-
