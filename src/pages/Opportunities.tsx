@@ -90,6 +90,7 @@ export const Opportunities = () => {
       lost: 'bg-red-100 text-red-800',
       created: 'bg-gray-100 text-gray-800',
       pitched: 'bg-yellow-100 text-yellow-800',
+      'n/a': 'bg-gray-100 text-gray-800',
     };
     return variants[status as keyof typeof variants] || 'bg-gray-100 text-gray-800';
   };
@@ -288,7 +289,7 @@ export const Opportunities = () => {
                         <div className="flex justify-between items-center">
                           {/* Etiquetas con color secundario - Tarea 1.2 */}
                           <span className="text-sm text-zinc-600">Estado:</span>
-                          <Badge className={getStatusBadge(opportunity.opportunity_status)}>
+                          <Badge variant="outline" className={getStatusBadge(opportunity.opportunity_status)}>
                             {opportunity.opportunity_status === 'active' && 'Activo'}
                             {opportunity.opportunity_status === 'won' && 'Ganado'}
                             {opportunity.opportunity_status === 'lost' && 'Perdido'}
@@ -297,7 +298,8 @@ export const Opportunities = () => {
                         
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-zinc-600">Propuesta:</span>
-                          <Badge className={getStatusBadge(opportunity.proposal_status)}>
+                          <Badge variant="outline" className={getStatusBadge(opportunity.proposal_status)}>
+                            {opportunity.proposal_status === 'n/a' && 'N/A'}
                             {opportunity.proposal_status === 'created' && 'Creada'}
                             {opportunity.proposal_status === 'pitched' && 'Presentada'}
                           </Badge>
@@ -333,7 +335,7 @@ export const Opportunities = () => {
                             {opportunity.calls.slice(0, 3).map((call) => (
                               <div key={call.id} className="flex items-center justify-between text-xs">
                                 <div className="flex items-center gap-2">
-                                  <Badge className={getCallTypeColor(call.type)}>
+                                  <Badge variant="outline" className={getCallTypeColor(call.type)}>
                                     {call.type} #{call.number}
                                   </Badge>
                                   {call.attended !== null && (

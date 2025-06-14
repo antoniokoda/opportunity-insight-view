@@ -28,7 +28,7 @@ export const DayDetails: React.FC<DayDetailsProps> = ({
           {calls.map(call => (
             <div key={call.id} className="p-4 bg-muted rounded-lg">
               <div className="flex items-start justify-between mb-2">
-                <Badge className={getCallTypeColor(call.type)}>
+                <Badge variant="outline" className={getCallTypeColor(call.type)}>
                   {call.type} #{call.number}
                 </Badge>
                 <div className="text-sm text-muted-foreground flex items-center gap-2">

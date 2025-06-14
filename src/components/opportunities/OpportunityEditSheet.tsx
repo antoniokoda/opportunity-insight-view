@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -249,6 +248,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="n/a">N/A</SelectItem>
                     <SelectItem value="created">Creada</SelectItem>
                     <SelectItem value="pitched">Presentada</SelectItem>
                   </SelectContent>
@@ -365,7 +365,7 @@ export const OpportunityEditSheet: React.FC<OpportunityEditSheetProps> = ({
                 {opportunityCalls.map(call => (
                   <div key={call.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Badge className={getCallTypeColor(call.type)}>
+                      <Badge variant="outline" className={getCallTypeColor(call.type)}>
                         {call.type} #{call.number}
                       </Badge>
                       <span className="text-sm">
