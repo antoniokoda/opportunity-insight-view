@@ -182,7 +182,7 @@ export const Opportunities = () => {
               </div>
 
               {/* Opportunities Grid for this month */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> {/* Changed lg:grid-cols-3 to md:grid-cols-2 (implicitly covers lg) */}
                 {groupedOpportunities[monthKey].opportunities.map((opportunity) => (
                   <Card key={opportunity.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader className="pb-3">
