@@ -14,7 +14,7 @@ export const useOpportunityMutations = () => {
   const addOpportunity = useMutation({
     mutationFn: async (newOpportunity: {
       name: string;
-      salesperson_id: number;
+      salesperson_id: number | null;
       lead_source: string;
       revenue: number;
       cash_collected: number;
@@ -27,7 +27,7 @@ export const useOpportunityMutations = () => {
         !newOpportunity.name.trim() ||
         typeof newOpportunity.lead_source !== "string" ||
         !newOpportunity.lead_source.trim() ||
-        isNaN(Number(newOpportunity.salesperson_id)) ||
+        (newOpportunity.salesperson_id !== null && isNaN(Number(newOpportunity.salesperson_id))) ||
         isNaN(Number(newOpportunity.revenue)) ||
         isNaN(Number(newOpportunity.cash_collected))
       ) {

@@ -87,7 +87,7 @@ export type Database = {
           opportunity_status: string
           proposal_status: string
           revenue: number
-          salesperson_id: number
+          salesperson_id: number | null
           user_id: string
         }
         Insert: {
@@ -99,7 +99,7 @@ export type Database = {
           opportunity_status?: string
           proposal_status?: string
           revenue?: number
-          salesperson_id: number
+          salesperson_id?: number | null
           user_id: string
         }
         Update: {
@@ -111,7 +111,7 @@ export type Database = {
           opportunity_status?: string
           proposal_status?: string
           revenue?: number
-          salesperson_id?: number
+          salesperson_id?: number | null
           user_id?: string
         }
         Relationships: [

@@ -4,7 +4,7 @@ import { Call } from '@/hooks/useCalls';
 export interface Opportunity {
   id: number;
   name: string;
-  salesperson_id: number;
+  salesperson_id: number | null;
   revenue: number;
   cash_collected: number;
   user_id: string;
