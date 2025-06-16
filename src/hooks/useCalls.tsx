@@ -47,7 +47,7 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
   });
 
   const { data: calls = [], isLoading, error } = useQuery({
-    queryKey: ['calls', user?.id, opportunityId, excludeFutureCalls],
+    queryKey: ['calls', opportunityId, excludeFutureCalls],
     queryFn: async () => {
       console.log('🔍 CALLS DEBUG: Starting query...');
       
@@ -56,13 +56,12 @@ export const useCalls = (opportunityId?: number, excludeFutureCalls: boolean = f
         return [];
       }
 
-      console.log('🔍 CALLS DEBUG: Fetching calls for user:', user.id);
+      console.log('🔍 CALLS DEBUG: Fetching all calls (shared data model)');
 
       try {
         let query = supabase
           .from('calls')
           .select('*')
-          .eq('user_id', user.id)
           .order('date', { ascending: false });
 
         if (opportunityId) {

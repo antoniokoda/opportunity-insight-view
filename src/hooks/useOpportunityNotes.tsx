@@ -35,7 +35,7 @@ export const useOpportunityNotes = (opportunityId: number) => {
   const queryClient = useQueryClient();
 
   const { data: notes = [], isLoading, error } = useQuery({
-    queryKey: ['opportunity-notes', opportunityId, user?.id],
+    queryKey: ['opportunity-notes', opportunityId],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase

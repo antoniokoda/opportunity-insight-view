@@ -14,7 +14,7 @@ export const useOpportunityQueries = () => {
   });
 
   const { data: opportunities = [], isLoading, error } = useQuery({
-    queryKey: ['opportunities', user?.id],
+    queryKey: ['opportunities'],
     queryFn: async () => {
       console.log('🔍 OPPORTUNITIES DEBUG: Starting query...');
       
@@ -23,10 +23,10 @@ export const useOpportunityQueries = () => {
         return [];
       }
 
-      console.log('🔍 OPPORTUNITIES DEBUG: Fetching opportunities for user:', user.id);
+      console.log('🔍 OPPORTUNITIES DEBUG: Fetching all opportunities (shared data model)');
 
       try {
-        // Fetch all opportunities that belong to the current user
+        // Fetch all opportunities (no user filtering - shared data model)
         const { data, error } = await supabase
           .from('opportunities')
           .select(`
@@ -43,7 +43,6 @@ export const useOpportunityQueries = () => {
               created_at
             )
           `)
-          .eq('user_id', user.id) // Filter by user_id to only get user's own opportunities
           .order('created_at', { ascending: false });
 
         if (error) {
