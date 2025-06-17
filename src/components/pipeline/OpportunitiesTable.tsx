@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,8 @@ export const OpportunitiesTable: React.FC<OpportunitiesTableProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const navigate = useNavigate();
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'active': return 'default';
@@ -50,6 +53,10 @@ export const OpportunitiesTable: React.FC<OpportunitiesTableProps> = ({
     }
   };
 
+  const handleRowClick = (opportunityId: number) => {
+    navigate(`/opportunities/${opportunityId}`);
+  };
+
   return (
     <div className="border rounded-lg overflow-hidden">
       <Table>
@@ -70,7 +77,11 @@ export const OpportunitiesTable: React.FC<OpportunitiesTableProps> = ({
         </TableHeader>
         <TableBody>
           {opportunities.map((opportunity) => (
-            <TableRow key={opportunity.id}>
+            <TableRow 
+              key={opportunity.id}
+              className="cursor-pointer hover:bg-zinc-50"
+              onClick={() => handleRowClick(opportunity.id)}
+            >
               <TableCell className="font-medium">
                 {opportunity.name}
               </TableCell>
@@ -122,17 +133,27 @@ export const OpportunitiesTable: React.FC<OpportunitiesTableProps> = ({
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <MoreVertical className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEdit(opportunity)}>
+                    <DropdownMenuItem onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(opportunity);
+                    }}>
                       <Edit className="w-4 h-4 mr-2" />
                       Editar
                     </DropdownMenuItem>
                     <DropdownMenuItem 
-                      onClick={() => onDelete(opportunity)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(opportunity);
+                      }}
                       className="text-red-600 hover:text-red-700"
                     >
                       <Trash className="w-4 h-4 mr-2" />

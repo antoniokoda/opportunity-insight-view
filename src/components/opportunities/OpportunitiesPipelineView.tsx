@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,8 +34,14 @@ export const OpportunitiesPipelineView: React.FC<OpportunitiesPipelineViewProps>
   onContacts,
   onDelete,
 }) => {
+  const navigate = useNavigate();
+
   const getOpportunitiesByStage = (stageId: string) => {
     return opportunities.filter(opp => opp.stage_id === stageId);
+  };
+
+  const handleOpportunityClick = (opportunityId: number) => {
+    navigate(`/opportunities/${opportunityId}`);
   };
 
   return (
@@ -95,9 +102,10 @@ export const OpportunitiesPipelineView: React.FC<OpportunitiesPipelineViewProps>
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className={`cursor-grab active:cursor-grabbing transition-shadow ${
+                            className={`cursor-pointer active:cursor-grabbing transition-shadow ${
                               snapshot.isDragging ? 'shadow-lg' : 'shadow-sm hover:shadow-md'
                             }`}
+                            onClick={() => handleOpportunityClick(opportunity.id)}
                           >
                             <CardHeader className="pb-2">
                               <CardTitle className="text-sm font-medium line-clamp-2">
@@ -133,21 +141,38 @@ export const OpportunitiesPipelineView: React.FC<OpportunitiesPipelineViewProps>
                                 </Button>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-6 px-1">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="h-6 px-1"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
                                       <MoreVertical className="w-3 h-3" />
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => onFiles(opportunity)}>
+                                    <DropdownMenuItem onClick={(e) => {
+                                      e.stopPropagation();
+                                      onFiles(opportunity);
+                                    }}>
                                       Archivos
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onNotes(opportunity)}>
+                                    <DropdownMenuItem onClick={(e) => {
+                                      e.stopPropagation();
+                                      onNotes(opportunity);
+                                    }}>
                                       Notas
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onContacts(opportunity)}>
+                                    <DropdownMenuItem onClick={(e) => {
+                                      e.stopPropagation();
+                                      onContacts(opportunity);
+                                    }}>
                                       Contactos
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onDelete(opportunity)}>
+                                    <DropdownMenuItem onClick={(e) => {
+                                      e.stopPropagation();
+                                      onDelete(opportunity);
+                                    }}>
                                       Eliminar
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
