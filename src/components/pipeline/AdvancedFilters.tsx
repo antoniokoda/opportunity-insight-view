@@ -31,7 +31,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   const { leadSources } = useLeadSourcesWithPersistence();
 
   const updateFilter = (key: keyof FilterState, value: string) => {
-    onFiltersChange({ ...filters, [key]: value });
+    // Convert "all" values back to empty strings for filtering logic
+    const filterValue = value === 'all' ? '' : value;
+    onFiltersChange({ ...filters, [key]: filterValue });
   };
 
   const clearAllFilters = () => {
@@ -47,6 +49,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   };
 
   const activeFiltersCount = Object.values(filters).filter(value => value !== '').length;
+
+  // Convert empty filter values to "all" for display
+  const getSelectValue = (filterValue: string) => filterValue === '' ? 'all' : filterValue;
 
   return (
     <div className="space-y-4">
@@ -84,12 +89,12 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
           />
         </div>
 
-        <Select value={filters.salesperson} onValueChange={(value) => updateFilter('salesperson', value)}>
+        <Select value={getSelectValue(filters.salesperson)} onValueChange={(value) => updateFilter('salesperson', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Vendedor" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos los vendedores</SelectItem>
+            <SelectItem value="all">Todos los vendedores</SelectItem>
             {salespeople.map(person => (
               <SelectItem key={person.id} value={person.id.toString()}>
                 {person.name}
@@ -98,12 +103,12 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
           </SelectContent>
         </Select>
 
-        <Select value={filters.leadSource} onValueChange={(value) => updateFilter('leadSource', value)}>
+        <Select value={getSelectValue(filters.leadSource)} onValueChange={(value) => updateFilter('leadSource', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Fuente" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas las fuentes</SelectItem>
+            <SelectItem value="all">Todas las fuentes</SelectItem>
             {leadSources.map(source => (
               <SelectItem key={source.id} value={source.name}>
                 {source.name}
@@ -112,24 +117,24 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
           </SelectContent>
         </Select>
 
-        <Select value={filters.status} onValueChange={(value) => updateFilter('status', value)}>
+        <Select value={getSelectValue(filters.status)} onValueChange={(value) => updateFilter('status', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos los estados</SelectItem>
+            <SelectItem value="all">Todos los estados</SelectItem>
             <SelectItem value="active">Activo</SelectItem>
             <SelectItem value="won">Ganado</SelectItem>
             <SelectItem value="lost">Perdido</SelectItem>
           </SelectContent>
         </Select>
 
-        <Select value={filters.proposalStatus} onValueChange={(value) => updateFilter('proposalStatus', value)}>
+        <Select value={getSelectValue(filters.proposalStatus)} onValueChange={(value) => updateFilter('proposalStatus', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Propuesta" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas las propuestas</SelectItem>
+            <SelectItem value="all">Todas las propuestas</SelectItem>
             <SelectItem value="n/a">N/A</SelectItem>
             <SelectItem value="created">Creada</SelectItem>
             <SelectItem value="pitched">Presentada</SelectItem>
