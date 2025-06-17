@@ -10,7 +10,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
-import type { Opportunity } from '@/types/opportunity';
+import type { Opportunity } from '@/hooks/useOpportunities';
 
 interface DeleteOpportunityDialogProps {
   opportunity: Opportunity | null;

@@ -54,13 +54,6 @@ export type Database = {
             referencedRelation: "opportunities"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "calls_opportunity_id_fkey"
-            columns: ["opportunity_id"]
-            isOneToOne: false
-            referencedRelation: "opportunities_with_pipeline"
-            referencedColumns: ["id"]
-          },
         ]
       }
       lead_sources: {
@@ -89,67 +82,44 @@ export type Database = {
           cash_collected: number
           created_at: string | null
           id: number
-          last_interaction_at: string | null
           lead_source: string
           name: string
           opportunity_status: string
-          pipeline_id: string | null
           proposal_status: string
           revenue: number
           salesperson_id: number | null
-          stage_id: string | null
           user_id: string
         }
         Insert: {
           cash_collected?: number
           created_at?: string | null
           id?: number
-          last_interaction_at?: string | null
           lead_source: string
           name: string
           opportunity_status?: string
-          pipeline_id?: string | null
           proposal_status?: string
           revenue?: number
           salesperson_id?: number | null
-          stage_id?: string | null
           user_id: string
         }
         Update: {
           cash_collected?: number
           created_at?: string | null
           id?: number
-          last_interaction_at?: string | null
           lead_source?: string
           name?: string
           opportunity_status?: string
-          pipeline_id?: string | null
           proposal_status?: string
           revenue?: number
           salesperson_id?: number | null
-          stage_id?: string | null
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "opportunities_pipeline_id_fkey"
-            columns: ["pipeline_id"]
-            isOneToOne: false
-            referencedRelation: "pipelines"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "opportunities_salesperson_id_fkey"
             columns: ["salesperson_id"]
             isOneToOne: false
             referencedRelation: "salespeople"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "opportunities_stage_id_fkey"
-            columns: ["stage_id"]
-            isOneToOne: false
-            referencedRelation: "pipeline_stages"
             referencedColumns: ["id"]
           },
         ]
@@ -199,13 +169,6 @@ export type Database = {
             referencedRelation: "opportunities"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "opportunity_contacts_opportunity_id_fkey"
-            columns: ["opportunity_id"]
-            isOneToOne: false
-            referencedRelation: "opportunities_with_pipeline"
-            referencedColumns: ["id"]
-          },
         ]
       }
       opportunity_files: {
@@ -247,13 +210,6 @@ export type Database = {
             referencedRelation: "opportunities"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "opportunity_files_opportunity_id_fkey"
-            columns: ["opportunity_id"]
-            isOneToOne: false
-            referencedRelation: "opportunities_with_pipeline"
-            referencedColumns: ["id"]
-          },
         ]
       }
       opportunity_notes: {
@@ -292,91 +248,7 @@ export type Database = {
             referencedRelation: "opportunities"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "opportunity_notes_opportunity_id_fkey"
-            columns: ["opportunity_id"]
-            isOneToOne: false
-            referencedRelation: "opportunities_with_pipeline"
-            referencedColumns: ["id"]
-          },
         ]
-      }
-      pipeline_stages: {
-        Row: {
-          color: string | null
-          created_at: string
-          description: string | null
-          display_order: number
-          id: string
-          is_final: boolean
-          name: string
-          pipeline_id: string
-          updated_at: string
-        }
-        Insert: {
-          color?: string | null
-          created_at?: string
-          description?: string | null
-          display_order?: number
-          id?: string
-          is_final?: boolean
-          name: string
-          pipeline_id: string
-          updated_at?: string
-        }
-        Update: {
-          color?: string | null
-          created_at?: string
-          description?: string | null
-          display_order?: number
-          id?: string
-          is_final?: boolean
-          name?: string
-          pipeline_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pipeline_stages_pipeline_id_fkey"
-            columns: ["pipeline_id"]
-            isOneToOne: false
-            referencedRelation: "pipelines"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      pipelines: {
-        Row: {
-          created_at: string
-          description: string | null
-          display_order: number
-          id: string
-          is_default: boolean
-          name: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          display_order?: number
-          id?: string
-          is_default?: boolean
-          name: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          display_order?: number
-          id?: string
-          is_default?: boolean
-          name?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       profiles: {
         Row: {
@@ -423,89 +295,8 @@ export type Database = {
         }
         Relationships: []
       }
-      user_view_settings: {
-        Row: {
-          column_settings: Json | null
-          created_at: string
-          filters: Json | null
-          id: string
-          selected_pipeline_id: string | null
-          sort_settings: Json | null
-          updated_at: string
-          user_id: string
-          view_type: string
-        }
-        Insert: {
-          column_settings?: Json | null
-          created_at?: string
-          filters?: Json | null
-          id?: string
-          selected_pipeline_id?: string | null
-          sort_settings?: Json | null
-          updated_at?: string
-          user_id: string
-          view_type?: string
-        }
-        Update: {
-          column_settings?: Json | null
-          created_at?: string
-          filters?: Json | null
-          id?: string
-          selected_pipeline_id?: string | null
-          sort_settings?: Json | null
-          updated_at?: string
-          user_id?: string
-          view_type?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
-      opportunities_with_pipeline: {
-        Row: {
-          cash_collected: number | null
-          created_at: string | null
-          id: number | null
-          last_interaction_at: string | null
-          lead_source: string | null
-          name: string | null
-          opportunity_status: string | null
-          pipeline_id: string | null
-          pipeline_name: string | null
-          proposal_status: string | null
-          revenue: number | null
-          salesperson_id: number | null
-          stage_color: string | null
-          stage_id: string | null
-          stage_is_final: boolean | null
-          stage_name: string | null
-          stage_order: number | null
-          user_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "opportunities_pipeline_id_fkey"
-            columns: ["pipeline_id"]
-            isOneToOne: false
-            referencedRelation: "pipelines"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "opportunities_salesperson_id_fkey"
-            columns: ["salesperson_id"]
-            isOneToOne: false
-            referencedRelation: "salespeople"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "opportunities_stage_id_fkey"
-            columns: ["stage_id"]
-            isOneToOne: false
-            referencedRelation: "pipeline_stages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       opportunity_notes_with_users: {
         Row: {
           content: string | null
@@ -524,13 +315,6 @@ export type Database = {
             columns: ["opportunity_id"]
             isOneToOne: false
             referencedRelation: "opportunities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "opportunity_notes_opportunity_id_fkey"
-            columns: ["opportunity_id"]
-            isOneToOne: false
-            referencedRelation: "opportunities_with_pipeline"
             referencedColumns: ["id"]
           },
         ]

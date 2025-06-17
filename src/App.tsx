@@ -9,7 +9,6 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Dashboard } from "@/pages/Dashboard";
 import { Opportunities } from "@/pages/Opportunities";
-import { OpportunityDetail } from "@/pages/OpportunityDetail";
 import { Calendar } from "@/pages/Calendar";
 import { Auth } from "@/pages/Auth";
 import { ResetPassword } from "@/pages/ResetPassword";
@@ -39,11 +38,6 @@ const App = () => (
                 <MainLayout>
                   <Opportunities />
                 </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/opportunities/:id" element={
-              <ProtectedRoute>
-                <OpportunityDetail />
               </ProtectedRoute>
             } />
             <Route path="/calendar" element={

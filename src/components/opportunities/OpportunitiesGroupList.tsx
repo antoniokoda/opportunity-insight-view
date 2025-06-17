@@ -2,7 +2,7 @@
 import React from 'react';
 import { Separator } from '@/components/ui/separator';
 import { OpportunityCard } from './OpportunityCard';
-import type { Opportunity } from '@/types/opportunity';
+import type { Opportunity } from '@/hooks/useOpportunities';
 
 interface OpportunitiesGroupListProps {
   groupedOpportunities: Record<string, { label: string; opportunities: Opportunity[] }>;

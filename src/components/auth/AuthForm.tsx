@@ -1,19 +1,18 @@
+
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { handleError, ErrorCodes } from '@/utils/errorUtils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2, Mail, Lock, UserPlus, LogIn } from 'lucide-react';
-import { Label } from '@/components/ui/label';
 
 const authSchema = z.object({
-  email: z.string().email('Por favor ingresa un email válido'),
+  email: z.string().email('Email inválido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
 
@@ -46,7 +45,21 @@ export const AuthForm = ({ mode, onToggleMode, onForgotPassword }: AuthFormProps
         : await signUp(data.email, data.password);
 
       if (error) {
-        handleError(error, 'AuthForm');
+        let errorMessage = 'Ocurrió un error inesperado';
+        
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Credenciales inválidas. Por favor verifica tu email y contraseña.';
+        } else if (error.message.includes('User already registered')) {
+          errorMessage = 'Este email ya está registrado. Intenta iniciar sesión.';
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Por favor confirma tu email antes de iniciar sesión.';
+        }
+
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
       } else if (mode === 'signup') {
         toast({
           title: 'Registro exitoso',
@@ -54,7 +67,11 @@ export const AuthForm = ({ mode, onToggleMode, onForgotPassword }: AuthFormProps
         });
       }
     } catch (err) {
-      handleError(err, 'AuthForm');
+      toast({
+        title: 'Error',
+        description: 'Ocurrió un error inesperado',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -92,14 +109,9 @@ export const AuthForm = ({ mode, onToggleMode, onForgotPassword }: AuthFormProps
                       type="email"
                       placeholder="tu@email.com"
                       disabled={loading}
-                      aria-describedby="email-error"
                     />
                   </FormControl>
-                  {form.formState.errors.email && (
-                    <FormMessage className="text-red-500" id="email-error">
-                      {form.formState.errors.email.message}
-                    </FormMessage>
-                  )}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -118,54 +130,46 @@ export const AuthForm = ({ mode, onToggleMode, onForgotPassword }: AuthFormProps
                       type="password"
                       placeholder="••••••••"
                       disabled={loading}
-                      aria-describedby="password-error"
                     />
                   </FormControl>
-                  {form.formState.errors.password && (
-                    <FormMessage className="text-red-500" id="password-error">
-                      {form.formState.errors.password.message}
-                    </FormMessage>
-                  )}
+                  <FormMessage />
                 </FormItem>
               )}
             />
             
-            <div className="flex flex-col space-y-2">
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {mode === 'login' ? 'Iniciando sesión...' : 'Registrando...'}
-                  </>
-                ) : (
-                  mode === 'login' ? 'Iniciar sesión' : 'Registrarse'
-                )}
-              </Button>
-
-              <Button
-                type="button"
-                variant="link"
-                onClick={onToggleMode}
-                disabled={loading}
-                className="text-sm"
-              >
-                {mode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
-              </Button>
-
-              {mode === 'login' && (
+            {mode === 'login' && (
+              <div className="text-right">
                 <Button
                   type="button"
                   variant="link"
+                  className="p-0 h-auto text-sm"
                   onClick={onForgotPassword}
-                  disabled={loading}
-                  className="text-sm"
                 >
                   ¿Olvidaste tu contraseña?
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
+            </Button>
           </form>
         </Form>
+
+        <div className="mt-6 text-center">
+          <Button
+            type="button"
+            variant="link"
+            onClick={onToggleMode}
+            className="text-sm"
+          >
+            {mode === 'login' 
+              ? '¿No tienes cuenta? Regístrate' 
+              : '¿Ya tienes cuenta? Inicia sesión'
+            }
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
