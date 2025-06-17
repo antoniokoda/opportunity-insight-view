@@ -20,6 +20,7 @@ import { OpportunitiesPipelineView } from '@/components/opportunities/Opportunit
 import { OpportunitiesTable } from '@/components/pipeline/OpportunitiesTable';
 import { OpportunitiesLoading } from '@/components/opportunities/OpportunitiesLoading';
 import type { OpportunityWithPipeline } from '@/hooks/useOpportunitiesWithPipeline';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface FilterState {
   search: string;
@@ -32,12 +33,24 @@ interface FilterState {
 }
 
 export const Opportunities = () => {
+  console.log('🔍 Opportunities: Component rendering');
+
   const { pipelines, stages, isLoading: pipelinesLoading, getStagesByPipeline, getDefaultPipeline } = usePipelines();
-  const { opportunities, isLoading: opportunitiesLoading } = useOpportunitiesWithPipeline();
+  const { opportunities, isLoading: opportunitiesLoading, error: opportunitiesError } = useOpportunitiesWithPipeline();
   const { updateOpportunity } = useOpportunityMutations();
   const { salespeople } = useSalespeople();
   const { leadSources } = useLeadSourcesWithPersistence();
   const { settings, setViewType, setSelectedPipeline, isLoading: settingsLoading } = useUserViewSettings();
+
+  console.log('🔍 Opportunities: Hook states', {
+    pipelinesLoading,
+    opportunitiesLoading,
+    settingsLoading,
+    opportunitiesCount: opportunities?.length || 0,
+    opportunitiesError: opportunitiesError?.message,
+    pipelinesCount: pipelines?.length || 0,
+    settingsViewType: settings?.view_type
+  });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingOpportunity, setEditingOpportunity] = useState<OpportunityWithPipeline | null>(null);
@@ -68,6 +81,14 @@ export const Opportunities = () => {
     : getDefaultPipeline();
 
   const currentStages = currentPipeline ? getStagesByPipeline(currentPipeline.id) : [];
+
+  console.log('🔍 Opportunities: Pipeline info', {
+    currentView,
+    selectedPipelineId,
+    currentPipelineId: currentPipeline?.id,
+    currentPipelineName: currentPipeline?.name,
+    stagesCount: currentStages?.length || 0
+  });
 
   // Filter opportunities based on current pipeline and filters
   const filteredOpportunities = opportunities.filter(opp => {
@@ -101,6 +122,8 @@ export const Opportunities = () => {
     
     return true;
   });
+
+  console.log('🔍 Opportunities: Filtered opportunities count:', filteredOpportunities?.length || 0);
 
   const handleOpportunityCreated = useCallback((createdOpportunity: any) => {
     console.log('Opportunity created:', createdOpportunity);
@@ -162,9 +185,33 @@ export const Opportunities = () => {
     setSelectedPipeline(pipelineId);
   };
 
+  // Show loading state
   if (pipelinesLoading || opportunitiesLoading || settingsLoading) {
+    console.log('🔍 Opportunities: Showing loading state');
     return <OpportunitiesLoading />;
   }
+
+  // Show error state if there's an error with opportunities
+  if (opportunitiesError) {
+    console.error('🔍 Opportunities: Showing error state:', opportunitiesError);
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <h2 className="text-lg font-semibold text-red-600 mb-2">Error al cargar oportunidades</h2>
+              <p className="text-gray-600">{opportunitiesError.message}</p>
+              <p className="text-sm text-gray-500 mt-2">
+                Intenta recargar la página o contacta al soporte si el problema persiste.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  console.log('🔍 Opportunities: Rendering main content');
 
   return (
     <TooltipProvider>

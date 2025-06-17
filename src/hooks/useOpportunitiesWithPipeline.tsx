@@ -29,17 +29,21 @@ export interface OpportunityWithPipeline {
 export const useOpportunitiesWithPipeline = () => {
   const { user } = useAuth();
 
+  console.log('🔍 useOpportunitiesWithPipeline: Starting with user:', !!user);
+
   const { data: opportunities = [], isLoading, error } = useQuery({
     queryKey: ['opportunities-with-pipeline'],
     queryFn: async () => {
-      console.log('🔍 OPPORTUNITIES WITH PIPELINE DEBUG: Starting query...');
+      console.log('🔍 useOpportunitiesWithPipeline: Query function called');
       
       if (!user) {
-        console.log('🔍 OPPORTUNITIES WITH PIPELINE DEBUG: No user, returning empty array');
+        console.log('🔍 useOpportunitiesWithPipeline: No user, returning empty array');
         return [];
       }
 
       try {
+        console.log('🔍 useOpportunitiesWithPipeline: Starting Supabase query');
+        
         // Fetch all opportunities with pipeline information (shared data model)
         const { data, error } = await supabase
           .from('opportunities_with_pipeline')
@@ -60,34 +64,34 @@ export const useOpportunitiesWithPipeline = () => {
           .order('created_at', { ascending: false });
 
         if (error) {
-          console.error('🔍 OPPORTUNITIES WITH PIPELINE DEBUG: Query error:', error);
+          console.error('🔍 useOpportunitiesWithPipeline: Query error:', error);
           throw error;
         }
 
-        console.log('🔍 OPPORTUNITIES WITH PIPELINE DEBUG: Query successful', {
-          resultCount: data?.length || 0,
-          data: data
+        console.log('🔍 useOpportunitiesWithPipeline: Query successful', {
+          resultCount: data?.length || 0
         });
 
         return data as OpportunityWithPipeline[];
       } catch (queryError) {
-        console.error('🔍 OPPORTUNITIES WITH PIPELINE DEBUG: Query failed:', queryError);
+        console.error('🔍 useOpportunitiesWithPipeline: Query failed:', queryError);
         throw queryError;
       }
     },
     enabled: !!user,
+    retry: 1,
     meta: {
       onError: (error: any) => {
-        console.error('🔍 OPPORTUNITIES WITH PIPELINE DEBUG: Query hook error:', error);
+        console.error('🔍 useOpportunitiesWithPipeline: Query hook error:', error);
       }
     }
   });
 
-  console.log('🔍 OPPORTUNITIES WITH PIPELINE DEBUG: Hook result', {
+  console.log('🔍 useOpportunitiesWithPipeline: Returning result', {
     opportunitiesCount: opportunities?.length || 0,
     isLoading,
     hasError: !!error,
-    error: error?.message
+    errorMessage: error?.message
   });
 
   return {

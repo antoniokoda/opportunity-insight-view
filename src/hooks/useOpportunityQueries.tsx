@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -25,10 +26,15 @@ export const useOpportunityQueries = (options: UseOpportunityQueriesOptions = {}
 
   const { user } = useAuth();
 
+  console.log('🔍 useOpportunityQueries: Starting with user:', !!user);
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['opportunities', page, searchTerm, status, sortBy, sortOrder],
     queryFn: async () => {
+      console.log('🔍 useOpportunityQueries: Query function called');
+      
       if (!user) {
+        console.log('🔍 useOpportunityQueries: No user, returning empty data');
         return {
           opportunities: [],
           total: 0,
@@ -38,6 +44,8 @@ export const useOpportunityQueries = (options: UseOpportunityQueriesOptions = {}
       }
 
       try {
+        console.log('🔍 useOpportunityQueries: Starting Supabase query');
+        
         let query = supabase
           .from('opportunities')
           .select(`
@@ -72,11 +80,15 @@ export const useOpportunityQueries = (options: UseOpportunityQueriesOptions = {}
         const to = from + ITEMS_PER_PAGE - 1;
         query = query.range(from, to);
 
+        console.log('🔍 useOpportunityQueries: Executing query');
         const { data: opportunities, error: queryError, count } = await query;
 
         if (queryError) {
+          console.error('🔍 useOpportunityQueries: Query error:', queryError);
           throw queryError;
         }
+
+        console.log('🔍 useOpportunityQueries: Query successful, count:', count);
 
         return {
           opportunities: opportunities as Opportunity[],
@@ -85,6 +97,7 @@ export const useOpportunityQueries = (options: UseOpportunityQueriesOptions = {}
           totalPages: Math.ceil((count || 0) / ITEMS_PER_PAGE),
         };
       } catch (error) {
+        console.error('🔍 useOpportunityQueries: Catch block error:', error);
         handleError(error, 'useOpportunityQueries');
         throw error;
       }
@@ -92,6 +105,13 @@ export const useOpportunityQueries = (options: UseOpportunityQueriesOptions = {}
     enabled: !!user,
     placeholderData: (previousData) => previousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  console.log('🔍 useOpportunityQueries: Returning data:', {
+    opportunitiesCount: data?.opportunities?.length || 0,
+    isLoading,
+    hasError: !!error,
+    error: error?.message
   });
 
   return {

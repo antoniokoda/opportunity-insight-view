@@ -1,3 +1,4 @@
+
 import { toast } from '@/hooks/use-toast';
 
 export type AppError = {
@@ -37,6 +38,8 @@ const ErrorMessages: Record<string, string> = {
 };
 
 export const sanitizeError = (error: unknown): AppError => {
+  console.log('🔍 ErrorUtils: Sanitizing error:', error);
+  
   // Handle string errors
   if (typeof error === 'string') {
     return {
@@ -88,19 +91,22 @@ export const sanitizeError = (error: unknown): AppError => {
 export const handleError = (error: unknown, context?: string): void => {
   const sanitizedError = sanitizeError(error);
   
-  // Log error with context if provided
-  console.error(`[${context || 'App'}] Error:`, {
+  // Log error with context if provided - but don't show toast for non-critical errors
+  console.error(`🔍 [${context || 'App'}] Error:`, {
     code: sanitizedError.code,
     message: sanitizedError.message,
     details: sanitizedError.details,
+    originalError: error
   });
 
-  // Show toast notification
-  toast({
-    title: 'Error',
-    description: sanitizedError.message,
-    variant: 'destructive',
-  });
+  // Only show toast for specific error types that require user attention
+  if (context && !context.includes('Query') && !context.includes('hook')) {
+    toast({
+      title: 'Error',
+      description: sanitizedError.message,
+      variant: 'destructive',
+    });
+  }
 };
 
 export const isAppError = (error: unknown): error is AppError => {
