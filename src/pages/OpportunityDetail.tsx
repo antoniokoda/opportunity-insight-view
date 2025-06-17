@@ -15,7 +15,7 @@ import { OpportunityFilesDialog } from '@/components/opportunities/OpportunityFi
 import { OpportunityNotesDialog } from '@/components/opportunities/OpportunityNotesDialog';
 import { OpportunityContactsDialog } from '@/components/opportunities/OpportunityContactsDialog';
 import { OpportunityEditSheet } from '@/components/opportunities/OpportunityEditSheet';
-import { CallList } from '@/components/opportunities/CallList';
+import { CallListContainer } from '@/components/opportunities/CallListContainer';
 
 export const OpportunityDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -214,7 +214,7 @@ export const OpportunityDetail = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <CallList opportunityId={opportunity.id} />
+                <CallListContainer opportunityId={opportunity.id} />
               </CardContent>
             </Card>
           </div>
