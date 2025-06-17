@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react';
-import { Opportunity } from './useOpportunities';
+import { Opportunity } from '@/types/opportunity';
 
 export const useLeadSourceData = (opportunities: Opportunity[], customLeadSources: string[]) => {
   return useMemo(() => {

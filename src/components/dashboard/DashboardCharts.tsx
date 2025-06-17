@@ -7,9 +7,9 @@ const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 interface DashboardChartsProps {
   leadSourceData: Array<{
-    source: string;
-    count: number;
-    revenue: number;
+    name: string;
+    value: number;
+    fill: string;
   }>;
 }
 
@@ -17,7 +17,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
   leadSourceData,
 }) => {
   // Filter lead sources to only show those with data
-  const filteredLeadSourceData = leadSourceData.filter(item => item.count > 0);
+  const filteredLeadSourceData = leadSourceData.filter(item => item.value > 0);
 
   return (
     <div className="space-y-6">
@@ -35,10 +35,10 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ source, percent }) => `${source} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
-                    dataKey="count"
+                    dataKey="value"
                   >
                     {filteredLeadSourceData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -54,19 +54,16 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({
               <h4 className="font-medium text-sm text-muted-foreground mb-3">Desglose por fuente</h4>
               <div className="space-y-3">
                 {filteredLeadSourceData.map((item, index) => (
-                  <div key={item.source} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                  <div key={item.name} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                     <div className="flex items-center gap-2">
                       <div 
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: COLORS[index % COLORS.length] }}
                       />
-                      <span className="font-medium text-sm">{item.source}</span>
+                      <span className="font-medium text-sm">{item.name}</span>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold">{item.count}</div>
-                      <div className="text-xs text-muted-foreground">
-                        ${item.revenue.toLocaleString()}
-                      </div>
+                      <div className="font-semibold">{item.value}</div>
                     </div>
                   </div>
                 ))}

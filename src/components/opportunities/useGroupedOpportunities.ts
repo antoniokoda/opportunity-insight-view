@@ -1,7 +1,7 @@
 
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import type { Opportunity } from '@/hooks/useOpportunities';
+import type { Opportunity } from '@/types/opportunity';
 
 // Devuelve fecha de última llamada (o undefined)
 const getLastCallDate = (opportunity: Opportunity) => {

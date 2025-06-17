@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useOpportunities } from '@/hooks/useOpportunities';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useLeadSourcesWithPersistence } from '@/hooks/useLeadSourcesWithPersistence';
-import type { Opportunity } from '@/hooks/useOpportunities';
+import type { Opportunity } from '@/types/opportunity';
 
 interface OpportunityDialogProps {
   isOpen: boolean;

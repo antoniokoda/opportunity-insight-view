@@ -9,7 +9,7 @@ import { OpportunityEditSheet } from '@/components/opportunities/OpportunityEdit
 import { OpportunityFilesDialog } from '@/components/opportunities/OpportunityFilesDialog';
 import { OpportunityNotesDialog } from '@/components/opportunities/OpportunityNotesDialog';
 import { OpportunityContactsDialog } from '@/components/opportunities/OpportunityContactsDialog';
-import type { Opportunity } from '@/hooks/useOpportunities';
+import type { Opportunity } from '@/types/opportunity';
 import { OpportunitiesFilters } from '@/components/opportunities/OpportunitiesFilters';
 import { OpportunitiesGroupList } from '@/components/opportunities/OpportunitiesGroupList';
 import { useGroupedOpportunities } from '@/components/opportunities/useGroupedOpportunities';
