@@ -45,9 +45,30 @@ export interface ChartDataPoint {
 }
 
 export interface CallMetrics {
-  callCounts: Record<string, number>;
-  averageDurations: Record<string, number>;
-  showUpRates: Record<string, number>;
+  callCounts: {
+    discovery1: number;
+    discovery2: number;
+    discovery3: number;
+    closing1: number;
+    closing2: number;
+    closing3: number;
+  };
+  averageDurations: {
+    discovery1: number;
+    discovery2: number;
+    discovery3: number;
+    closing1: number;
+    closing2: number;
+    closing3: number;
+  };
+  showUpRates: {
+    discovery1: number;
+    discovery2: number;
+    discovery3: number;
+    closing1: number;
+    closing2: number;
+    closing3: number;
+  };
 }
 
 export const useDashboard = () => {
@@ -283,20 +304,20 @@ export const useDashboard = () => {
       }));
   }, [filteredOpportunities, leadSources]);
 
-  // Call metrics
+  // Call metrics with proper type transformation
   const callMetrics: CallMetrics = useMemo(() => {
     const callTypes = ['Discovery 1', 'Discovery 2', 'Discovery 3', 'Closing 1', 'Closing 2', 'Closing 3'];
-    const callCounts: Record<string, number> = {};
-    const totalDurations: Record<string, number> = {};
-    const attendedCounts: Record<string, number> = {};
-    const totalCounts: Record<string, number> = {};
+    const rawCallCounts: Record<string, number> = {};
+    const rawTotalDurations: Record<string, number> = {};
+    const rawAttendedCounts: Record<string, number> = {};
+    const rawTotalCounts: Record<string, number> = {};
 
     // Initialize
     callTypes.forEach(type => {
-      callCounts[type] = 0;
-      totalDurations[type] = 0;
-      attendedCounts[type] = 0;
-      totalCounts[type] = 0;
+      rawCallCounts[type] = 0;
+      rawTotalDurations[type] = 0;
+      rawAttendedCounts[type] = 0;
+      rawTotalCounts[type] = 0;
     });
 
     // Process calls
@@ -305,24 +326,43 @@ export const useDashboard = () => {
 
     pastCalls.forEach(call => {
       if (callTypes.includes(call.type)) {
-        callCounts[call.type]++;
-        totalDurations[call.type] += call.duration;
-        totalCounts[call.type]++;
+        rawCallCounts[call.type]++;
+        rawTotalDurations[call.type] += call.duration;
+        rawTotalCounts[call.type]++;
         
         if (call.attended === true) {
-          attendedCounts[call.type]++;
+          rawAttendedCounts[call.type]++;
         }
       }
     });
 
-    // Calculate averages and rates
-    const averageDurations: Record<string, number> = {};
-    const showUpRates: Record<string, number> = {};
+    // Transform to expected format
+    const callCounts = {
+      discovery1: rawCallCounts['Discovery 1'],
+      discovery2: rawCallCounts['Discovery 2'],
+      discovery3: rawCallCounts['Discovery 3'],
+      closing1: rawCallCounts['Closing 1'],
+      closing2: rawCallCounts['Closing 2'],
+      closing3: rawCallCounts['Closing 3'],
+    };
 
-    callTypes.forEach(type => {
-      averageDurations[type] = callCounts[type] > 0 ? totalDurations[type] / callCounts[type] : 0;
-      showUpRates[type] = totalCounts[type] > 0 ? (attendedCounts[type] / totalCounts[type]) * 100 : 0;
-    });
+    const averageDurations = {
+      discovery1: rawCallCounts['Discovery 1'] > 0 ? rawTotalDurations['Discovery 1'] / rawCallCounts['Discovery 1'] : 0,
+      discovery2: rawCallCounts['Discovery 2'] > 0 ? rawTotalDurations['Discovery 2'] / rawCallCounts['Discovery 2'] : 0,
+      discovery3: rawCallCounts['Discovery 3'] > 0 ? rawTotalDurations['Discovery 3'] / rawCallCounts['Discovery 3'] : 0,
+      closing1: rawCallCounts['Closing 1'] > 0 ? rawTotalDurations['Closing 1'] / rawCallCounts['Closing 1'] : 0,
+      closing2: rawCallCounts['Closing 2'] > 0 ? rawTotalDurations['Closing 2'] / rawCallCounts['Closing 2'] : 0,
+      closing3: rawCallCounts['Closing 3'] > 0 ? rawTotalDurations['Closing 3'] / rawCallCounts['Closing 3'] : 0,
+    };
+
+    const showUpRates = {
+      discovery1: rawTotalCounts['Discovery 1'] > 0 ? (rawAttendedCounts['Discovery 1'] / rawTotalCounts['Discovery 1']) * 100 : 0,
+      discovery2: rawTotalCounts['Discovery 2'] > 0 ? (rawAttendedCounts['Discovery 2'] / rawTotalCounts['Discovery 2']) * 100 : 0,
+      discovery3: rawTotalCounts['Discovery 3'] > 0 ? (rawAttendedCounts['Discovery 3'] / rawTotalCounts['Discovery 3']) * 100 : 0,
+      closing1: rawTotalCounts['Closing 1'] > 0 ? (rawAttendedCounts['Closing 1'] / rawTotalCounts['Closing 1']) * 100 : 0,
+      closing2: rawTotalCounts['Closing 2'] > 0 ? (rawAttendedCounts['Closing 2'] / rawTotalCounts['Closing 2']) * 100 : 0,
+      closing3: rawTotalCounts['Closing 3'] > 0 ? (rawAttendedCounts['Closing 3'] / rawTotalCounts['Closing 3']) * 100 : 0,
+    };
 
     return { callCounts, averageDurations, showUpRates };
   }, [filteredCalls]);
