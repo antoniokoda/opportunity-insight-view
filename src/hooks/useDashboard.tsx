@@ -1,75 +1,15 @@
 
-import { useState, useMemo } from 'react';
-import { format, subMonths, startOfDay, endOfDay, isWithinInterval, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { useOpportunities } from './useOpportunities';
 import { useCalls } from './useCalls';
 import { useSalespeople } from './useSalespeople';
 import { useLeadSourcesWithPersistence } from './useLeadSourcesWithPersistence';
+import { useDashboardFilters } from './dashboard/useDashboardFilters';
+import { useDashboardData } from './dashboard/useDashboardData';
+import { useDashboardKpis } from './dashboard/useDashboardKpis';
+import { useLeadSourceData } from './dashboard/useLeadSourceData';
+import { useCallMetrics } from './dashboard/useCallMetrics';
 
-export type PeriodType = 'days' | 'weeks' | 'months';
-
-export interface DateRange {
-  start: Date;
-  end: Date;
-}
-
-export interface DashboardKpis {
-  totalRevenue: number;
-  potentialRevenue: number;
-  totalCash: number;
-  totalCalls: number;
-  activeOpportunities: number;
-  averageDealSize: number;
-  closingRate: number;
-  proposalsPitched: number;
-  overallShowUpRate: number;
-  firstDiscoveryShowUpRate: number;
-}
-
-export interface KpiChanges {
-  revenueChange: number | null;
-  cashChange: number | null;
-  callsChange: number | null;
-  averageDealSizeChange: number | null;
-  closingRateChange: number | null;
-  showUpRateChange: number | null;
-  firstDiscoveryShowUpRateChange: number | null;
-}
-
-export interface ChartDataPoint {
-  date: string;
-  revenue: number;
-  cash: number;
-  calls: number;
-}
-
-export interface CallMetrics {
-  callCounts: {
-    discovery1: number;
-    discovery2: number;
-    discovery3: number;
-    closing1: number;
-    closing2: number;
-    closing3: number;
-  };
-  averageDurations: {
-    discovery1: number;
-    discovery2: number;
-    discovery3: number;
-    closing1: number;
-    closing2: number;
-    closing3: number;
-  };
-  showUpRates: {
-    discovery1: number;
-    discovery2: number;
-    discovery3: number;
-    closing1: number;
-    closing2: number;
-    closing3: number;
-  };
-}
+export * from './dashboard/types';
 
 export const useDashboard = () => {
   // Base data hooks
@@ -79,293 +19,37 @@ export const useDashboard = () => {
   const { salespeople, isLoading: salespeopleLoading } = useSalespeople();
   const { leadSources, isLoading: leadSourcesLoading } = useLeadSourcesWithPersistence();
 
-  // Filter states
-  const [selectedSalesperson, setSelectedSalesperson] = useState('all');
-  const [selectedMonth, setSelectedMonth] = useState('all');
-  const [selectedLeadSource, setSelectedLeadSource] = useState('all');
-  const [periodType, setPeriodType] = useState<PeriodType>('days');
-  const [dateRange, setDateRange] = useState<DateRange>({
-    start: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    end: new Date()
-  });
+  // Filters management
+  const {
+    filters,
+    availableMonths,
+    setSelectedSalesperson,
+    setSelectedMonth,
+    setSelectedLeadSource,
+    setPeriodType,
+    setDateRange,
+  } = useDashboardFilters(opportunities, allCalls);
+
+  // Filtered data
+  const { filteredOpportunities, filteredCalls } = useDashboardData(opportunities, allCalls, filters);
+
+  // KPIs calculation
+  const { kpis, kpiChanges } = useDashboardKpis(
+    opportunities,
+    allCalls,
+    filteredOpportunities,
+    filteredCalls,
+    filters
+  );
+
+  // Lead source data
+  const leadSourceData = useLeadSourceData(filteredOpportunities, leadSources);
+
+  // Call metrics
+  const callMetrics = useCallMetrics(filteredCalls);
 
   // Loading state
   const isLoading = opportunitiesLoading || callsLoading || metricsCallsLoading || salespeopleLoading || leadSourcesLoading;
-
-  // Available months for filter
-  const availableMonths = useMemo(() => {
-    if (!opportunities.length && !allCalls.length) return [{ value: 'all', label: 'Todos los meses' }];
-
-    const monthsWithData = new Set<string>();
-    
-    opportunities.forEach(opp => {
-      const month = format(new Date(opp.created_at), 'yyyy-MM');
-      monthsWithData.add(month);
-    });
-    
-    allCalls.forEach(call => {
-      const month = format(new Date(call.date), 'yyyy-MM');
-      monthsWithData.add(month);
-    });
-
-    const sortedMonths = Array.from(monthsWithData).sort().reverse();
-    
-    return [
-      { value: 'all', label: 'Todos los meses' },
-      ...sortedMonths.map(month => ({
-        value: month,
-        label: format(new Date(month + '-01'), 'MMMM yyyy', { locale: es })
-      }))
-    ];
-  }, [opportunities, allCalls]);
-
-  // Filtered data
-  const { filteredOpportunities, filteredCalls } = useMemo(() => {
-    const filteredOpps = opportunities.filter(opp => {
-      if (selectedSalesperson !== 'all' && opp.salesperson_id !== parseInt(selectedSalesperson)) {
-        return false;
-      }
-      if (selectedLeadSource !== 'all' && opp.lead_source !== selectedLeadSource) {
-        return false;
-      }
-      if (selectedMonth !== 'all') {
-        const oppMonth = format(new Date(opp.created_at), 'yyyy-MM');
-        if (oppMonth !== selectedMonth) {
-          return false;
-        }
-      }
-      return true;
-    });
-
-    const filteredCallsData = allCalls.filter(call => {
-      const opportunity = opportunities.find(opp => opp.id === call.opportunity_id);
-      if (!opportunity) return false;
-      
-      if (selectedSalesperson !== 'all' && opportunity.salesperson_id !== parseInt(selectedSalesperson)) {
-        return false;
-      }
-      if (selectedLeadSource !== 'all' && opportunity.lead_source !== selectedLeadSource) {
-        return false;
-      }
-      if (selectedMonth !== 'all') {
-        const callMonth = format(new Date(call.date), 'yyyy-MM');
-        if (callMonth !== selectedMonth) {
-          return false;
-        }
-      }
-      return true;
-    });
-
-    return { filteredOpportunities: filteredOpps, filteredCalls: filteredCallsData };
-  }, [opportunities, allCalls, selectedSalesperson, selectedLeadSource, selectedMonth]);
-
-  // KPIs calculation
-  const kpis: DashboardKpis = useMemo(() => {
-    const wonOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'won');
-    const totalRevenue = wonOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
-    const potentialRevenue = filteredOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
-    const totalCash = filteredOpportunities.reduce((sum, opp) => sum + opp.cash_collected, 0);
-    const totalCalls = filteredCalls.length;
-    const activeOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'active').length;
-
-    const lostOpportunities = filteredOpportunities.filter(opp => opp.opportunity_status === 'lost');
-    const closedOpportunities = wonOpportunities.length + lostOpportunities.length;
-
-    const averageDealSize = wonOpportunities.length > 0 
-      ? wonOpportunities.reduce((sum, opp) => sum + opp.revenue, 0) / wonOpportunities.length
-      : 0;
-    
-    const closingRate = closedOpportunities > 0 
-      ? (wonOpportunities.length / closedOpportunities) * 100
-      : 0;
-    
-    const proposalsPitched = filteredOpportunities.filter(opp => opp.proposal_status === 'pitched').length;
-
-    const now = new Date();
-    const pastFilteredCalls = filteredCalls.filter(call => new Date(call.date) <= now);
-
-    const attendedPastCalls = pastFilteredCalls.filter(call => call.attended === true).length;
-    const overallShowUpRate = pastFilteredCalls.length > 0
-      ? (attendedPastCalls / pastFilteredCalls.length) * 100
-      : 0;
-
-    const firstDiscoveryPastCalls = pastFilteredCalls.filter(call => call.type === 'Discovery 1');
-    const attendedFirstDiscoveryPast = firstDiscoveryPastCalls.filter(call => call.attended === true).length;
-    const firstDiscoveryShowUpRate = firstDiscoveryPastCalls.length > 0
-      ? (attendedFirstDiscoveryPast / firstDiscoveryPastCalls.length) * 100
-      : 0;
-
-    return {
-      totalRevenue,
-      potentialRevenue,
-      totalCash,
-      totalCalls,
-      activeOpportunities,
-      averageDealSize,
-      closingRate,
-      proposalsPitched,
-      overallShowUpRate,
-      firstDiscoveryShowUpRate,
-    };
-  }, [filteredOpportunities, filteredCalls]);
-
-  // KPI changes calculation
-  const kpiChanges: KpiChanges = useMemo(() => {
-    if (selectedMonth === 'all') {
-      return {
-        revenueChange: null,
-        cashChange: null,
-        callsChange: null,
-        averageDealSizeChange: null,
-        closingRateChange: null,
-        showUpRateChange: null,
-        firstDiscoveryShowUpRateChange: null,
-      };
-    }
-
-    const currentDate = new Date(selectedMonth + '-01');
-    const previousDate = subMonths(currentDate, 1);
-    const previousMonth = format(previousDate, 'yyyy-MM');
-
-    const previousOpportunities = opportunities.filter(opp => {
-      const oppMonth = format(new Date(opp.created_at), 'yyyy-MM');
-      if (oppMonth !== previousMonth) return false;
-      
-      if (selectedSalesperson !== 'all' && opp.salesperson_id !== parseInt(selectedSalesperson)) {
-        return false;
-      }
-      if (selectedLeadSource !== 'all' && opp.lead_source !== selectedLeadSource) {
-        return false;
-      }
-      return true;
-    });
-
-    const previousCalls = allCalls.filter(call => {
-      const callMonth = format(new Date(call.date), 'yyyy-MM');
-      if (callMonth !== previousMonth) return false;
-      
-      const opportunity = opportunities.find(opp => opp.id === call.opportunity_id);
-      if (!opportunity) return false;
-      
-      if (selectedSalesperson !== 'all' && opportunity.salesperson_id !== parseInt(selectedSalesperson)) {
-        return false;
-      }
-      if (selectedLeadSource !== 'all' && opportunity.lead_source !== selectedLeadSource) {
-        return false;
-      }
-      return true;
-    });
-
-    const calculateChange = (current: number, previous: number) => {
-      if (previous === 0) {
-        return current > 0 ? 100 : 0;
-      }
-      return ((current - previous) / previous) * 100;
-    };
-
-    // Calculate previous metrics
-    const previousRevenue = previousOpportunities.reduce((sum, opp) => sum + opp.revenue, 0);
-    const previousCash = previousOpportunities.reduce((sum, opp) => sum + opp.cash_collected, 0);
-    const previousCallsCount = previousCalls.length;
-
-    return {
-      revenueChange: calculateChange(kpis.totalRevenue, previousRevenue),
-      cashChange: calculateChange(kpis.totalCash, previousCash),
-      callsChange: calculateChange(kpis.totalCalls, previousCallsCount),
-      averageDealSizeChange: null,
-      closingRateChange: null,
-      showUpRateChange: null,
-      firstDiscoveryShowUpRateChange: null,
-    };
-  }, [opportunities, allCalls, filteredOpportunities, filteredCalls, selectedMonth, selectedSalesperson, selectedLeadSource, kpis]);
-
-  // Lead source data
-  const leadSourceData = useMemo(() => {
-    const customLeadSources = leadSources.map(ls => ls.name);
-    const sourceMap = new Map<string, number>();
-    
-    // Initialize all lead sources
-    customLeadSources.forEach(source => {
-      sourceMap.set(source, 0);
-    });
-    
-    // Count opportunities by lead source
-    filteredOpportunities.forEach(opp => {
-      const current = sourceMap.get(opp.lead_source) || 0;
-      sourceMap.set(opp.lead_source, current + 1);
-    });
-
-    return Array.from(sourceMap.entries())
-      .filter(([_, count]) => count > 0)
-      .map(([name, value]) => ({
-        name,
-        value,
-        fill: `hsl(${Math.random() * 360}, 70%, 50%)`
-      }));
-  }, [filteredOpportunities, leadSources]);
-
-  // Call metrics with proper type transformation
-  const callMetrics: CallMetrics = useMemo(() => {
-    const callTypes = ['Discovery 1', 'Discovery 2', 'Discovery 3', 'Closing 1', 'Closing 2', 'Closing 3'];
-    const rawCallCounts: Record<string, number> = {};
-    const rawTotalDurations: Record<string, number> = {};
-    const rawAttendedCounts: Record<string, number> = {};
-    const rawTotalCounts: Record<string, number> = {};
-
-    // Initialize
-    callTypes.forEach(type => {
-      rawCallCounts[type] = 0;
-      rawTotalDurations[type] = 0;
-      rawAttendedCounts[type] = 0;
-      rawTotalCounts[type] = 0;
-    });
-
-    // Process calls
-    const now = new Date();
-    const pastCalls = filteredCalls.filter(call => new Date(call.date) <= now);
-
-    pastCalls.forEach(call => {
-      if (callTypes.includes(call.type)) {
-        rawCallCounts[call.type]++;
-        rawTotalDurations[call.type] += call.duration;
-        rawTotalCounts[call.type]++;
-        
-        if (call.attended === true) {
-          rawAttendedCounts[call.type]++;
-        }
-      }
-    });
-
-    // Transform to expected format
-    const callCounts = {
-      discovery1: rawCallCounts['Discovery 1'],
-      discovery2: rawCallCounts['Discovery 2'],
-      discovery3: rawCallCounts['Discovery 3'],
-      closing1: rawCallCounts['Closing 1'],
-      closing2: rawCallCounts['Closing 2'],
-      closing3: rawCallCounts['Closing 3'],
-    };
-
-    const averageDurations = {
-      discovery1: rawCallCounts['Discovery 1'] > 0 ? rawTotalDurations['Discovery 1'] / rawCallCounts['Discovery 1'] : 0,
-      discovery2: rawCallCounts['Discovery 2'] > 0 ? rawTotalDurations['Discovery 2'] / rawCallCounts['Discovery 2'] : 0,
-      discovery3: rawCallCounts['Discovery 3'] > 0 ? rawTotalDurations['Discovery 3'] / rawCallCounts['Discovery 3'] : 0,
-      closing1: rawCallCounts['Closing 1'] > 0 ? rawTotalDurations['Closing 1'] / rawCallCounts['Closing 1'] : 0,
-      closing2: rawCallCounts['Closing 2'] > 0 ? rawTotalDurations['Closing 2'] / rawCallCounts['Closing 2'] : 0,
-      closing3: rawCallCounts['Closing 3'] > 0 ? rawTotalDurations['Closing 3'] / rawCallCounts['Closing 3'] : 0,
-    };
-
-    const showUpRates = {
-      discovery1: rawTotalCounts['Discovery 1'] > 0 ? (rawAttendedCounts['Discovery 1'] / rawTotalCounts['Discovery 1']) * 100 : 0,
-      discovery2: rawTotalCounts['Discovery 2'] > 0 ? (rawAttendedCounts['Discovery 2'] / rawTotalCounts['Discovery 2']) * 100 : 0,
-      discovery3: rawTotalCounts['Discovery 3'] > 0 ? (rawAttendedCounts['Discovery 3'] / rawTotalCounts['Discovery 3']) * 100 : 0,
-      closing1: rawTotalCounts['Closing 1'] > 0 ? (rawAttendedCounts['Closing 1'] / rawTotalCounts['Closing 1']) * 100 : 0,
-      closing2: rawTotalCounts['Closing 2'] > 0 ? (rawAttendedCounts['Closing 2'] / rawTotalCounts['Closing 2']) * 100 : 0,
-      closing3: rawTotalCounts['Closing 3'] > 0 ? (rawAttendedCounts['Closing 3'] / rawTotalCounts['Closing 3']) * 100 : 0,
-    };
-
-    return { callCounts, averageDurations, showUpRates };
-  }, [filteredCalls]);
 
   return {
     // Data
@@ -378,16 +62,16 @@ export const useDashboard = () => {
     isLoading,
     
     // Filters
-    selectedSalesperson,
+    selectedSalesperson: filters.selectedSalesperson,
     setSelectedSalesperson,
-    selectedMonth,
+    selectedMonth: filters.selectedMonth,
     setSelectedMonth,
-    selectedLeadSource,
+    selectedLeadSource: filters.selectedLeadSource,
     setSelectedLeadSource,
     availableMonths,
-    periodType,
+    periodType: filters.periodType,
     setPeriodType,
-    dateRange,
+    dateRange: filters.dateRange,
     setDateRange,
     
     // Computed data
