@@ -6,79 +6,16 @@ import { DashboardFilters } from '@/components/dashboard/DashboardFilters';
 import { CallDetails } from '@/components/dashboard/CallDetails';
 import { SalespersonManager } from '@/components/SalespersonManager';
 import { LeadSourceManager } from '@/components/LeadSourceManager';
-import { useOpportunities } from '@/hooks/useOpportunities';
-import { useCalls } from '@/hooks/useCalls';
-import { useSalespeople } from '@/hooks/useSalespeople';
-import { useLeadSourcesWithPersistence } from '@/hooks/useLeadSourcesWithPersistence';
-import { useDashboardFilters } from '@/hooks/useDashboardFilters';
-import { useDashboardKpis } from '@/hooks/useDashboardKpis';
-import { useDashboardChartData } from '@/hooks/useDashboardChartData';
-import { useLeadSourceData } from '@/hooks/useLeadSourceData';
-import { useDetailedCallMetrics } from '@/hooks/useDetailedCallMetrics';
-import { useDashboardKpiChanges } from '@/hooks/useDashboardKpiChanges';
-import { usePeriodFilter } from '@/hooks/usePeriodFilter';
+import { useDashboard } from '@/hooks/useDashboard';
 import { useAuth } from '@/hooks/useAuth';
 
 export const Dashboard = () => {
   const { user, session, loading: authLoading } = useAuth();
-  
-  // Dashboard debug logging
-  console.log('🔍 DASHBOARD DEBUG: Component rendered', {
-    hasUser: !!user,
-    userId: user?.id,
-    userEmail: user?.email,
-    hasSession: !!session,
-    authLoading
-  });
-
-  const { opportunities, isLoading: opportunitiesLoading } = useOpportunities();
-  const { calls: allCalls, isLoading: callsLoading } = useCalls();
-  // Get calls excluding future ones for metrics calculations
-  const { calls: metricsCall, isLoading: metricsCallsLoading } = useCalls(undefined, true);
-  
-  const { 
-    salespeople, 
-    isLoading: salespeopleLoading
-  } = useSalespeople();
-  
-  const { 
-    leadSources,
-    isLoading: leadSourcesLoading 
-  } = useLeadSourcesWithPersistence();
-
-  // Debug logging for data hooks
-  console.log('🔍 DASHBOARD DEBUG: Data hooks state', {
-    opportunities: {
-      count: opportunities?.length || 0,
-      loading: opportunitiesLoading
-    },
-    calls: {
-      allCallsCount: allCalls?.length || 0,
-      metricsCallsCount: metricsCall?.length || 0,
-      loading: callsLoading || metricsCallsLoading
-    },
-    salespeople: {
-      count: salespeople?.length || 0,
-      loading: salespeopleLoading
-    },
-    leadSources: {
-      count: leadSources?.length || 0,
-      loading: leadSourcesLoading
-    }
-  });
-
-  // Chart visibility state
-  const [visibleMetrics, setVisibleMetrics] = useState({
-    revenue: true,
-    cash: true,
-    calls: true,
-  });
-
-  // Nuevo hook para manejar período y rango de fechas
-  const { periodType, setPeriodType, dateRange, setDateRange } = usePeriodFilter();
-
-  // Use the updated dashboard filters hook that returns both filtered opportunities and calls
   const {
+    // Data and loading
+    isLoading,
+    
+    // Filters
     selectedSalesperson,
     setSelectedSalesperson,
     selectedMonth,
@@ -86,40 +23,22 @@ export const Dashboard = () => {
     selectedLeadSource,
     setSelectedLeadSource,
     availableMonths,
-    filteredOpportunities,
-    filteredCalls, // NEW: Get filtered calls from the hook
-  } = useDashboardFilters(opportunities, allCalls);
+    salespeople,
+    customLeadSources,
+    
+    // Computed data
+    kpis,
+    kpiChanges,
+    leadSourceData,
+    callMetrics,
+  } = useDashboard();
 
-  // Use filtered calls for KPI calculations
-  const kpis = useDashboardKpis(filteredOpportunities, filteredCalls);
-  
-  // Create custom lead sources from the persistent lead sources for backward compatibility
-  const customLeadSources = leadSources.map(ls => ls.name);
-  const leadSourceData = useLeadSourceData(filteredOpportunities, customLeadSources);
-  
-  // Get detailed call metrics for the filtered calls
-  const detailedCallMetrics = useDetailedCallMetrics(filteredCalls);
-
-  // Updated KPI changes hook with additional filter parameters
-  const kpiChanges = useDashboardKpiChanges(
-    opportunities, 
-    allCalls, 
-    filteredOpportunities, 
-    filteredCalls,
-    selectedMonth,
-    selectedSalesperson,
-    selectedLeadSource
-  );
-
-  // Debug logging for filtered data
-  console.log('🔍 DASHBOARD DEBUG: Filtered data', {
-    filteredOpportunities: filteredOpportunities?.length || 0,
-    filteredCalls: filteredCalls?.length || 0,
-    filters: {
-      selectedSalesperson,
-      selectedMonth,
-      selectedLeadSource
-    }
+  console.log('🔍 DASHBOARD DEBUG: Unified hook data', {
+    hasUser: !!user,
+    isLoading,
+    kpisCount: Object.keys(kpis).length,
+    leadSourceDataCount: leadSourceData.length,
+    callMetricsKeys: Object.keys(callMetrics.callCounts).length
   });
 
   if (authLoading) {
@@ -147,12 +66,11 @@ export const Dashboard = () => {
     return null;
   }
 
-  if (opportunitiesLoading || callsLoading || metricsCallsLoading || salespeopleLoading || leadSourcesLoading) {
+  if (isLoading) {
     console.log('🔍 DASHBOARD DEBUG: Data still loading...');
     return (
       <div className="space-y-8">
         <div className="animate-pulse space-y-8">
-          {/* Loading skeleton con mejor contraste */}
           <div className="h-8 bg-zinc-200 rounded-xl w-1/3"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map(i => (
@@ -168,15 +86,13 @@ export const Dashboard = () => {
     );
   }
 
-  console.log('🔍 DASHBOARD DEBUG: Rendering dashboard with data');
+  console.log('🔍 DASHBOARD DEBUG: Rendering dashboard with unified data');
 
   return (
     <div className="space-y-10">
       <div className="flex justify-between items-start">
         <div>
-          {/* Título principal con color primario para máximo contraste - Tarea 1.2 */}
           <h1 className="text-4xl font-bold text-zinc-900 tracking-tight mb-2">Dashboard</h1>
-          {/* Subtítulo con color secundario legible - Tarea 1.2 */}
           <p className="text-lg text-zinc-600 font-medium">
             Vista general de tu rendimiento de ventas
           </p>
@@ -197,14 +113,12 @@ export const Dashboard = () => {
 
       <DashboardKpis kpis={kpis} kpiChanges={kpiChanges} />
 
-      {/* Separador sutil entre secciones principales - Tarea 2.2 */}
       <div className="border-t border-zinc-200 pt-10">
         <DashboardCharts 
           leadSourceData={leadSourceData}
         />
       </div>
 
-      {/* Management section */}
       <div className="border-t border-zinc-200 pt-10">
         <h2 className="text-2xl font-bold text-zinc-900 mb-6">Gestión</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -213,12 +127,11 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Otro separador sutil para la sección de llamadas - Tarea 2.2 */}
       <div className="border-t border-zinc-200 pt-10">
         <CallDetails 
-          callCounts={detailedCallMetrics.callCounts}
-          averageDurations={detailedCallMetrics.averageDurations}
-          showUpRates={detailedCallMetrics.showUpRates}
+          callCounts={callMetrics.callCounts}
+          averageDurations={callMetrics.averageDurations}
+          showUpRates={callMetrics.showUpRates}
         />
       </div>
     </div>
