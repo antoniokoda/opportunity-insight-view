@@ -18,6 +18,8 @@ export const useOpportunityMutations = () => {
       lead_source: string;
       revenue: number;
       cash_collected: number;
+      pipeline_id?: string;
+      stage_id?: string;
     }) => {
       if (!user) throw new Error('Usuario no autenticado');
 
@@ -74,6 +76,7 @@ export const useOpportunityMutations = () => {
       // PASO 4: Primero invalidar queries, luego ejecutar callback con delay
       console.log('Invalidating queries first...');
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      queryClient.invalidateQueries({ queryKey: ['opportunities-with-pipeline'] });
       
       // Pequeño delay para asegurar que la lista esté actualizada
       setTimeout(() => {
@@ -121,6 +124,7 @@ export const useOpportunityMutations = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      queryClient.invalidateQueries({ queryKey: ['opportunities-with-pipeline'] });
       toast({
         title: 'Oportunidad actualizada',
         description: 'La oportunidad ha sido actualizada exitosamente.',
@@ -150,6 +154,7 @@ export const useOpportunityMutations = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      queryClient.invalidateQueries({ queryKey: ['opportunities-with-pipeline'] });
       toast({
         title: 'Oportunidad eliminada',
         description: 'La oportunidad ha sido eliminada exitosamente.',
