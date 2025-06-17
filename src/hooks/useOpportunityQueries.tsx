@@ -1,33 +1,44 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { handleError } from '@/utils/errorUtils';
 import type { Opportunity } from '@/types/opportunity';
 
-export const useOpportunityQueries = () => {
+const ITEMS_PER_PAGE = 10;
+
+interface UseOpportunityQueriesOptions {
+  page?: number;
+  searchTerm?: string;
+  status?: string;
+  sortBy?: 'created_at' | 'updated_at' | 'name';
+  sortOrder?: 'asc' | 'desc';
+}
+
+export const useOpportunityQueries = (options: UseOpportunityQueriesOptions = {}) => {
+  const {
+    page = 1,
+    searchTerm = '',
+    status,
+    sortBy = 'created_at',
+    sortOrder = 'desc',
+  } = options;
+
   const { user } = useAuth();
 
-  console.log('🔍 OPPORTUNITIES DEBUG: Hook called', {
-    hasUser: !!user,
-    userId: user?.id,
-    userEmail: user?.email
-  });
-
-  const { data: opportunities = [], isLoading, error } = useQuery({
-    queryKey: ['opportunities'],
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['opportunities', page, searchTerm, status, sortBy, sortOrder],
     queryFn: async () => {
-      console.log('🔍 OPPORTUNITIES DEBUG: Starting query...');
-      
       if (!user) {
-        console.log('🔍 OPPORTUNITIES DEBUG: No user, returning empty array');
-        return [];
+        return {
+          opportunities: [],
+          total: 0,
+          page,
+          totalPages: 0,
+        };
       }
 
-      console.log('🔍 OPPORTUNITIES DEBUG: Fetching all opportunities (shared data model)');
-
       try {
-        // Fetch all opportunities (no user filtering - shared data model)
-        const { data, error } = await supabase
+        let query = supabase
           .from('opportunities')
           .select(`
             *,
@@ -42,42 +53,52 @@ export const useOpportunityQueries = () => {
               user_id,
               created_at
             )
-          `)
-          .order('created_at', { ascending: false });
+          `, { count: 'exact' });
 
-        if (error) {
-          console.error('🔍 OPPORTUNITIES DEBUG: Query error:', error);
-          throw error;
+        // Apply filters
+        if (searchTerm) {
+          query = query.ilike('name', `%${searchTerm}%`);
         }
 
-        console.log('🔍 OPPORTUNITIES DEBUG: Query successful', {
-          resultCount: data?.length || 0,
-          data: data
-        });
+        if (status) {
+          query = query.eq('status', status);
+        }
 
-        return data as Opportunity[];
-      } catch (queryError) {
-        console.error('🔍 OPPORTUNITIES DEBUG: Query failed:', queryError);
-        throw queryError;
+        // Apply sorting
+        query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+
+        // Apply pagination
+        const from = (page - 1) * ITEMS_PER_PAGE;
+        const to = from + ITEMS_PER_PAGE - 1;
+        query = query.range(from, to);
+
+        const { data: opportunities, error: queryError, count } = await query;
+
+        if (queryError) {
+          throw queryError;
+        }
+
+        return {
+          opportunities: opportunities as Opportunity[],
+          total: count || 0,
+          page,
+          totalPages: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+        };
+      } catch (error) {
+        handleError(error, 'useOpportunityQueries');
+        throw error;
       }
     },
     enabled: !!user,
-    meta: {
-      onError: (error: any) => {
-        console.error('🔍 OPPORTUNITIES DEBUG: Query hook error:', error);
-      }
-    }
-  });
-
-  console.log('🔍 OPPORTUNITIES DEBUG: Hook result', {
-    opportunitiesCount: opportunities?.length || 0,
-    isLoading,
-    hasError: !!error,
-    error: error?.message
+    placeholderData: (previousData) => previousData,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   return {
-    opportunities,
+    opportunities: data?.opportunities || [],
+    total: data?.total || 0,
+    page: data?.page || 1,
+    totalPages: data?.totalPages || 0,
     isLoading,
     error,
   };
