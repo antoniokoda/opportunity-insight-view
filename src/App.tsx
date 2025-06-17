@@ -8,7 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Dashboard } from "@/pages/Dashboard";
-import { Pipeline } from "@/pages/Pipeline";
+import { Opportunities } from "@/pages/Opportunities";
 import { Calendar } from "@/pages/Calendar";
 import { Auth } from "@/pages/Auth";
 import { ResetPassword } from "@/pages/ResetPassword";
@@ -36,7 +36,7 @@ const App = () => (
             <Route path="/opportunities" element={
               <ProtectedRoute>
                 <MainLayout>
-                  <Pipeline />
+                  <Opportunities />
                 </MainLayout>
               </ProtectedRoute>
             } />

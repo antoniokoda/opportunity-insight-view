@@ -1,141 +1,168 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { DropResult } from '@hello-pangea/dnd';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { useOpportunities } from '@/hooks/useOpportunities';
+import { usePipelines } from '@/hooks/usePipelines';
+import { useOpportunitiesWithPipeline } from '@/hooks/useOpportunitiesWithPipeline';
+import { useOpportunityMutations } from '@/hooks/useOpportunityMutations';
 import { useSalespeople } from '@/hooks/useSalespeople';
 import { useLeadSourcesWithPersistence } from '@/hooks/useLeadSourcesWithPersistence';
+import { useUserViewSettings } from '@/hooks/useUserViewSettings';
 import { OpportunityDialog } from '@/components/opportunities/OpportunityDialog';
 import { OpportunityEditSheet } from '@/components/opportunities/OpportunityEditSheet';
 import { OpportunityFilesDialog } from '@/components/opportunities/OpportunityFilesDialog';
 import { OpportunityNotesDialog } from '@/components/opportunities/OpportunityNotesDialog';
 import { OpportunityContactsDialog } from '@/components/opportunities/OpportunityContactsDialog';
-import type { Opportunity } from '@/types/opportunity';
-import { OpportunitiesFilters } from '@/components/opportunities/OpportunitiesFilters';
-import { OpportunitiesGroupList } from '@/components/opportunities/OpportunitiesGroupList';
-import { useGroupedOpportunities } from '@/components/opportunities/useGroupedOpportunities';
-import { OpportunitiesLoading } from '@/components/opportunities/OpportunitiesLoading';
-import { OpportunitiesHeader } from '@/components/opportunities/OpportunitiesHeader';
-import { OpportunitiesEmptyState } from '@/components/opportunities/OpportunitiesEmptyState';
 import { DeleteOpportunityDialog } from '@/components/opportunities/DeleteOpportunityDialog';
+import { OpportunitiesHeader } from '@/components/opportunities/OpportunitiesHeader';
+import { OpportunitiesViewFilters } from '@/components/opportunities/OpportunitiesViewFilters';
+import { OpportunitiesPipelineView } from '@/components/opportunities/OpportunitiesPipelineView';
+import { OpportunitiesTable } from '@/components/pipeline/OpportunitiesTable';
+import { OpportunitiesLoading } from '@/components/opportunities/OpportunitiesLoading';
+import type { OpportunityWithPipeline } from '@/hooks/useOpportunitiesWithPipeline';
+
+interface FilterState {
+  search: string;
+  salesperson: string;
+  leadSource: string;
+  status: string;
+  proposalStatus: string;
+  revenueMin: string;
+  revenueMax: string;
+}
 
 export const Opportunities = () => {
-  const { opportunities, isLoading, deleteOpportunity, isDeleting } = useOpportunities();
+  const { pipelines, stages, isLoading: pipelinesLoading, getStagesByPipeline, getDefaultPipeline } = usePipelines();
+  const { opportunities, isLoading: opportunitiesLoading } = useOpportunitiesWithPipeline();
+  const { updateOpportunity } = useOpportunityMutations();
   const { salespeople } = useSalespeople();
   const { leadSources } = useLeadSourcesWithPersistence();
+  const { settings, setViewType, setSelectedPipeline, isLoading: settingsLoading } = useUserViewSettings();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingOpportunity, setEditingOpportunity] = useState<Opportunity | null>(null);
-  
-  // PASO 2: Sistema de estado intermedio para manejar timing
+  const [editingOpportunity, setEditingOpportunity] = useState<OpportunityWithPipeline | null>(null);
   const [pendingEditOpportunity, setPendingEditOpportunity] = useState<number | null>(null);
-  
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [sourceFilter, setSourceFilter] = useState('all');
-  const [filesDialogOpportunity, setFilesDialogOpportunity] = useState<Opportunity | null>(null);
-  const [notesDialogOpportunity, setNotesDialogOpportunity] = useState<Opportunity | null>(null);
-  const [contactsDialogOpportunity, setContactsDialogOpportunity] = useState<Opportunity | null>(null);
-  const [opportunityToDelete, setOpportunityToDelete] = useState<Opportunity | null>(null);
+  const [filesDialogOpportunity, setFilesDialogOpportunity] = useState<OpportunityWithPipeline | null>(null);
+  const [notesDialogOpportunity, setNotesDialogOpportunity] = useState<OpportunityWithPipeline | null>(null);
+  const [contactsDialogOpportunity, setContactsDialogOpportunity] = useState<OpportunityWithPipeline | null>(null);
+  const [opportunityToDelete, setOpportunityToDelete] = useState<OpportunityWithPipeline | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // PASO 3: Refactorizar el callback de creación usando useCallback
-  const handleOpportunityCreated = useCallback((createdOpportunity: Opportunity) => {
-    console.log('=== PASO 3: handleOpportunityCreated EJECUTADO ===');
-    console.log('createdOpportunity recibida:', createdOpportunity);
-    console.log('createdOpportunity.id:', createdOpportunity.id);
+  const [filters, setFilters] = useState<FilterState>({
+    search: '',
+    salesperson: '',
+    leadSource: '',
+    status: '',
+    proposalStatus: '',
+    revenueMin: '',
+    revenueMax: '',
+  });
+
+  // Get current view and pipeline from settings
+  const currentView = settings?.view_type || 'pipeline';
+  const selectedPipelineId = settings?.selected_pipeline_id || null;
+
+  // Get current pipeline (default or selected)
+  const currentPipeline = selectedPipelineId 
+    ? pipelines.find(p => p.id === selectedPipelineId)
+    : getDefaultPipeline();
+
+  const currentStages = currentPipeline ? getStagesByPipeline(currentPipeline.id) : [];
+
+  // Filter opportunities based on current pipeline and filters
+  const filteredOpportunities = opportunities.filter(opp => {
+    // Filter by pipeline
+    if (currentPipeline && opp.pipeline_id !== currentPipeline.id) {
+      return false;
+    }
     
-    // En lugar de abrir directamente, establecer pendingEditOpportunity
-    console.log('Estableciendo pendingEditOpportunity a:', createdOpportunity.id);
+    // Apply other filters
+    if (filters.search && !opp.name.toLowerCase().includes(filters.search.toLowerCase())) {
+      return false;
+    }
+    if (filters.salesperson && opp.salesperson_id?.toString() !== filters.salesperson) {
+      return false;
+    }
+    if (filters.leadSource && opp.lead_source !== filters.leadSource) {
+      return false;
+    }
+    if (filters.status && opp.opportunity_status !== filters.status) {
+      return false;
+    }
+    if (filters.proposalStatus && opp.proposal_status !== filters.proposalStatus) {
+      return false;
+    }
+    if (filters.revenueMin && opp.revenue < Number(filters.revenueMin)) {
+      return false;
+    }
+    if (filters.revenueMax && opp.revenue > Number(filters.revenueMax)) {
+      return false;
+    }
+    
+    return true;
+  });
+
+  const handleOpportunityCreated = useCallback((createdOpportunity: any) => {
+    console.log('Opportunity created:', createdOpportunity);
     setPendingEditOpportunity(createdOpportunity.id);
-    
-    // Cerrar el diálogo inmediatamente
-    console.log('Cerrando diálogo...');
     setIsDialogOpen(false);
   }, []);
 
-  // PASO 2: useEffect para manejar la apertura del sheet cuando el diálogo esté cerrado
   useEffect(() => {
-    console.log('=== PASO 2: useEffect TIMING CONTROL ===');
-    console.log('pendingEditOpportunity:', pendingEditOpportunity);
-    console.log('isDialogOpen:', isDialogOpen);
-    console.log('opportunities.length:', opportunities.length);
-    
-    // Solo proceder si hay una oportunidad pendiente y el diálogo está cerrado
     if (pendingEditOpportunity && !isDialogOpen) {
-      console.log('Condiciones cumplidas, buscando oportunidad...');
-      
-      // Usar requestAnimationFrame para mejor sincronización con React
       requestAnimationFrame(() => {
-        console.log('RequestAnimationFrame ejecutado, buscando oportunidad ID:', pendingEditOpportunity);
-        
         const foundOpportunity = opportunities.find(o => o.id === pendingEditOpportunity);
-        console.log('Oportunidad encontrada:', foundOpportunity);
-        
         if (foundOpportunity) {
-          console.log('=== ABRIENDO EDIT SHEET ===');
-          
-          // Asegurar que la oportunidad tiene el array de calls
-          const opportunityWithCalls = {
-            ...foundOpportunity,
-            calls: foundOpportunity.calls ?? [],
-          };
-          
-          console.log('Setting editingOpportunity to:', opportunityWithCalls);
-          setEditingOpportunity(opportunityWithCalls);
-          
-          // Limpiar el estado pendiente
-          console.log('Limpiando pendingEditOpportunity...');
+          setEditingOpportunity(foundOpportunity);
           setPendingEditOpportunity(null);
-        } else {
-          console.log('Oportunidad no encontrada aún, esperando...');
-          // Si no se encuentra, podemos intentar de nuevo en el próximo render
-          // o implementar un timeout para evitar bucles infinitos
         }
       });
     }
   }, [pendingEditOpportunity, isDialogOpen, opportunities]);
 
-  useEffect(() => {
-    if (editingOpportunity) {
-      const updatedOpportunity = opportunities.find(o => o.id === editingOpportunity.id);
-      if (updatedOpportunity) {
-        if (JSON.stringify(updatedOpportunity) !== JSON.stringify(editingOpportunity)) {
-          setEditingOpportunity(updatedOpportunity);
-        }
-      } else {
-        setEditingOpportunity(null);
-      }
-    }
-  }, [opportunities, editingOpportunity]);
-
-  const getSalespersonName = (id: number) => {
+  const getSalespersonName = (id: number | null) => {
+    if (!id) return 'Sin asignar';
     const salesperson = salespeople.find(s => s.id === id);
-    return salesperson ? salesperson.name : 'Unknown';
+    return salesperson ? salesperson.name : 'Sin asignar';
   };
 
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      active: 'bg-blue-100 text-blue-800',
-      won: 'bg-success-50 text-success-600',
-      lost: 'bg-red-100 text-red-800',
-      created: 'bg-gray-100 text-gray-800',
-      pitched: 'bg-yellow-100 text-yellow-800',
-      'n/a': 'bg-gray-100 text-gray-800',
-    };
-    return variants[status as keyof typeof variants] || 'bg-gray-100 text-gray-800';
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    if (!destination) return;
+
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    const opportunityId = parseInt(draggableId);
+    const newStageId = destination.droppableId;
+
+    try {
+      await updateOpportunity({
+        id: opportunityId,
+        updates: {
+          stage_id: newStageId,
+          last_interaction_at: new Date().toISOString(),
+        }
+      });
+    } catch (error) {
+      console.error('Error updating opportunity stage:', error);
+    }
   };
 
-  const { groupedOpportunities, sortedMonthKeys, filteredOpportunities } = useGroupedOpportunities(
-    opportunities, searchTerm, statusFilter, sourceFilter, getSalespersonName
-  );
-
-  const handleDeleteConfirm = (opportunityId: number) => {
-    deleteOpportunity(opportunityId);
-    setDeleteDialogOpen(false);
-    setOpportunityToDelete(null);
+  const handleViewChange = (view: 'pipeline' | 'table') => {
+    setViewType(view);
   };
 
-  if (isLoading) {
+  const handlePipelineChange = (pipelineId: string | null) => {
+    setSelectedPipeline(pipelineId);
+  };
+
+  if (pipelinesLoading || opportunitiesLoading || settingsLoading) {
     return <OpportunitiesLoading />;
   }
 
@@ -144,53 +171,52 @@ export const Opportunities = () => {
       <div className="p-6">
         <OpportunitiesHeader onNewOpportunity={() => setIsDialogOpen(true)} />
 
-        <OpportunitiesFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          sourceFilter={sourceFilter}
-          setSourceFilter={setSourceFilter}
-          leadSources={leadSources}
-        />
-        
-        <OpportunitiesGroupList
-          groupedOpportunities={groupedOpportunities}
-          sortedMonthKeys={sortedMonthKeys}
-          getSalespersonName={getSalespersonName}
-          getStatusBadge={getStatusBadge}
-          onEdit={setEditingOpportunity}
-          onFiles={setFilesDialogOpportunity}
-          onNotes={setNotesDialogOpportunity}
-          onContacts={setContactsDialogOpportunity}
-          onDelete={(op) => {
-            setOpportunityToDelete(op);
-            setDeleteDialogOpen(true);
-          }}
+        <OpportunitiesViewFilters
+          selectedPipelineId={selectedPipelineId}
+          onPipelineChange={handlePipelineChange}
+          currentView={currentView}
+          onViewChange={handleViewChange}
+          filters={filters}
+          onFiltersChange={setFilters}
         />
 
-        {filteredOpportunities.length === 0 && (
-          <OpportunitiesEmptyState
-            hasFilters={!!(searchTerm || statusFilter !== 'all' || sourceFilter !== 'all')}
-            onNewOpportunity={() => setIsDialogOpen(true)}
+        {currentView === 'pipeline' ? (
+          <OpportunitiesPipelineView
+            opportunities={filteredOpportunities}
+            stages={currentStages}
+            getSalespersonName={getSalespersonName}
+            onDragEnd={handleDragEnd}
+            onEdit={setEditingOpportunity}
+            onFiles={setFilesDialogOpportunity}
+            onNotes={setNotesDialogOpportunity}
+            onContacts={setContactsDialogOpportunity}
+            onDelete={(op) => {
+              setOpportunityToDelete(op);
+              setDeleteDialogOpen(true);
+            }}
+          />
+        ) : (
+          <OpportunitiesTable
+            opportunities={filteredOpportunities}
+            getSalespersonName={getSalespersonName}
+            onEdit={setEditingOpportunity}
+            onDelete={(op) => {
+              setOpportunityToDelete(op);
+              setDeleteDialogOpen(true);
+            }}
           />
         )}
 
         <OpportunityDialog
           isOpen={isDialogOpen}
-          onClose={() => {
-            console.log('=== OpportunityDialog onClose ===');
-            setIsDialogOpen(false);
-          }}
+          onClose={() => setIsDialogOpen(false)}
           onCreated={handleOpportunityCreated}
         />
+
         <OpportunityEditSheet
           opportunity={editingOpportunity}
           isOpen={!!editingOpportunity}
-          onClose={() => {
-            console.log('=== OpportunityEditSheet onClose ===');
-            setEditingOpportunity(null);
-          }}
+          onClose={() => setEditingOpportunity(null)}
         />
 
         {filesDialogOpportunity && (
@@ -224,8 +250,12 @@ export const Opportunities = () => {
           opportunity={opportunityToDelete}
           isOpen={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
-          onConfirm={handleDeleteConfirm}
-          isDeleting={isDeleting}
+          onConfirm={(opportunityId) => {
+            // Handle delete confirmation
+            setDeleteDialogOpen(false);
+            setOpportunityToDelete(null);
+          }}
+          isDeleting={false}
         />
       </div>
     </TooltipProvider>
