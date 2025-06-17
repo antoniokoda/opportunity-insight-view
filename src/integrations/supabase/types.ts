@@ -423,6 +423,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_view_settings: {
+        Row: {
+          column_settings: Json | null
+          created_at: string
+          filters: Json | null
+          id: string
+          selected_pipeline_id: string | null
+          sort_settings: Json | null
+          updated_at: string
+          user_id: string
+          view_type: string
+        }
+        Insert: {
+          column_settings?: Json | null
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          selected_pipeline_id?: string | null
+          sort_settings?: Json | null
+          updated_at?: string
+          user_id: string
+          view_type?: string
+        }
+        Update: {
+          column_settings?: Json | null
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          selected_pipeline_id?: string | null
+          sort_settings?: Json | null
+          updated_at?: string
+          user_id?: string
+          view_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       opportunities_with_pipeline: {
